@@ -1,6 +1,11 @@
 import Image from "next/image";
+import { db } from "@/db";
+import { subscriptionsTable } from "@/db/schema";
 
-export default function Home() {
+export default async function Home() {
+  // Fetch subscriptions from the database
+  const subscriptions = await db.select().from(subscriptionsTable);
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -12,6 +17,26 @@ export default function Home() {
           height={38}
           priority
         />
+
+        <div className="w-full max-w-4xl">
+          <h2 className="text-2xl font-bold mb-4">Your Subscriptions</h2>
+
+          {subscriptions.length === 0 ? (
+            <p className="text-gray-500">No subscriptions found. Add some to get started.</p>
+          ) : (
+            <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {subscriptions.map((subscription) => (
+                <li 
+                  key={subscription.id} 
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <h3 className="font-semibold text-lg">{subscription.name}</h3>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2 tracking-[-.01em]">
             Get started by editing{" "}
