@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { db } from "@/db";
-import { subscriptionsTable } from "@/db/schema";
+import { subscriptionsTable } from "@/db/schema/app";
 
 export default async function Home() {
   // Fetch subscriptions from the database
