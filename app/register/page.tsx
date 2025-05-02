@@ -2,8 +2,19 @@ import { GalleryVerticalEnd } from "lucide-react"
 
 import {RegisterForm} from "@/components/register-form";
 import Link from "next/link";
+import {auth} from "@/lib/auth";
+import {headers} from "next/headers";
+import {redirect} from "next/navigation";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if (session) {
+    return redirect("/dashboard")
+  }
+
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
