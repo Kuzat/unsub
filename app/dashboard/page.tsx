@@ -1,48 +1,29 @@
-import { auth } from "@/lib/auth";
-import {headers} from "next/headers";
-import {Button} from "@/components/ui/button";
-import {authClient} from "@/lib/client";
-import {redirect} from "next/navigation";
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
-
-export default async function DashboardPage() {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect("/login");
-  }
-
-  const handleSignOut = async () => {
-    "use server"
-    try {
-      await auth.api.signOut({
-        headers: await headers()
-      });
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-
-    return redirect("/login")
-  }
-
+export default function Page() {
   return (
-  <div className="mx-auto flex min-h-screen max-w-4xl flex-col p-8">
-    <header className="flex items-center justify-between pb-8">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <form
-        action={handleSignOut}
-      >
-        <Button type="submit">Sign out</Button>
-      </form>
-    </header>
-    <main className="flex-1">
-      <div className="rounded-lg border p-8 text-center">
-        <h2 className="text-2xl font-semibold">Welcome to your dashboard! {session.user.name}!</h2>
-        <p className="mt-2 text-muted-foreground">You have successfully logged in to the application.</p>
-      </div>
-    </main>
-  </div>
-  );
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <div className="bg-muted/50 aspect-video rounded-xl" />
+            <div className="bg-muted/50 aspect-video rounded-xl" />
+            <div className="bg-muted/50 aspect-video rounded-xl" />
+          </div>
+          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }
