@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar"
 import {authClient} from "@/lib/client";
 import Link from "next/link";
+import {usePathname} from "next/navigation";
 
 const data = {
   navMain: [
@@ -39,7 +40,7 @@ const data = {
       title: "Subscriptions",
       url: "#",
       icon: UserRound,
-      isActive: true,
+      isActive: false,
       items: [
         {
           title: "All Subscriptions",
@@ -98,7 +99,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const {
     data: session,
   } = authClient.useSession()
-
   const user = session?.user
 
   return (
@@ -120,7 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain}  />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
