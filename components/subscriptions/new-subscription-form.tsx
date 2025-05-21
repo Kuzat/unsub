@@ -25,7 +25,7 @@ type FormValues = z.infer<typeof createSubscriptionSchema>;
 export default function NewSubscriptionForm() {
   const router = useRouter();
   const [dateOpen, setDateOpen] = React.useState(false)
-  const services = [{id: "58603f85-4cc5-40d1-8e2a-35ce1acb6e48", name: "Netflix"}]
+  const services = [{id: "0fd62bc2-f844-4f17-a507-966ee23ef696", name: "Netflix"}]
 
 
   const form = useForm({
@@ -211,7 +211,7 @@ export default function NewSubscriptionForm() {
                     step="0.01"
                     placeholder="9.99"
                     {...field}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -249,7 +249,7 @@ export default function NewSubscriptionForm() {
                   min={0}
                   max={365}
                   {...field}
-                  onChange={(e) => field.onChange(e.target.value)}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
                 />
               </FormControl>
               <FormMessage />

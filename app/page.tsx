@@ -1,11 +1,8 @@
 import Image from "next/image";
-import {db} from "@/db";
-import {subscriptionsTable} from "@/db/schema/app";
 import Header from "@/components/landing/header";
 
 export default async function Home() {
   // Fetch subscriptions from the database
-  const subscriptions = await db.select().from(subscriptionsTable);
 
   return (
     <div>
@@ -25,21 +22,6 @@ export default async function Home() {
 
           <div className="w-full max-w-4xl">
             <h2 className="text-2xl font-bold mb-4">Your Subscriptions</h2>
-
-            {subscriptions.length === 0 ? (
-              <p className="text-gray-500">No subscriptions found. Add some to get started.</p>
-            ) : (
-              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {subscriptions.map((subscription) => (
-                  <li
-                    key={subscription.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="font-semibold text-lg">{subscription.name}</h3>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
 
           <ol

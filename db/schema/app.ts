@@ -6,7 +6,7 @@ import {relations} from "drizzle-orm";
 /* ---------- service ---------- */
 export const service = pgTable("service", {
   id: text("id").primaryKey(), // UUID string
-  name: text("name").notNull(),
+  name: text("name").unique().notNull(),
   category: categoryEnum("category").notNull(),
   url: text("url"),
   description: text("description"),
@@ -37,6 +37,7 @@ export const subscription = pgTable(
       precision: 4,
       scale: 0,
     }).default("5"),
+    notes: text("notes"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
