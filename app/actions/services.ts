@@ -26,7 +26,6 @@ export async function searchServices(query: string): Promise<Service[]> {
     const services = await db
       .select()
       .from(service)
-      .orderBy(() => sql`RANDOM()`)
       .limit(5);
     return services;
   }

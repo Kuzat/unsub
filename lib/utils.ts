@@ -13,10 +13,10 @@ export function formatDate(dateString: string): string {
   })
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currency,
     minimumFractionDigits: 2,
   }).format(amount)
 }
