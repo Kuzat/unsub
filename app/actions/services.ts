@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { service } from "@/db/schema/app";
-import { ilike } from "drizzle-orm";
+import { ilike, sql } from "drizzle-orm";
 import crypto from "crypto";
 import {CreateServiceFormValues} from "@/lib/validation/service";
 
@@ -22,8 +22,12 @@ export type Service = {
  */
 export async function searchServices(query: string): Promise<Service[]> {
   if (!query || query.trim() === "") {
-    // Return all services if no query is provided
-    const services = await db.select().from(service).limit(20);
+    // Return 5 random services if no query is provided
+    const services = await db
+      .select()
+      .from(service)
+      .orderBy(() => sql`RANDOM()`)
+      .limit(5);
     return services;
   }
 

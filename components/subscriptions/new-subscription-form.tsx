@@ -20,7 +20,7 @@ import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
 import {searchServices, Service, createService} from "@/app/actions/services";
 import {toast} from "sonner";
-import {Combobox} from "@/components/ui/combobox";
+// Removed Combobox import as we're using a regular search input
 import Image from "next/image";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
@@ -39,6 +39,7 @@ export default function NewSubscriptionForm() {
   const [isCreatingService, setIsCreatingService] = React.useState(false);
   const [priceInput, setPriceInput] = React.useState<string>('0');
   const [remindDaysInput, setRemindDaysInput] = React.useState<string>('5');
+  const [searchQuery, setSearchQuery] = React.useState<string>('');
 
   // Load initial services
   React.useEffect(() => {
@@ -59,6 +60,7 @@ export default function NewSubscriptionForm() {
 
   // Handle service search
   const handleServiceSearch = async (query: string) => {
+    setSearchQuery(query)
     setIsLoadingServices(true)
     try {
       const services = await searchServices(query)
@@ -118,7 +120,9 @@ export default function NewSubscriptionForm() {
 
   // Go back to service selection
   const handleBackToServiceSelection = () => {
+    // Keep the search query when going back to service selection
     setCurrentStep("selectService");
+    // We don't need to reset searchQuery as we want to remember it
   }
 
 
@@ -170,15 +174,55 @@ export default function NewSubscriptionForm() {
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Select a Service</h2>
           <div className="relative">
-            <Combobox
-              options={services.map(s => ({ value: s.id, label: s.name }))}
-              value=""
-              onValueChange={handleServiceSelect}
-              placeholder="Search for a service..."
-              emptyMessage="No services found"
-              loading={isLoadingServices}
-              onSearch={handleServiceSearch}
-            />
+            <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
+              <Input
+                type="text"
+                placeholder="Search for a service..."
+                value={searchQuery}
+                onChange={(e) => handleServiceSearch(e.target.value)}
+                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+
+            {/* Service list */}
+            <div className="mt-2 max-h-[300px] overflow-y-auto rounded-md border">
+              {isLoadingServices ? (
+                <div className="py-6 text-center text-sm">Loading...</div>
+              ) : services.length === 0 ? (
+                <div className="py-6 text-center text-sm">No services found</div>
+              ) : (
+                <div className="space-y-1 p-1">
+                  {services.map((service) => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-muted"
+                      onClick={() => handleServiceSelect(service.id)}
+                    >
+                      {service.logoUrl ? (
+                        <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
+                          <Image 
+                            src={service.logoUrl} 
+                            alt={service.name} 
+                            width={32} 
+                            height={32} 
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-8 w-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold">{service.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{service.name}</p>
+                        <p className="text-xs text-muted-foreground">{service.category}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
