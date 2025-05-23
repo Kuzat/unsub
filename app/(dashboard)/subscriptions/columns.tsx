@@ -25,8 +25,8 @@ export const columns: ColumnDef<typeof subscription.$inferSelect>[] = [
     cell: ({row}) => formatDate(row.getValue("startDate")),
   },
   {
-    accessorKey: "startDate",
+    accessorKey: "nextRenewal",
     header: "Next Renewal",
-    cell: ({row}) => formatDate(calculateNextRenewal(row.getValue("startDate"), row.original.billingCycle).toISOString()),
+    cell: ({row}) => formatDate(calculateNextRenewal(row.original.startDate, row.original.billingCycle).toISOString()),
   },
 ]

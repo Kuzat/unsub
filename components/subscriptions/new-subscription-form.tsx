@@ -19,7 +19,7 @@ import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
 import {searchServices, Service} from "@/app/actions/services";
 import {toast} from "sonner";
-import {Combobox, ComboboxOption} from "@/components/ui/combobox";
+import {Combobox } from "@/components/ui/combobox";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 
@@ -29,6 +29,8 @@ export default function NewSubscriptionForm() {
   const [dateOpen, setDateOpen] = React.useState(false)
   const [services, setServices] = React.useState<Service[]>([])
   const [isLoadingServices, setIsLoadingServices] = React.useState(false)
+  const [priceInput, setPriceInput] = React.useState<string>('0')
+  const [remindDaysInput, setRemindDaysInput] = React.useState<string>('5')
 
   // Load initial services
   React.useEffect(() => {
@@ -240,8 +242,16 @@ export default function NewSubscriptionForm() {
                     type="number"
                     step="0.01"
                     placeholder="9.99"
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    value={priceInput}
+                    onChange={(e) => {
+                      setPriceInput(e.target.value);
+                      field.onChange(e.target.value === '' ? 0 : e.target.valueAsNumber);
+                    }}
+                    onBlur={() => {
+                      if (priceInput === '') {
+                        setPriceInput('0');
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -278,8 +288,16 @@ export default function NewSubscriptionForm() {
                   type="number"
                   min={0}
                   max={365}
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                  value={remindDaysInput}
+                  onChange={(e) => {
+                    setRemindDaysInput(e.target.value);
+                    field.onChange(e.target.value === '' ? 0 : e.target.valueAsNumber);
+                  }}
+                  onBlur={() => {
+                    if (remindDaysInput === '') {
+                      setRemindDaysInput('0');
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />

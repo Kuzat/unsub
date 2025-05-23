@@ -5,8 +5,8 @@ type Currency = typeof currencyEnum.enumValues[number];
 
 export const createSubscriptionSchema = z.object({
   serviceId: z
-    .string({required_error: "Select a service"})
-    .uuid("Invalid service id"),
+    .string({required_error: "Select a service", invalid_type_error: "Select a service"})
+    .uuid("Select a service"),
   alias: z.string().optional(),
   startDate: z.date({required_error: "Start date is required"}),
   billingCycle: z.enum(
