@@ -6,7 +6,6 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription} from "@/db/schema/app";
-import {currencyEnum} from "@/db/schema/_common";
 
 type ActionResult =
   | { success: string }

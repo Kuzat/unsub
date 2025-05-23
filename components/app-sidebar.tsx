@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/sidebar"
 import {authClient} from "@/lib/client";
 import Link from "next/link";
-import {usePathname} from "next/navigation";
 
 const data = {
   navMain: [
