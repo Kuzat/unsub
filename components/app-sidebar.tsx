@@ -37,22 +37,23 @@ const data = {
     },
     {
       title: "Subscriptions",
-      url: "#",
+      url: "/subscriptions",
       icon: UserRound,
+      collapsible: false,
       isActive: false,
       items: [
-        {
-          title: "All Subscriptions",
-          url: "#",
-        },
-        {
-          title: "Upcoming",
-          url: "#",
-        },
-        {
-          title: "Cancelled/Inactive",
-          url: "#",
-        },
+        // {
+        //   title: "All Subscriptions",
+        //   url: "",
+        // },
+        // {
+        //   title: "Upcoming",
+        //   url: "#",
+        // },
+        // {
+        //   title: "Cancelled/Inactive",
+        //   url: "#",
+        // },
       ],
     },
     {

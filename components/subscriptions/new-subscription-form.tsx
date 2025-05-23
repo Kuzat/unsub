@@ -17,7 +17,9 @@ import {cn, formatDate} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
+import {searchServices, Service} from "@/app/actions/services";
 import {toast} from "sonner";
+import {Combobox, ComboboxOption} from "@/components/ui/combobox";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 
@@ -25,7 +27,38 @@ type FormValues = z.infer<typeof createSubscriptionSchema>;
 export default function NewSubscriptionForm() {
   const router = useRouter();
   const [dateOpen, setDateOpen] = React.useState(false)
-  const services = [{id: "0fd62bc2-f844-4f17-a507-966ee23ef696", name: "Netflix"}]
+  const [services, setServices] = React.useState<Service[]>([])
+  const [isLoadingServices, setIsLoadingServices] = React.useState(false)
+
+  // Load initial services
+  React.useEffect(() => {
+    const loadServices = async () => {
+      setIsLoadingServices(true)
+      try {
+        const services = await searchServices("")
+        setServices(services)
+      } catch (error) {
+        console.error("Failed to load services:", error)
+      } finally {
+        setIsLoadingServices(false)
+      }
+    }
+
+    loadServices()
+  }, [])
+
+  // Handle service search
+  const handleServiceSearch = async (query: string) => {
+    setIsLoadingServices(true)
+    try {
+      const services = await searchServices(query)
+      setServices(services)
+    } catch (error) {
+      console.error("Failed to search services:", error)
+    } finally {
+      setIsLoadingServices(false)
+    }
+  }
 
 
   const form = useForm({
@@ -73,20 +106,17 @@ export default function NewSubscriptionForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Service</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a service" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Combobox
+                  options={services.map(s => ({ value: s.id, label: s.name }))}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Choose a service"
+                  emptyMessage="No services found"
+                  loading={isLoadingServices}
+                  onSearch={handleServiceSearch}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
