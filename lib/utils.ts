@@ -21,11 +21,10 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function calculateNextRenewal(startDateString: string, billingCycle: string, fromDate: Date = new Date()): Date {
-  const startDate = new Date(startDateString)
+export function calculateNextRenewal(startDate: Date, billingCycle: string, fromDate: Date = new Date()): Date {
   const currentDate = new Date(fromDate)
 
-  // Set time to midnight to avoid time comparison issues
+  // Set time too midnight to avoid time comparison issues
   startDate.setHours(0, 0, 0, 0)
   currentDate.setHours(0, 0, 0, 0)
 
@@ -36,7 +35,7 @@ export function calculateNextRenewal(startDateString: string, billingCycle: stri
     return startDate
   }
 
-  // Calculate the next renewal date based on billing cycle
+  // Calculate the next renewal date based on the billing cycle
   switch (billingCycle) {
     case "weekly":
       // Find the next weekly occurrence after the current date
@@ -74,7 +73,7 @@ export function calculateNextRenewal(startDateString: string, billingCycle: stri
       break
 
     default:
-      // Default to monthly if billing cycle is not recognized
+      // Default to monthly if the billing cycle is not recognized
       while (nextRenewal <= currentDate) {
         nextRenewal.setMonth(nextRenewal.getMonth() + 1)
       }

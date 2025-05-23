@@ -12,25 +12,33 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Switch} from "@/components/ui/switch"
 import {Textarea} from "@/components/ui/textarea"
-import {CalendarIcon} from "lucide-react"
+import {CalendarIcon, PlusIcon, ArrowLeftIcon} from "lucide-react"
 import {cn, formatDate} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
+import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service";
 import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
-import {searchServices, Service} from "@/app/actions/services";
+import {searchServices, Service, createService} from "@/app/actions/services";
 import {toast} from "sonner";
-import {Combobox } from "@/components/ui/combobox";
+import {Combobox} from "@/components/ui/combobox";
+import Image from "next/image";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
+type Step = "selectService" | "subscriptionDetails";
+type ServiceSelectionMode = "existing" | "custom";
 
 
 export default function NewSubscriptionForm() {
   const router = useRouter();
-  const [dateOpen, setDateOpen] = React.useState(false)
-  const [services, setServices] = React.useState<Service[]>([])
-  const [isLoadingServices, setIsLoadingServices] = React.useState(false)
-  const [priceInput, setPriceInput] = React.useState<string>('0')
-  const [remindDaysInput, setRemindDaysInput] = React.useState<string>('5')
+  const [currentStep, setCurrentStep] = React.useState<Step>("selectService");
+  const [serviceMode, setServiceMode] = React.useState<ServiceSelectionMode>("existing");
+  const [selectedService, setSelectedService] = React.useState<Service | null>(null);
+  const [dateOpen, setDateOpen] = React.useState(false);
+  const [services, setServices] = React.useState<Service[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = React.useState(false);
+  const [isCreatingService, setIsCreatingService] = React.useState(false);
+  const [priceInput, setPriceInput] = React.useState<string>('0');
+  const [remindDaysInput, setRemindDaysInput] = React.useState<string>('5');
 
   // Load initial services
   React.useEffect(() => {
@@ -62,6 +70,57 @@ export default function NewSubscriptionForm() {
     }
   }
 
+  // Service creation form
+  const serviceForm = useForm<CreateServiceFormValues>({
+    resolver: zodResolver(createServiceSchema),
+    defaultValues: {
+      name: "",
+      category: "other",
+      url: "",
+      description: "",
+      logoUrl: "",
+    },
+  });
+
+  // Handle service creation
+  const onCreateService = async (values: CreateServiceFormValues) => {
+    setIsCreatingService(true);
+    try {
+      const result = await createService(values);
+
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+
+      setSelectedService(result);
+      setServiceMode("existing");
+      toast.success("Service created successfully");
+
+      // Move to subscription details step
+      setCurrentStep("subscriptionDetails");
+    } catch (error) {
+      console.error("Failed to create service:", error);
+      toast.error("Failed to create service");
+    } finally {
+      setIsCreatingService(false);
+    }
+  }
+
+  // Handle service selection
+  const handleServiceSelect = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    if (service) {
+      setSelectedService(service);
+      setCurrentStep("subscriptionDetails");
+    }
+  }
+
+  // Go back to service selection
+  const handleBackToServiceSelection = () => {
+    setCurrentStep("selectService");
+  }
+
 
   const form = useForm({
     resolver: zodResolver(createSubscriptionSchema),
@@ -78,6 +137,13 @@ export default function NewSubscriptionForm() {
     },
   });
 
+  // Update serviceId when selectedService changes
+  React.useEffect(() => {
+    if (selectedService) {
+      form.setValue("serviceId", selectedService.id);
+    }
+  }, [selectedService, form]);
+
   const {
     handleSubmit,
     formState: {isSubmitting},
@@ -86,7 +152,6 @@ export default function NewSubscriptionForm() {
   async function onSubmit(values: FormValues) {
     console.log(values)
     const res = await createSubscription(values);
-
 
     if (res === undefined) {
       toast.error("An error occurred during subscription creation.");
@@ -98,31 +163,200 @@ export default function NewSubscriptionForm() {
     }
   }
 
+  // Service selection step
+  const renderServiceSelectionStep = () => {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Select a Service</h2>
+          <div className="relative">
+            <Combobox
+              options={services.map(s => ({ value: s.id, label: s.name }))}
+              value=""
+              onValueChange={handleServiceSelect}
+              placeholder="Search for a service..."
+              emptyMessage="No services found"
+              loading={isLoadingServices}
+              onSearch={handleServiceSearch}
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t">
+          <button
+            type="button"
+            onClick={() => setServiceMode("custom")}
+            className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg hover:bg-muted transition-colors"
+          >
+            <PlusIcon className="mr-2 h-5 w-5" />
+            <span>Add custom service</span>
+          </button>
+        </div>
+
+        {serviceMode === "custom" && (
+          <div className="mt-6 p-4 border rounded-lg">
+            <h3 className="text-lg font-medium mb-4">Create New Service</h3>
+            <Form {...serviceForm}>
+              <form onSubmit={serviceForm.handleSubmit(onCreateService)} className="space-y-4">
+                <FormField
+                  control={serviceForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Netflix" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={serviceForm.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="streaming">Streaming</SelectItem>
+                          <SelectItem value="software">Software</SelectItem>
+                          <SelectItem value="news">News</SelectItem>
+                          <SelectItem value="gaming">Gaming</SelectItem>
+                          <SelectItem value="utilities">Utilities</SelectItem>
+                          <SelectItem value="hosting">Hosting</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={serviceForm.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Website URL <span className="text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={serviceForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description <span className="text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Brief description of the service" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={serviceForm.control}
+                  name="logoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Logo URL <span className="text-muted-foreground">(optional)</span></FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com/logo.png" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full" disabled={isCreatingService}>
+                  {isCreatingService ? "Creating..." : "Create Service"}
+                </Button>
+              </form>
+            </Form>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Render the form based on the current step
+  if (currentStep === "selectService") {
+    return renderServiceSelectionStep();
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Service selector */}
-        <FormField
-          control={form.control}
-          name="serviceId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Service</FormLabel>
-              <FormControl>
-                <Combobox
-                  options={services.map(s => ({ value: s.id, label: s.name }))}
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  placeholder="Choose a service"
-                  emptyMessage="No services found"
-                  loading={isLoadingServices}
-                  onSearch={handleServiceSearch}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        {/* Service Information */}
+        <div className="p-4 border rounded-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium">Service Information</h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleBackToServiceSelection}
+              className="flex items-center text-sm"
+            >
+              <ArrowLeftIcon className="mr-1 h-4 w-4" />
+              Change
+            </Button>
+          </div>
+
+          {selectedService && (
+            <div className="flex items-center gap-3">
+              {selectedService.logoUrl ? (
+                <div className="h-12 w-12 rounded overflow-hidden">
+                  <Image 
+                    src={selectedService.logoUrl} 
+                    alt={selectedService.name} 
+                    width={48} 
+                    height={48} 
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
+                  <span className="text-xl font-bold">{selectedService.name.charAt(0)}</span>
+                </div>
+              )}
+              <div>
+                <p className="font-medium">{selectedService.name}</p>
+                <p className="text-sm text-muted-foreground">{selectedService.category}</p>
+              </div>
+            </div>
           )}
-        />
+
+          {/* Hidden service ID field */}
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem className="hidden">
+                <FormControl>
+                  <Input 
+                    type="hidden" 
+                    {...field} 
+                    value={selectedService?.id || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* Optional alias override */}
         <FormField
