@@ -3,6 +3,8 @@
 import {ColumnDef} from "@tanstack/react-table"
 import {Service} from "@/app/actions/services"
 import Image from "next/image"
+import {ServiceActions} from "@/components/services/service-actions"
+import {cn} from "@/lib/utils"
 
 export const columns: ColumnDef<Service>[] = [
   {
@@ -46,7 +48,7 @@ export const columns: ColumnDef<Service>[] = [
     cell: ({row}) => {
       const url = row.getValue("url") as string | null;
       if (!url) return <span className="text-muted-foreground">Not available</span>;
-      
+
       return (
         <a 
           href={url} 
@@ -65,11 +67,35 @@ export const columns: ColumnDef<Service>[] = [
     cell: ({row}) => {
       const description = row.getValue("description") as string | null;
       if (!description) return <span className="text-muted-foreground">No description</span>;
-      
+
       // Truncate long descriptions
       return description.length > 100 
         ? `${description.substring(0, 100)}...` 
         : description;
+    },
+  },
+  {
+    accessorKey: "scope",
+    header: "Type",
+    cell: ({row}) => {
+      const scope = row.getValue("scope") as string;
+      return (
+        <div className={cn(
+          "px-2.5 py-0.5 rounded-full text-xs font-medium w-fit",
+          scope === "global"
+            ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+            : "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
+        )}>
+          {scope === "global" ? "Global" : "Custom"}
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    cell: ({row}) => {
+      const service = row.original;
+      return service.scope === "user" ? <ServiceActions service={service} /> : null;
     },
   },
 ]

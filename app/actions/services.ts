@@ -8,11 +8,12 @@ import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/ser
 import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {User} from "better-auth";
+import {categoryEnum} from "@/db/schema/_common";
 
 export type Service = {
   id: string;
   name: string;
-  category: string;
+  category: typeof categoryEnum.enumValues[number];
   url: string | null | undefined;
   description: string | null | undefined;
   logoUrl: string | null | undefined;
@@ -153,6 +154,160 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
   } catch (error) {
     console.error("Error creating service:", error);
     return {error: "Failed to create service"};
+  }
+}
+
+export async function updateService(
+  serviceId: string,
+  input: CreateServiceFormValues
+): Promise<Service | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return { error: "You must be logged in to update a service" };
+  }
+
+  try {
+    // Validate the input data
+    const data = createServiceSchema.parse(input);
+
+    // Check if the service exists and belongs to the user
+    const existingService = await db
+      .select()
+      .from(service)
+      .where(and(
+        eq(service.id, serviceId),
+        eq(service.ownerId, session.user.id),
+        eq(service.scope, "user") // Only allow updating user services
+      ))
+      .limit(1);
+
+    if (existingService.length === 0) {
+      return { error: "Service not found or you don't have permission to update it" };
+    }
+
+    // Update the service
+    const result = await db
+      .update(service)
+      .set({
+        name: data.name,
+        category: data.category,
+        url: data.url || null,
+        description: data.description || null,
+        logoUrl: data.logoUrl || null,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(service.id, serviceId),
+        eq(service.ownerId, session.user.id)
+      ))
+      .returning();
+
+    if (result.length === 0) {
+      return { error: "Failed to update service" };
+    }
+
+    return {
+      id: result[0].id,
+      name: result[0].name,
+      category: result[0].category,
+      url: result[0].url,
+      description: result[0].description,
+      logoUrl: result[0].logoUrl,
+      scope: result[0].scope,
+    };
+  } catch (error) {
+    console.error("Error updating service:", error);
+    return { error: "Failed to update service" };
+  }
+}
+
+export async function getServiceById(serviceId: string): Promise<Service | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return { error: "You must be logged in to view this service" };
+  }
+
+  try {
+    // Check if the service exists and is accessible to the user
+    const result = await db
+      .select()
+      .from(service)
+      .where(and(
+        eq(service.id, serviceId),
+        and(
+          eq(service.scope, "user"),
+          eq(service.ownerId, session.user.id)
+        )
+      ))
+      .limit(1);
+
+    if (result.length === 0) {
+      return { error: "Service not found" };
+    }
+
+    return {
+      id: result[0].id,
+      name: result[0].name,
+      category: result[0].category,
+      url: result[0].url,
+      description: result[0].description,
+      logoUrl: result[0].logoUrl,
+      scope: result[0].scope,
+    };
+  } catch (error) {
+    console.error("Error fetching service:", error);
+    return { error: "Failed to fetch service" };
+  }
+}
+
+export async function deleteService(serviceId: string): Promise<{ success: string } | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return { error: "You must be logged in to delete a service" };
+  }
+
+  try {
+    // Check if the service exists and belongs to the user
+    const existingService = await db
+      .select()
+      .from(service)
+      .where(and(
+        eq(service.id, serviceId),
+        eq(service.ownerId, session.user.id),
+        eq(service.scope, "user") // Only allow deleting user services
+      ))
+      .limit(1);
+
+    if (existingService.length === 0) {
+      return { error: "Service not found or you don't have permission to delete it" };
+    }
+
+    // Delete the service
+    const result = await db
+      .delete(service)
+      .where(and(
+        eq(service.id, serviceId),
+        eq(service.ownerId, session.user.id)
+      ))
+      .returning({ id: service.id });
+
+    if (result.length === 0) {
+      return { error: "Failed to delete service" };
+    }
+
+    return { success: "Service deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting service:", error);
+    return { error: "Failed to delete service" };
   }
 }
 
