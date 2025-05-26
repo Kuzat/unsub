@@ -9,15 +9,14 @@ import {PlusIcon} from "lucide-react";
 
 // Define the props for the page component
 interface ServicesPageProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
     pageSize?: string;
-  };
+  }>;
 }
 
-export default async function ServicesPage({
-  searchParams,
-}: ServicesPageProps) {
+export default async function ServicesPage(props: ServicesPageProps) {
+  const searchParams = await props.searchParams;
   // Parse page and pageSize from query parameters, defaulting to 1 and 10
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 10;
