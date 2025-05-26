@@ -5,7 +5,7 @@ import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
-import {subscription} from "@/db/schema/app";
+import {subscription, transaction} from "@/db/schema/app";
 import {and, eq} from "drizzle-orm";
 import {service} from "@/db/schema/app";
 
@@ -135,24 +135,50 @@ export async function activateSubscription(
   }
 
   try {
-    // Update the subscription to set isActive to true and update the start date
-    const result = await db.update(subscription)
-      .set({
-        isActive: true,
-        startDate: new Date(newStartDate),
-        updatedAt: new Date()
-      })
-      .where(and(
-          eq(subscription.id, subscriptionId),
-          eq(subscription.userId, session.user.id)
+    // Use a database transaction to ensure atomicity
+    return await db.transaction(async (tx) => {
+      // Update the subscription to set isActive to true and update the start date
+      const result = await tx.update(subscription)
+        .set({
+          isActive: true,
+          startDate: new Date(newStartDate),
+          updatedAt: new Date()
+        })
+        .where(and(
+            eq(subscription.id, subscriptionId),
+            eq(subscription.userId, session.user.id)
+          )
         )
-      );
+        .returning({
+          id: subscription.id,
+          userId: subscription.userId,
+          serviceId: subscription.serviceId,
+          price: subscription.price,
+          currency: subscription.currency
+        });
 
-    if (result.rowCount === 0) {
-      return {error: "Subscription not found"}
-    }
+      if (result.length === 0) {
+        return {error: "Subscription not found"}
+      }
 
-    return {success: "Subscription activated successfully"}
+      const activatedSubscription = result[0];
+
+      // Create a new transaction record
+      await tx.insert(transaction).values({
+        id: crypto.randomUUID(),
+        subscriptionId: activatedSubscription.id,
+        userId: activatedSubscription.userId,
+        serviceId: activatedSubscription.serviceId,
+        type: 'hypothetical_initial',
+        amount: activatedSubscription.price,
+        currency: activatedSubscription.currency,
+        occurredAt: new Date(newStartDate),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      return {success: "Subscription activated successfully"}
+    });
   } catch (err) {
     return {
       error:
