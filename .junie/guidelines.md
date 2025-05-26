@@ -220,6 +220,16 @@ Database access is handled through Drizzle ORM. The schema is defined in the `db
 
 The project uses Next.js Server Actions for server-side operations. These are defined in the `app/actions` directory.
 
+* SECURITY GUIDELINES FOR SERVER ACTIONS:
+* - Always require authentication before any action is taken.
+* - Always ensure resources are only readable/modifiable by their owners.
+* - Validate all inputs using Zod or another schema validator.
+* - Check the affected row count on updates/deletes; error if 0 rows are updated/deleted.
+* - Do NOT leak resource existence or private information in errors.
+* - Only expose and modify minimal necessary information.
+*
+* When reviewing (or via AI), reject any action that does not follow these!
+
 ### Debugging Tips
 
 1. Use the Next.js development server's built-in error overlay for debugging client-side errors.

@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription} from "@/db/schema/app";
-import {eq} from "drizzle-orm";
+import {and, eq} from "drizzle-orm";
 
 type ActionResult =
   | { success: string }
@@ -61,16 +61,23 @@ export async function cancelSubscription(
     return redirect('/login')
   }
 
+
   try {
     // Update the subscription to set isActive to false
-    await db.update(subscription)
-      .set({ 
+    const result = await db.update(subscription)
+      .set({
         isActive: false,
         updatedAt: new Date()
       })
-      .where(
-        eq(subscription.id, subscriptionId)
+      .where(and(
+          eq(subscription.id, subscriptionId),
+          eq(subscription.userId, session.user.id)
+        )
       );
+
+    if (result.rowCount === 0) {
+      return {error: "Subscription not found"}
+    }
 
     return {success: "Subscription canceled successfully"}
   } catch (err) {
@@ -94,10 +101,16 @@ export async function removeSubscription(
 
   try {
     // Delete the subscription
-    await db.delete(subscription)
-      .where(
-        eq(subscription.id, subscriptionId)
+    const result = await db.delete(subscription)
+      .where(and(
+          eq(subscription.id, subscriptionId),
+          eq(subscription.userId, session.user.id)
+        )
       );
+
+    if (result.rowCount === 0) {
+      return {error: "Subscription not found"}
+    }
 
     return {success: "Subscription removed successfully"}
   } catch (err) {
@@ -122,15 +135,21 @@ export async function activateSubscription(
 
   try {
     // Update the subscription to set isActive to true and update the start date
-    await db.update(subscription)
-      .set({ 
+    const result = await db.update(subscription)
+      .set({
         isActive: true,
         startDate: new Date(newStartDate),
         updatedAt: new Date()
       })
-      .where(
-        eq(subscription.id, subscriptionId)
+      .where(and(
+          eq(subscription.id, subscriptionId),
+          eq(subscription.userId, session.user.id)
+        )
       );
+
+    if (result.rowCount === 0) {
+      return {error: "Subscription not found"}
+    }
 
     return {success: "Subscription activated successfully"}
   } catch (err) {
