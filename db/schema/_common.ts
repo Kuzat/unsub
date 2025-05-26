@@ -24,6 +24,15 @@ export const categoryEnum = pgEnum("service_category", [
   "gaming",
   "utilities",
   "hosting",
+  "productivity",
+  "entertainment",
+  "education",
+  "finance",
+  "health",
+  "music",
+  "shopping",
+  "social",
+  "utility",
   "other",
 ]);
 

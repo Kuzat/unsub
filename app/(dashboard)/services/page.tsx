@@ -3,6 +3,9 @@ import {getServices} from "@/app/actions/services";
 import {columns} from "./columns"
 import {Suspense} from "react";
 import {PaginationControl} from "@/components/services/pagination-control";
+import {Button} from "@/components/ui/button";
+import Link from "next/link";
+import {PlusIcon} from "lucide-react";
 
 // Define the props for the page component
 interface ServicesPageProps {
@@ -24,7 +27,15 @@ export default async function ServicesPage({
 
   return (
     <div className="container mx-auto py-6">
-      <h1 className="mb-6 text-2xl font-bold">Services</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Services</h1>
+        <Button asChild>
+          <Link href="/services/new">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            New Service
+          </Link>
+        </Button>
+      </div>
       {services.length === 0 ? (
         <p className="text-muted-foreground text-center py-6">
           No services found.
