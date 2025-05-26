@@ -14,6 +14,98 @@ type ActionResult =
   | { error: string }
   | undefined;
 
+/**
+ * Calculates all past renewal dates between a start date and the current date
+ * @param startDate The start date of the subscription
+ * @param billingCycle The billing cycle of the subscription
+ * @param currentDate The current date (defaults to now)
+ * @returns An array of dates representing past renewals (excluding the initial date)
+ */
+function calculatePastRenewals(
+  startDate: Date, 
+  billingCycle: string, 
+  currentDate: Date = new Date()
+): Date[] {
+  // Create copies of dates to avoid modifying the originals
+  const start = new Date(startDate);
+  const current = new Date(currentDate);
+
+  // Set the time to midnight to avoid time comparison issues
+  start.setHours(0, 0, 0, 0);
+  current.setHours(0, 0, 0, 0);
+
+  // If start date is in the future or today, there are no past renewals
+  if (start >= current) {
+    return [];
+  }
+
+  const renewalDates: Date[] = [];
+  const nextRenewal = new Date(start);
+
+  // Calculate all renewal dates until we reach or exceed the current date
+  switch (billingCycle) {
+    case "daily":
+      while (nextRenewal < current) {
+        nextRenewal.setDate(nextRenewal.getDate() + 1);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+      break;
+
+    case "weekly":
+      while (nextRenewal < current) {
+        nextRenewal.setDate(nextRenewal.getDate() + 7);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+      break;
+
+    case "monthly":
+      while (nextRenewal < current) {
+        nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+      break;
+
+    case "quarterly":
+      while (nextRenewal < current) {
+        nextRenewal.setMonth(nextRenewal.getMonth() + 3);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+      break;
+
+    case "yearly":
+      while (nextRenewal < current) {
+        nextRenewal.setFullYear(nextRenewal.getFullYear() + 1);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+      break;
+
+    case "one_time":
+      // No renewals for one-time subscriptions
+      break;
+
+    default:
+      // Default to monthly if the billing cycle is not recognized
+      while (nextRenewal < current) {
+        nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+        if (nextRenewal < current) {
+          renewalDates.push(new Date(nextRenewal));
+        }
+      }
+  }
+
+  return renewalDates;
+}
+
 export async function createSubscription(
   raw: unknown
 ): Promise<ActionResult> {
@@ -28,21 +120,82 @@ export async function createSubscription(
   try {
     const data = createSubscriptionSchema.parse(raw);
 
-    await db.insert(subscription).values({
-      id: crypto.randomUUID(),
-      userId: session.user.id,
-      serviceId: data.serviceId,
-      alias: data.alias || null,
-      startDate: data.startDate,
-      billingCycle: data.billingCycle,
-      price: data.price.toString(),
-      currency: data.currency,
-      isActive: data.isActive,
-      remindDaysBefore: data.remindDaysBefore.toString(),
-      notes: data.notes ?? null,
-    });
+    // Use a database transaction to ensure atomicity
+    return await db.transaction(async (tx) => {
+      // Create the subscription
+      const subscriptionId = crypto.randomUUID();
 
-    return {success: "Subscription created 🎉"}
+      const result = await tx.insert(subscription).values({
+        id: subscriptionId,
+        userId: session.user.id,
+        serviceId: data.serviceId,
+        alias: data.alias || null,
+        startDate: data.startDate,
+        billingCycle: data.billingCycle,
+        price: data.price.toString(),
+        currency: data.currency,
+        isActive: data.isActive,
+        remindDaysBefore: data.remindDaysBefore.toString(),
+        notes: data.notes ?? null,
+      }).returning({
+        id: subscription.id,
+        userId: subscription.userId,
+        serviceId: subscription.serviceId,
+        price: subscription.price,
+        currency: subscription.currency,
+        startDate: subscription.startDate,
+        billingCycle: subscription.billingCycle
+      });
+
+      if (result.length === 0) {
+        return { error: "Failed to create subscription" };
+      }
+
+      const newSubscription = result[0];
+
+      // 1. Create an initial transaction
+      await tx.insert(transaction).values({
+        id: crypto.randomUUID(),
+        subscriptionId: newSubscription.id,
+        userId: newSubscription.userId,
+        serviceId: newSubscription.serviceId,
+        type: 'hypothetical_initial',
+        amount: newSubscription.price,
+        currency: newSubscription.currency,
+        occurredAt: newSubscription.startDate,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      // 2. Handle past start dates (backfill renewals)
+      const startDate = new Date(newSubscription.startDate);
+      const currentDate = new Date();
+
+      // Calculate past renewal dates
+      const pastRenewalDates = calculatePastRenewals(
+        startDate, 
+        newSubscription.billingCycle, 
+        currentDate
+      );
+
+      // Create hypothetical renewal transactions for each past renewal date
+      for (const renewalDate of pastRenewalDates) {
+        await tx.insert(transaction).values({
+          id: crypto.randomUUID(),
+          subscriptionId: newSubscription.id,
+          userId: newSubscription.userId,
+          serviceId: newSubscription.serviceId,
+          type: 'hypothetical_renewal',
+          amount: newSubscription.price,
+          currency: newSubscription.currency,
+          occurredAt: renewalDate,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
+      return { success: "Subscription created 🎉" };
+    });
   } catch (err) {
     return {
       error:
