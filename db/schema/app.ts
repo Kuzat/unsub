@@ -49,7 +49,7 @@ export const subscription = pgTable(
     remindDaysBefore: numeric("remind_days_before", {
       precision: 4,
       scale: 0,
-    }).default("5"),
+    }).notNull().default("5"),
     notes: text("notes"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -73,7 +73,7 @@ export const transaction = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, {onDelete: "cascade"}),
-    serviceId: text("service_id").references(() => service.id), // denormalised for easier analytics
+    serviceId: text("service_id").references(() => service.id), // denormalized for easier analytics
     type: transactionTypeEnum("type").notNull(),
     amount: numeric("amount", {precision: 12, scale: 2}).notNull(),
     currency: currencyEnum("currency").notNull(),

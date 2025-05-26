@@ -26,3 +26,5 @@ export const createSubscriptionSchema = z.object({
     .default(3),
   notes: z.string().optional(),
 });
+
+export type CreateSubscriptionSchema = z.infer<typeof createSubscriptionSchema>;

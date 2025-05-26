@@ -1,27 +1,32 @@
-"use client"
+import EditSubscriptionForm from "@/components/subscriptions/edit-subscription-form"
+import {getSubscriptionById} from "@/app/actions/subscriptions"
+import {notFound, redirect} from "next/navigation"
 
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+interface EditSubscriptionPageProps {
+  params: Promise<{
+    id: string
+  }>
+}
 
-export default function EditSubscriptionPage() {
-  const params = useParams()
-  const subscriptionId = params.id as string
+export default async function EditSubscriptionPage(props: EditSubscriptionPageProps) {
+  const params = await props.params
+  // this checks the auth session and checks if the user has access to the subscription
+  const result = await getSubscriptionById(params.id)
+
+  // Handle errors or subscription not found
+  if ("error" in result) {
+    if (result.error === "Subscription not found") {
+      notFound()
+    } else {
+      // Redirect to the subscriptions page with error
+      redirect("/subscriptions")
+    }
+  }
 
   return (
-    <div className="container py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Edit Subscription</h1>
-        <p className="text-muted-foreground">
-          This is a placeholder page for editing subscription with ID: {subscriptionId}
-        </p>
-      </div>
-      
-      <div className="flex gap-4">
-        <Button asChild>
-          <Link href="/subscriptions">Back to Subscriptions</Link>
-        </Button>
-      </div>
+    <div className="mx-auto max-w-3xl w-full p-6">
+      <h1 className="mb-6 text-2xl font-bold">Edit Subscription</h1>
+      <EditSubscriptionForm subscription={result}/>
     </div>
   )
 }
