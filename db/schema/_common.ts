@@ -41,6 +41,8 @@ export const transactionTypeEnum = pgEnum("transaction_type", [
   "renewal",
   "refund",
   "adjustment",
+  "hypothetical_initial",
+  "hypothetical_renewal",
 ]);
 
 export const serviceScopeEnum = pgEnum("service_scope", [
