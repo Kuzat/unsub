@@ -8,7 +8,7 @@ import {InferSelectModel} from "drizzle-orm";
 import {Service} from "@/app/actions/services";
 import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
 
-type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service }
+type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service | null }
 
 export const columns: ColumnDef<SubscriptionWithService>[] = [
   {

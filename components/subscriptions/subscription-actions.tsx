@@ -24,7 +24,7 @@ import {InferSelectModel} from "drizzle-orm";
 import {subscription} from "@/db/schema/app";
 import {Service} from "@/app/actions/services";
 
-type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service };
+type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service | null };
 
 interface SubscriptionActionsProps {
   subscription: SubscriptionWithService;
