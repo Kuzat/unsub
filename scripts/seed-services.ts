@@ -39,6 +39,7 @@ async function main() {
         url: s.url,
         description: s.description,
         logoUrl: s.logoUrl,
+        scope: "global",
       })
       // if a row with the same name already exists, update mutable columns
       .onConflictDoUpdate({
@@ -48,6 +49,7 @@ async function main() {
           url: s.url,
           description: s.description,
           logoUrl: s.logoUrl,
+          scope: "global",
           updatedAt: new Date(),
         },
       });

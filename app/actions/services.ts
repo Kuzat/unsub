@@ -2,17 +2,21 @@
 
 import {db} from "@/db";
 import {service} from "@/db/schema/app";
-import {count, ilike} from "drizzle-orm";
+import {and, count, eq, ilike, or} from "drizzle-orm";
 import crypto from "crypto";
-import {CreateServiceFormValues} from "@/lib/validation/service";
+import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/service";
+import {auth} from "@/lib/auth";
+import {headers} from "next/headers";
+import {User} from "better-auth";
 
 export type Service = {
   id: string;
   name: string;
   category: string;
-  url: string | null;
-  description: string | null;
-  logoUrl: string | null;
+  url: string | null | undefined;
+  description: string | null | undefined;
+  logoUrl: string | null | undefined;
+  scope: string;
 };
 
 /**
@@ -21,11 +25,18 @@ export type Service = {
  * @returns An array of services matching the query
  */
 export async function searchServices(query: string): Promise<Service[]> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  const serviceScopeCondition = getServiceScopeCondition(session);
+
   if (!query || query.trim() === "") {
     // Return 5 random services if no query is provided
     return db
       .select()
       .from(service)
+      .where(serviceScopeCondition)
       .limit(5);
   }
 
@@ -33,7 +44,10 @@ export async function searchServices(query: string): Promise<Service[]> {
   return db
     .select()
     .from(service)
-    .where(ilike(service.name, `%${query}%`))
+    .where(and(
+      serviceScopeCondition,
+      ilike(service.name, `%${query}%`)
+    ))
     .limit(20);
 }
 
@@ -49,6 +63,13 @@ export async function getServices(page: number = 1, pageSize: number = 10): Prom
   totalPages: number;
   currentPage: number;
 }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  // Get services should also be available for non-authenticated users, but then only global services should be returned
+  const serviceScopeCondition = getServiceScopeCondition(session);
+
   // Ensure page and pageSize are valid
   const validPage = Math.max(1, page);
   const validPageSize = Math.max(1, pageSize);
@@ -56,8 +77,9 @@ export async function getServices(page: number = 1, pageSize: number = 10): Prom
 
   // Get a total count of services
   const totalServicesResult = await db
-    .select({ count: count() })
-    .from(service);
+    .select({count: count()})
+    .from(service)
+    .where(serviceScopeCondition);
 
   const totalServices = Number(totalServicesResult[0].count);
   const totalPages = Math.ceil(totalServices / validPageSize);
@@ -66,6 +88,7 @@ export async function getServices(page: number = 1, pageSize: number = 10): Prom
   const services = await db
     .select()
     .from(service)
+    .where(serviceScopeCondition)
     .limit(validPageSize)
     .offset(offset)
     .orderBy(service.name);
@@ -79,25 +102,39 @@ export async function getServices(page: number = 1, pageSize: number = 10): Prom
 }
 
 export async function createService(input: CreateServiceFormValues): Promise<Service | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if (!session) {
+    return {error: "You must be logged in to create a service"}
+  }
+
   try {
+    const data = createServiceSchema.parse(input)
     // Check if a service with this name already exists
     const existingService = await db
       .select()
       .from(service)
-      .where(ilike(service.name, input.name))
+      .where(and(
+        eq(service.ownerId, session.user.id),
+        ilike(service.name, data.name)
+      ))
       .limit(1);
 
     if (existingService.length > 0) {
-      return { error: "A service with this name already exists" };
+      return {error: `The service ${data.name} already exists. Consider using it or choosing a different name.`};
     }
 
-    const newService = {
+    const newService: typeof service.$inferInsert = {
       id: crypto.randomUUID(),
-      name: input.name,
-      category: input.category,
-      url: input.url || null,
-      description: input.description || null,
-      logoUrl: input.logoUrl || null,
+      name: data.name,
+      category: data.category,
+      url: data.url || null,
+      description: data.description || null,
+      logoUrl: data.logoUrl || null,
+      scope: "user",
+      ownerId: session.user.id,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -111,9 +148,24 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       url: newService.url,
       description: newService.description,
       logoUrl: newService.logoUrl,
+      scope: "user",
     };
   } catch (error) {
     console.error("Error creating service:", error);
-    return { error: "Failed to create service" };
+    return {error: "Failed to create service"};
   }
+}
+
+function getServiceScopeCondition(session: { user: User } | null) {
+  let serviceScopeCondition;
+  if (session) {
+    serviceScopeCondition = or(
+      eq(service.scope, "global"),
+      eq(service.ownerId, session.user.id),
+    );
+  } else {
+    serviceScopeCondition = eq(service.scope, "global");
+  }
+
+  return serviceScopeCondition
 }

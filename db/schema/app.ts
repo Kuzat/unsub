@@ -1,5 +1,5 @@
-import {boolean, index, integer, numeric, pgTable, text, timestamp, varchar} from "drizzle-orm/pg-core";
-import {billingCycleEnum, categoryEnum, currencyEnum, transactionTypeEnum} from "@/db/schema/_common";
+import {boolean, index, integer, numeric, pgTable, text, timestamp, unique, varchar} from "drizzle-orm/pg-core";
+import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {relations} from "drizzle-orm";
 
@@ -11,9 +11,22 @@ export const service = pgTable("service", {
   url: text("url"),
   description: text("description"),
   logoUrl: text("logo_url"),
+
+  // Scopes who owns the services and who can see them
+  scope: serviceScopeEnum("scope").notNull().default("user"),
+  ownerId: text("owner_id")
+    .references(() => user.id, {onDelete: "cascade"}),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (t) => ({
+  // Avoid duplicates within each scope
+  uniqNamePerScope: unique().on(t.name, t.scope),
+
+  // fast look-ups picker:
+  // WHERE scope = 'global' OR owner_id = $currentUser
+  scopeOwnerIdx: index().on(t.scope, t.ownerId)
+}));
 
 /* ---------- subscription ---------- */
 export const subscription = pgTable(
@@ -79,7 +92,8 @@ export const transaction = pgTable(
 );
 
 /* ---------- relations ---------- */
-export const serviceRelations = relations(service, ({many}) => ({
+export const serviceRelations = relations(service, ({one, many}) => ({
+  owner: one(user, {fields: [service.ownerId], references: [user.id]}),
   subscriptions: many(subscription),
 }));
 

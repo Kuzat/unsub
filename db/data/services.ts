@@ -16,14 +16,12 @@ export const seedServices: SeedService[] = [
     category: "software",
     url: "https://www.adobe.com/creativecloud.html",
     description: "Photography, video & design apps bundle",
-    logoUrl: "https://assets.adobe.com/cc-logo.svg",
   },
   {
     name: "ChatGPT Plus",
     category: "software",
     url: "https://chat.openai.com",
     description: "OpenAI ChatGPT Plus subscription",
-    logoUrl: "https://chat.openai.com/favicon.ico",
   },
   {
     name: "Disney+",

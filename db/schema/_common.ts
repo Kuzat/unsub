@@ -42,3 +42,8 @@ export const transactionTypeEnum = pgEnum("transaction_type", [
   "refund",
   "adjustment",
 ]);
+
+export const serviceScopeEnum = pgEnum("service_scope", [
+  "global", // Curated services, available to all users
+  "user",   // Custom personal services, created and available only to the user that owns them
+]);
