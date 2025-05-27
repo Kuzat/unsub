@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "tsx scripts/seed-services.ts",
+    "job:subscriptions:processRenewals": "tsx scripts/run-renewal-job.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },

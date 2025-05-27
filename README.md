@@ -92,6 +92,37 @@ bun dev
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
 
+## Processing Subscription Renewals
+
+The application includes a job to process subscription renewals based on each subscription's billing cycle. This job:
+
+1. Finds all active subscriptions
+2. Calculates any missed renewal dates
+3. Creates renewal transactions for each missed date
+
+### Running the Renewal Process Manually
+
+To manually process subscription renewals, run:
+
+```bash
+npm run job:subscriptions:processRenewals
+# or
+bun run job:subscriptions:processRenewals
+```
+
+This will execute the renewal job once and display a summary of the results.
+
+### Setting Up Automated Renewal Processing
+
+For production environments, it's recommended to set up a cron job to run the renewal process daily:
+
+```bash
+# Example cron job to run daily at 1:00 AM
+0 1 * * * cd /path/to/unsub && npm run job:subscriptions:processRenewals
+```
+
+This ensures that subscription renewals are processed automatically without manual intervention.
+
 ## Building for Production
 
 ```bash
