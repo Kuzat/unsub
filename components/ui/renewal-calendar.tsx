@@ -13,21 +13,26 @@ type Renewal = {
 
 type RenewalCalendarProps = {
   renewalsByDate: Record<string, Renewal[]>;
+  firstDayOfWeek?: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, etc.
 };
 
-export function RenewalCalendar({ renewalsByDate }: RenewalCalendarProps) {
+export function RenewalCalendar({ renewalsByDate, firstDayOfWeek = 1 }: RenewalCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  // Adjust the first day of month calculation based on firstDayOfWeek
+  const firstDayOfMonth = (new Date(currentYear, currentMonth, 1).getDay() - firstDayOfWeek + 7) % 7;
   const today = new Date();
 
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const orderedDayNames = [...dayNames.slice(firstDayOfWeek), ...dayNames.slice(0, firstDayOfWeek)];
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -138,7 +143,7 @@ export function RenewalCalendar({ renewalsByDate }: RenewalCalendarProps) {
         <div className="p-4 flex-grow flex flex-col">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-0 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            {orderedDayNames.map(day => (
               <div key={day} className="p-2 text-center text-sm font-medium text-gray-700">
                 {day}
               </div>
