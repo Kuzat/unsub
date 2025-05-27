@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription, transaction} from "@/db/schema/app";
-import {and, eq} from "drizzle-orm";
+import {and, eq, desc} from "drizzle-orm";
 import {service} from "@/db/schema/app";
 
 type ActionResult =
@@ -455,5 +455,65 @@ export async function updateSubscription(
       error:
         err instanceof Error ? err.message : "An unknown error occurred. Please try again."
     };
+  }
+}
+
+export type TransactionWithService = {
+  id: string;
+  subscriptionId: string | null;
+  userId: string;
+  serviceId: string | null;
+  serviceName: string | null;
+  serviceLogoUrl: string | null;
+  type: string;
+  amount: string;
+  currency: string;
+  occurredAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export async function getTransactionsBySubscriptionId(
+  subscriptionId: string
+): Promise<TransactionWithService[] | { error: string }> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return redirect('/login')
+  }
+
+  try {
+    // Join transaction with service to get service details
+    const result = await db
+      .select({
+        id: transaction.id,
+        subscriptionId: transaction.subscriptionId,
+        userId: transaction.userId,
+        serviceId: transaction.serviceId,
+        serviceName: service.name,
+        serviceLogoUrl: service.logoUrl,
+        type: transaction.type,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        occurredAt: transaction.occurredAt,
+        createdAt: transaction.createdAt,
+        updatedAt: transaction.updatedAt,
+      })
+      .from(transaction)
+      .leftJoin(service, eq(transaction.serviceId, service.id))
+      .where(
+        and(
+          eq(transaction.subscriptionId, subscriptionId),
+          eq(transaction.userId, session.user.id)
+        )
+      )
+      .orderBy(desc(transaction.occurredAt));
+
+    return result;
+  } catch (err) {
+    console.error("Error fetching transactions:", err);
+    return { error: "Failed to fetch transactions" };
   }
 }

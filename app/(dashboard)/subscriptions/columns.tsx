@@ -7,6 +7,7 @@ import Image from "next/image"
 import {InferSelectModel} from "drizzle-orm";
 import {Service} from "@/app/actions/services";
 import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
+import Link from "next/link";
 
 type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service | null }
 
@@ -16,8 +17,12 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
     header: "Service",
     cell: ({row}) => {
       const service = row.original.service;
+      const subscriptionId = row.original.id;
       return (
-        <div className="flex items-center gap-3">
+        <Link 
+          href={`/subscriptions/${subscriptionId}`}
+          className="flex items-center gap-3"
+        >
           {service?.logoUrl ? (
             <div className="h-8 w-8 rounded overflow-hidden">
               <Image
@@ -33,11 +38,11 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
               <span className="text-sm font-bold">{service?.name?.charAt(0) || '?'}</span>
             </div>
           )}
-          <div>
+          <div className="hover:underline">
             <p className="font-medium">{service?.name || row.original.alias || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}
           </div>
-        </div>
+        </Link>
       );
     },
   },
