@@ -8,7 +8,6 @@ import {
   Send,
   UserRound,
   Cog,
-  ChartColumnDecreasing,
   SquareTerminal,
 } from "lucide-react"
 

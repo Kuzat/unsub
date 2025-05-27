@@ -31,8 +31,6 @@ import {
 import {authClient} from "@/lib/client";
 import {useRouter} from "next/navigation";
 import {User} from "better-auth";
-import {useState} from "react";
-import {Circle, CircleCheck} from "lucide-react";
 
 export function NavUser({
   user,

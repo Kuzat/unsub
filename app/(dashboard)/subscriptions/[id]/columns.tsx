@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { formatDate, formatCurrency, cn } from "@/lib/utils"
+import { formatDate, formatCurrency } from "@/lib/utils"
 import { TransactionWithService } from "@/app/actions/subscriptions"
 import { TransactionActions } from "@/components/transactions/transaction-actions"
 

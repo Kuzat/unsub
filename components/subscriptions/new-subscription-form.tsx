@@ -13,7 +13,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {Switch} from "@/components/ui/switch"
 import {Textarea} from "@/components/ui/textarea"
 import {CalendarIcon, PlusIcon, ArrowLeftIcon} from "lucide-react"
-import {cn, formatDate} from "@/lib/utils"
+import {cn} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service";
 import {useRouter} from "next/navigation";
@@ -204,11 +204,11 @@ export default function NewSubscriptionForm() {
                     >
                       {service.logoUrl ? (
                         <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
-                          <Image 
-                            src={service.logoUrl} 
-                            alt={service.name} 
-                            width={32} 
-                            height={32} 
+                          <Image
+                            src={service.logoUrl}
+                            alt={service.name}
+                            width={32}
+                            height={32}
                             className="object-cover"
                           />
                         </div>
@@ -235,7 +235,7 @@ export default function NewSubscriptionForm() {
             onClick={() => setServiceMode("custom")}
             className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg hover:bg-muted transition-colors"
           >
-            <PlusIcon className="mr-2 h-5 w-5" />
+            <PlusIcon className="mr-2 h-5 w-5"/>
             <span>Add custom service</span>
           </button>
         </div>
@@ -248,13 +248,13 @@ export default function NewSubscriptionForm() {
                 <FormField
                   control={serviceForm.control}
                   name="name"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Service Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. Netflix" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -262,13 +262,13 @@ export default function NewSubscriptionForm() {
                 <FormField
                   control={serviceForm.control}
                   name="category"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder="Select category"/>
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -281,7 +281,7 @@ export default function NewSubscriptionForm() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -289,13 +289,13 @@ export default function NewSubscriptionForm() {
                 <FormField
                   control={serviceForm.control}
                   name="url"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Website URL <span className="text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="https://example.com" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -303,13 +303,13 @@ export default function NewSubscriptionForm() {
                 <FormField
                   control={serviceForm.control}
                   name="description"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Description <span className="text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <Textarea placeholder="Brief description of the service" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -317,13 +317,13 @@ export default function NewSubscriptionForm() {
                 <FormField
                   control={serviceForm.control}
                   name="logoUrl"
-                  render={({ field }) => (
+                  render={({field}) => (
                     <FormItem>
                       <FormLabel>Logo URL <span className="text-muted-foreground">(optional)</span></FormLabel>
                       <FormControl>
                         <Input placeholder="https://example.com/logo.png" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage/>
                     </FormItem>
                   )}
                 />
@@ -351,13 +351,13 @@ export default function NewSubscriptionForm() {
         <div className="p-4 border rounded-lg">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Service Information</h3>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleBackToServiceSelection}
               className="flex items-center text-sm"
             >
-              <ArrowLeftIcon className="mr-1 h-4 w-4" />
+              <ArrowLeftIcon className="mr-1 h-4 w-4"/>
               Change
             </Button>
           </div>
@@ -366,11 +366,11 @@ export default function NewSubscriptionForm() {
             <div className="flex items-center gap-3">
               {selectedService.logoUrl ? (
                 <div className="h-12 w-12 rounded overflow-hidden">
-                  <Image 
-                    src={selectedService.logoUrl} 
-                    alt={selectedService.name} 
-                    width={48} 
-                    height={48} 
+                  <Image
+                    src={selectedService.logoUrl}
+                    alt={selectedService.name}
+                    width={48}
+                    height={48}
                     className="object-cover"
                   />
                 </div>
@@ -390,16 +390,16 @@ export default function NewSubscriptionForm() {
           <FormField
             control={form.control}
             name="serviceId"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="hidden">
                 <FormControl>
-                  <Input 
-                    type="hidden" 
-                    {...field} 
+                  <Input
+                    type="hidden"
+                    {...field}
                     value={selectedService?.id || ""}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -409,13 +409,13 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="alias"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Alias&nbsp;<span className="text-muted-foreground">(optional)</span></FormLabel>
               <FormControl>
                 <Input placeholder="e.g. 'Family Netflix'" {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -424,7 +424,7 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="startDate"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className="flex flex-col w-full">
               <FormLabel>Date</FormLabel>
               <Popover open={dateOpen} onOpenChange={setDateOpen}>
@@ -442,7 +442,7 @@ export default function NewSubscriptionForm() {
                       ) : (
                         <span>Pick a date</span>
                       )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -464,7 +464,7 @@ export default function NewSubscriptionForm() {
                 </PopoverContent>
               </Popover>
               <FormDescription>Set your start date.</FormDescription>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -473,13 +473,13 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="billingCycle"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Billing Cycle</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose cycle" />
+                    <SelectValue placeholder="Choose cycle"/>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -491,7 +491,7 @@ export default function NewSubscriptionForm() {
                   <SelectItem value="one_time">One-time</SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -501,13 +501,13 @@ export default function NewSubscriptionForm() {
           <FormField
             control={form.control}
             name="currency"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Currency</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Currency" />
+                      <SelectValue placeholder="Currency"/>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -517,7 +517,7 @@ export default function NewSubscriptionForm() {
                     <SelectItem value="NOK">NOK</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -525,7 +525,7 @@ export default function NewSubscriptionForm() {
           <FormField
             control={form.control}
             name="price"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="flex-1">
                 <FormLabel>Price</FormLabel>
                 <FormControl>
@@ -545,7 +545,7 @@ export default function NewSubscriptionForm() {
                     }}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -555,13 +555,13 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="isActive"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 max-w-xs">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Active</FormLabel>
               </div>
               <FormControl>
-                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                <Switch checked={field.value} onCheckedChange={field.onChange}/>
               </FormControl>
             </FormItem>
           )}
@@ -571,7 +571,7 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="remindDaysBefore"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className="max-w-xs">
               <FormLabel>Remind me (days before)</FormLabel>
               <FormControl>
@@ -591,7 +591,7 @@ export default function NewSubscriptionForm() {
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -600,7 +600,7 @@ export default function NewSubscriptionForm() {
         <FormField
           control={form.control}
           name="notes"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
@@ -609,7 +609,7 @@ export default function NewSubscriptionForm() {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />

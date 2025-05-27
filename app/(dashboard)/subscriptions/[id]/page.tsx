@@ -15,7 +15,7 @@ import { AddTransaction } from "@/components/transactions/add-transaction";
 export default async function SubscriptionDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -25,13 +25,15 @@ export default async function SubscriptionDetailPage({
     redirect("/login");
   }
 
-  const subscriptionData = await getSubscriptionById(params.id);
+  const {id} = await params;
+
+  const subscriptionData = await getSubscriptionById(id);
 
   if ("error" in subscriptionData) {
     notFound();
   }
 
-  const transactionsData = await getTransactionsBySubscriptionId(params.id);
+  const transactionsData = await getTransactionsBySubscriptionId(id);
 
   if ("error" in transactionsData) {
     console.error("Error fetching transactions:", transactionsData.error);
@@ -54,7 +56,7 @@ export default async function SubscriptionDetailPage({
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href={`/subscriptions/edit/${params.id}?from=view`}>
+            <Link href={`/subscriptions/edit/${id}?from=view`}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Subscription
             </Link>
@@ -180,7 +182,7 @@ export default async function SubscriptionDetailPage({
             </CardDescription>
           </div>
           <AddTransaction 
-            subscriptionId={params.id} 
+            subscriptionId={id}
             subscriptionCurrency={subscriptionData.currency} 
           />
         </CardHeader>

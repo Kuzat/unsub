@@ -37,7 +37,6 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   todayClassName?: string;
   selectTriggerClassName?: string;
   renewalClassName?: string;
-  datesWithRenewals?: Date[];
 };
 
 function Calendar({
@@ -46,7 +45,6 @@ function Calendar({
                     hideNavigation,
                     showOutsideDays = true,
                     components: customComponents,
-                    datesWithRenewals = [],
                     ...props
                   }: CalendarProps) {
   const _monthsClassName = cn(

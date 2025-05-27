@@ -64,9 +64,6 @@ export default async function CalendarPage() {
     return acc;
   }, {} as Record<string, typeof upcomingRenewals>);
 
-  // Create an array of dates with renewals for the calendar
-  const datesWithRenewals = Object.keys(renewalsByDate).map(dateStr => new Date(dateStr));
-
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
