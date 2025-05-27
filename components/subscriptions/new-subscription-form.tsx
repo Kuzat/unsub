@@ -6,7 +6,7 @@ import {useForm} from "react-hook-form"
 import * as z from "zod"
 import {Button} from "@/components/ui/button"
 import {Calendar} from "@/components/ui/calendar"
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
@@ -22,6 +22,8 @@ import {searchServices, Service, createService} from "@/app/actions/services";
 import {toast} from "sonner";
 // Removed Combobox import as we're using a regular search input
 import Image from "next/image";
+import {format} from "date-fns";
+import {useState} from "react";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 type Step = "selectService" | "subscriptionDetails";
@@ -34,6 +36,7 @@ export default function NewSubscriptionForm() {
   const [serviceMode, setServiceMode] = React.useState<ServiceSelectionMode>("existing");
   const [selectedService, setSelectedService] = React.useState<Service | null>(null);
   const [dateOpen, setDateOpen] = React.useState(false);
+  const [date, setDate] = useState<Date | null>(null);
   const [services, setServices] = React.useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = React.useState(false);
   const [isCreatingService, setIsCreatingService] = React.useState(false);
@@ -422,35 +425,45 @@ export default function NewSubscriptionForm() {
           control={form.control}
           name="startDate"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
+            <FormItem className="flex flex-col w-full">
+              <FormLabel>Date</FormLabel>
               <Popover open={dateOpen} onOpenChange={setDateOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
-                      variant="outline"
+                      variant={"outline"}
                       className={cn(
-                        "w-full pl-3 text-left font-normal",
+                        "w-full font-normal",
                         !field.value && "text-muted-foreground"
                       )}
                     >
-                      {field.value ? formatDate(field.value.toISOString()) : "Pick a date"}
-                      <CalendarIcon className="ml-auto size-4 opacity-50" />
+                      {field.value ? (
+                        `${format(field.value, "PPP")}`
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date);
-                      setDateOpen(false);
+                    captionLayout="dropdown"
+                    selected={date || field.value}
+                    onSelect={(selectedDate) => {
+                      setDate(selectedDate!);
+                      field.onChange(selectedDate);
                     }}
-                    initialFocus
+                    hideNavigation={true}
+                    onDayClick={() => setDateOpen(false)}
+                    fromYear={2000}
+                    toYear={new Date().getFullYear()}
+                    defaultMonth={field.value}
                   />
                 </PopoverContent>
               </Popover>
+              <FormDescription>Set your start date.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

@@ -1,15 +1,13 @@
-import { DataTable } from "@/components/ui/data-table";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscription } from "@/db/schema/app";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { calculateNextRenewal, formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RenewalCalendar } from "@/components/ui/renewal-calendar";
 
 export default async function CalendarPage() {
   const session = await auth.api.getSession({
@@ -75,25 +73,17 @@ export default async function CalendarPage() {
         <h1 className="text-2xl font-bold">Subscription Calendar</h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+        <Card className="min-h-[600px] flex flex-col">
           <CardHeader>
             <CardTitle>Calendar</CardTitle>
             <CardDescription>
               Upcoming subscription renewals for the next 3 months
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="default"
-              selected={datesWithRenewals}
-              modifiers={{
-                renewal: datesWithRenewals
-              }}
-              modifiersClassNames={{
-                renewal: "bg-primary text-primary-foreground font-bold"
-              }}
-              className="rounded-md border w-full"
+          <CardContent className="p-0 flex-grow">
+            <RenewalCalendar
+              renewalsByDate={renewalsByDate}
             />
           </CardContent>
         </Card>
