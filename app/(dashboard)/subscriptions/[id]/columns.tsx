@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { formatDate, formatCurrency, cn } from "@/lib/utils"
 import { TransactionWithService } from "@/app/actions/subscriptions"
+import { TransactionActions } from "@/components/transactions/transaction-actions"
 
 export const transactionColumns: ColumnDef<TransactionWithService>[] = [
   {
@@ -43,6 +44,13 @@ export const transactionColumns: ColumnDef<TransactionWithService>[] = [
     cell: ({ row }) => {
       const date = row.original.createdAt;
       return formatDate(date.toISOString());
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      return <TransactionActions transaction={row.original} />;
     },
   },
 ]

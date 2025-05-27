@@ -10,6 +10,7 @@ import { transactionColumns } from "./columns";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { AddTransaction } from "@/components/transactions/add-transaction";
 
 export default async function SubscriptionDetailPage({
   params,
@@ -31,7 +32,7 @@ export default async function SubscriptionDetailPage({
   }
 
   const transactionsData = await getTransactionsBySubscriptionId(params.id);
-  
+
   if ("error" in transactionsData) {
     console.error("Error fetching transactions:", transactionsData.error);
   }
@@ -112,7 +113,7 @@ export default async function SubscriptionDetailPage({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="font-medium">Price:</span>
-                <span>{formatCurrency(subscriptionData.price, subscriptionData.currency)}</span>
+                <span>{formatCurrency(parseFloat(subscriptionData.price), subscriptionData.currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Billing Cycle:</span>
@@ -146,11 +147,17 @@ export default async function SubscriptionDetailPage({
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>
-            All transactions related to this subscription
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>Transaction History</CardTitle>
+            <CardDescription>
+              All transactions related to this subscription
+            </CardDescription>
+          </div>
+          <AddTransaction 
+            subscriptionId={params.id} 
+            subscriptionCurrency={subscriptionData.currency} 
+          />
         </CardHeader>
         <CardContent>
           {transactions.length === 0 ? (

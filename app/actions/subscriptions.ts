@@ -22,8 +22,8 @@ type ActionResult =
  * @returns An array of dates representing past renewals (excluding the initial date)
  */
 function calculatePastRenewals(
-  startDate: Date, 
-  billingCycle: string, 
+  startDate: Date,
+  billingCycle: string,
   currentDate: Date = new Date()
 ): Date[] {
   // Create copies of dates to avoid modifying the originals
@@ -148,7 +148,7 @@ export async function createSubscription(
       });
 
       if (result.length === 0) {
-        return { error: "Failed to create subscription" };
+        return {error: "Failed to create subscription"};
       }
 
       const newSubscription = result[0];
@@ -173,8 +173,8 @@ export async function createSubscription(
 
       // Calculate past renewal dates
       const pastRenewalDates = calculatePastRenewals(
-        startDate, 
-        newSubscription.billingCycle, 
+        startDate,
+        newSubscription.billingCycle,
         currentDate
       );
 
@@ -194,7 +194,7 @@ export async function createSubscription(
         });
       }
 
-      return { success: "Subscription created 🎉" };
+      return {success: "Subscription created 🎉"};
     });
   } catch (err) {
     return {
@@ -401,13 +401,13 @@ export async function getSubscriptionById(
       );
 
     if (result.length === 0) {
-      return { error: "Subscription not found" };
+      return {error: "Subscription not found"};
     }
 
     return result[0];
   } catch (err) {
     console.error("Error fetching subscription:", err);
-    return { error: "Failed to fetch subscription" };
+    return {error: "Failed to fetch subscription"};
   }
 }
 
@@ -514,6 +514,143 @@ export async function getTransactionsBySubscriptionId(
     return result;
   } catch (err) {
     console.error("Error fetching transactions:", err);
-    return { error: "Failed to fetch transactions" };
+    return {error: "Failed to fetch transactions"};
+  }
+}
+
+export async function deleteTransaction(
+  transactionId: string
+): Promise<ActionResult> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return redirect('/login')
+  }
+
+  try {
+    // Delete the transaction
+    const result = await db.delete(transaction)
+      .where(and(
+          eq(transaction.id, transactionId),
+          eq(transaction.userId, session.user.id)
+        )
+      );
+
+    if (result.rowCount === 0) {
+      return {error: "Transaction not found"}
+    }
+
+    return {success: "Transaction deleted successfully"}
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "An unknown error occurred. Please try again."
+    };
+  }
+}
+
+export type TransactionData = {
+  amount: string;
+  currency: typeof transaction.currency.enumValues[number];
+  occurredAt: string;
+  type: typeof transaction.type.enumValues[number];
+};
+
+export async function updateTransaction(
+  transactionId: string,
+  data: TransactionData
+): Promise<ActionResult> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return redirect('/login')
+  }
+
+  try {
+    // Update the transaction
+    const result = await db.update(transaction)
+      .set({
+        amount: data.amount,
+        currency: data.currency,
+        occurredAt: new Date(data.occurredAt),
+        type: data.type,
+        updatedAt: new Date()
+      })
+      .where(and(
+          eq(transaction.id, transactionId),
+          eq(transaction.userId, session.user.id)
+        )
+      );
+
+    if (result.rowCount === 0) {
+      return {error: "Transaction not found"}
+    }
+
+    return {success: "Transaction updated successfully"}
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "An unknown error occurred. Please try again."
+    };
+  }
+}
+
+export async function createTransaction(
+  subscriptionId: string,
+  data: TransactionData
+): Promise<ActionResult> {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if (!session) {
+    return redirect('/login')
+  }
+
+  try {
+    // Get the subscription to ensure it exists and belongs to the user
+    const sub = await db
+      .select({
+        id: subscription.id,
+        userId: subscription.userId,
+        serviceId: subscription.serviceId,
+      })
+      .from(subscription)
+      .where(
+        and(
+          eq(subscription.id, subscriptionId),
+          eq(subscription.userId, session.user.id)
+        )
+      )
+      .limit(1);
+
+    if (sub.length === 0) {
+      return {error: "Subscription not found"}
+    }
+
+    // Create a new transaction
+    await db.insert(transaction).values({
+      id: crypto.randomUUID(),
+      subscriptionId: subscriptionId,
+      userId: session.user.id,
+      serviceId: sub[0].serviceId,
+      type: data.type,
+      amount: data.amount,
+      currency: data.currency,
+      occurredAt: new Date(data.occurredAt),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    return {success: "Transaction created successfully"}
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error ? err.message : "An unknown error occurred. Please try again."
+    };
   }
 }
