@@ -41,8 +41,6 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
-  // TODO: Make this consistent so it will keep on refresh
-  const [showEmail, setShowEmail] = useState(true)
 
   const handleLogout = async () => {
     try {
@@ -55,7 +53,6 @@ export function NavUser({
   }
 
   const avatarSrc = user?.image || ""
-  const email = showEmail ? user?.email : "*****@****.***"
 
   return (
     <SidebarMenu>
@@ -72,7 +69,6 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user?.name}</span>
-                <span className="truncate text-xs">{email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -91,14 +87,9 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user?.name}</span>
-                  <span className="truncate text-xs">{email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuItem className="text-xs" onClick={() => setShowEmail(!showEmail)}>
-              {showEmail ? <Circle /> : <CircleCheck />}
-              {showEmail ? "Hide Email" : "Show Email"}
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>

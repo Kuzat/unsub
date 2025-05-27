@@ -68,18 +68,18 @@ const data = {
       icon: Cog,
       collapsible: false,
     },
-    {
-      title: "Analytics",
-      url: "/analytics",
-      icon: ChartColumnDecreasing,
-      collapsible: true,
-      items: [
-        {
-          title: "Spending Trends",
-          url: "#",
-        },
-      ],
-    },
+    // {
+    //   title: "Analytics",
+    //   url: "/analytics",
+    //   icon: ChartColumnDecreasing,
+    //   collapsible: true,
+    //   items: [
+    //     {
+    //       title: "Spending Trends",
+    //       url: "#",
+    //     },
+    //   ],
+    // },
   ],
   navSecondary: [
     {
