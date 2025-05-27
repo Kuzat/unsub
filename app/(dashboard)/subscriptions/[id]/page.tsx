@@ -91,11 +91,28 @@ export default async function SubscriptionDetailPage({
                 <h3 className="text-lg font-semibold">
                   {subscriptionData.serviceName || subscriptionData.alias || "Unknown Service"}
                 </h3>
-                {subscriptionData.serviceCategory && (
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {subscriptionData.serviceCategory}
-                  </p>
-                )}
+                <div className="flex items-center gap-2">
+                  {subscriptionData.serviceCategory && (
+                    <p className="text-sm text-muted-foreground capitalize">
+                      {subscriptionData.serviceCategory}
+                    </p>
+                  )}
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    subscriptionData.serviceScope === "global"
+                      ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                      : "bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
+                  }`}>
+                    {subscriptionData.serviceScope === "global" ? "Global Service" : "Custom Service"}
+                  </span>
+                  {subscriptionData.serviceScope === "user" && subscriptionData.serviceOwnerId === session.user.id && (
+                    <Button variant="ghost" size="sm" asChild className="h-6 px-2">
+                      <Link href={`/services/edit/${subscriptionData.serviceId}`}>
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             {subscriptionData.alias && subscriptionData.alias !== subscriptionData.serviceName && (

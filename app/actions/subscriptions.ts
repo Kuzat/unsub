@@ -347,6 +347,8 @@ export type EditSubscription = {
   serviceName: string;
   serviceCategory: string;
   serviceLogoUrl: string | null;
+  serviceScope: string;
+  serviceOwnerId: string | null;
   alias: string | null;
   startDate: Date;
   billingCycle: typeof subscription.billingCycle.enumValues[number];
@@ -380,6 +382,8 @@ export async function getSubscriptionById(
         serviceName: service.name,
         serviceCategory: service.category,
         serviceLogoUrl: service.logoUrl,
+        serviceScope: service.scope,
+        serviceOwnerId: service.ownerId,
         alias: subscription.alias,
         startDate: subscription.startDate,
         billingCycle: subscription.billingCycle,
