@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable } from "@/components/ui/data-table";
 import { transactionColumns } from "./columns";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import Image from "next/image";
 import { AddTransaction } from "@/components/transactions/add-transaction";
 
@@ -46,12 +46,20 @@ export default async function SubscriptionDetailPage({
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
-        <Button variant="outline" asChild className="mb-4">
-          <Link href="/subscriptions">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Subscriptions
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="outline" asChild>
+            <Link href="/subscriptions">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Subscriptions
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/subscriptions/edit/${params.id}?from=view`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Subscription
+            </Link>
+          </Button>
+        </div>
         <h1 className="text-2xl font-bold">Subscription Details</h1>
       </div>
 

@@ -22,9 +22,10 @@ import Image from "next/image"
 
 interface EditSubscriptionFormProps {
   subscription: EditSubscription;
+  from?: string; // "view" if coming from subscription view, "list" if coming from subscriptions list
 }
 
-export default function EditSubscriptionForm({ subscription }: EditSubscriptionFormProps) {
+export default function EditSubscriptionForm({ subscription, from = "list" }: EditSubscriptionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [dateOpen, setDateOpen] = React.useState(false)
@@ -35,7 +36,7 @@ export default function EditSubscriptionForm({ subscription }: EditSubscriptionF
   const form = useForm({
     resolver: zodResolver(createSubscriptionSchema),
     defaultValues: {
-      serviceId: subscription.serviceId,
+      serviceId: subscription.serviceId ? subscription.serviceId : undefined,
       alias: subscription.alias || "",
       startDate: new Date(subscription.startDate),
       billingCycle: subscription.billingCycle,
@@ -62,7 +63,12 @@ export default function EditSubscriptionForm({ subscription }: EditSubscriptionF
       }
 
       toast.success("Subscription updated successfully")
-      router.push("/subscriptions")
+      // Redirect based on where the user came from
+      if (from === "view") {
+        router.push(`/subscriptions/${subscription.id}`)
+      } else {
+        router.push("/subscriptions")
+      }
     } catch (error) {
       console.error("Failed to update subscription:", error)
       toast.error("Failed to update subscription")
@@ -74,9 +80,9 @@ export default function EditSubscriptionForm({ subscription }: EditSubscriptionF
   return (
     <div className="space-y-6">
       <Button variant="outline" size="sm" asChild className="mb-6">
-        <Link href="/subscriptions">
+        <Link href={from === "view" ? `/subscriptions/${subscription.id}` : "/subscriptions"}>
           <ArrowLeftIcon className="mr-2 h-4 w-4" />
-          Back to Subscriptions
+          {from === "view" ? "Back to Subscription" : "Back to Subscriptions"}
         </Link>
       </Button>
 
