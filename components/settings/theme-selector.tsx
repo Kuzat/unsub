@@ -22,7 +22,7 @@ export function ThemeSelector() {
         </p>
       </div>
       <Select
-        value={theme}
+        value={theme ? theme : "system"}
         onValueChange={(value) => setTheme(value)}
       >
         <SelectTrigger className="w-[180px]">
