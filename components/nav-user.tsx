@@ -4,7 +4,7 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  LogOut,
+  LogOut, Settings,
   Sparkles,
 } from "lucide-react"
 
@@ -31,13 +31,14 @@ import {
 import {authClient} from "@/lib/client";
 import {useRouter} from "next/navigation";
 import {User} from "better-auth";
+import Link from "next/link";
 
 export function NavUser({
-  user,
-}: {
+                          user,
+                        }: {
   user: User | undefined
 }) {
-  const { isMobile } = useSidebar()
+  const {isMobile} = useSidebar()
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -62,13 +63,13 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={avatarSrc} alt={user?.name} />
+                <AvatarImage src={avatarSrc} alt={user?.name}/>
                 <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user?.name}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4"/>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -80,7 +81,7 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={avatarSrc} alt={user?.name} />
+                  <AvatarImage src={avatarSrc} alt={user?.name}/>
                   <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -88,27 +89,37 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator/>
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <Sparkles />
+                <Sparkles/>
                 Upgrade to Pro
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator/>
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+              <Link href="/settings/account">
+                <DropdownMenuItem>
+                  <BadgeCheck/>
+                  Account
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings/notifications">
+                <DropdownMenuItem>
+                  <Bell/>
+                  Notifications
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings">
+                <DropdownMenuItem>
+                  <Settings/>
+                  Settings
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator/>
             <DropdownMenuItem onClick={handleLogout}>
-              <LogOut />
+              <LogOut/>
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
