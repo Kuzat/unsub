@@ -1,11 +1,9 @@
 "use server";
 
-import { db } from "@/db";
-import { user } from "@/db/schema/auth";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { authClient } from "@/lib/client";
 
 // Schema for validating display name input
 const displayNameSchema = z.object({
@@ -44,23 +42,13 @@ export async function updateDisplayName(input: UpdateDisplayNameInput) {
       };
     }
 
-    // Update the user's display name in the database
-    const result = await db
-      .update(user)
-      .set({
-        name: validatedInput.data.name,
-        updatedAt: new Date(),
-      })
-      .where(eq(user.id, session.user.id))
-      .returning({ id: user.id });
-
-    // Check if the update was successful
-    if (result.length === 0) {
-      return {
-        success: false,
-        message: "Failed to update display name",
-      };
-    }
+    // Update the user's display name using the better-auth API
+    await auth.api.updateUser({
+      headers: await headers(),
+      body: {
+        name: validatedInput.data.name
+      }
+    });
 
     return {
       success: true,

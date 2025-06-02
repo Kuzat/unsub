@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -30,7 +31,8 @@ interface ProfileFormProps {
 
 export function ProfileForm({ initialName }: ProfileFormProps) {
   const [isLoading, setIsLoading] = useState(false)
-  
+  const router = useRouter()
+
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,9 +44,12 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
     setIsLoading(true)
     try {
       const result = await updateDisplayName(data)
-      
+
       if (result.success) {
         toast.success(result.message)
+
+        // Refresh the page to ensure all components using the session are updated
+        router.refresh()
       } else {
         toast.error(result.message)
       }
@@ -63,7 +68,7 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
           Update your display name that will be shown across the application.
         </p>
       </div>
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -79,7 +84,7 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
               </FormItem>
             )}
           />
-          
+
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Saving..." : "Save"}
           </Button>
