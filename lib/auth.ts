@@ -22,6 +22,16 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }
   },
+  user: {
+    additionalFields: {
+      lastOtpSentAt: {
+        type: "date",
+        required: false,
+        default: null,
+        input: false,
+      }
+    }
+  },
   plugins: [
     emailOTP({
       sendVerificationOnSignUp: true,

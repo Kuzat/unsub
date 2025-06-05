@@ -16,6 +16,11 @@ export default async function DashboardLayout({children }: {
     return redirect('/login')
   }
 
+  // Check if user's email is verified
+  if (!session.user.emailVerified) {
+    return redirect('/verify-email')
+  }
+
 
   return (
     <SidebarProvider>
