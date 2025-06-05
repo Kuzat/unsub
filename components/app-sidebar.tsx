@@ -83,12 +83,13 @@ const data = {
   navSecondary: [
     {
       title: "Support",
-      url: "/support",
+      url: `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL}`,
       icon: LifeBuoy,
     },
     {
       title: "Feedback",
-      url: "/feedback",
+      url: "https://github.com/Kuzat/unsub/issues/new",
+      target: "_blank",
       icon: Send,
     },
   ],

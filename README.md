@@ -46,6 +46,7 @@ Unsub is a subscription management application that helps you track, manage, and
    - `EMAIL_NAME`: Display name for the sender (used in production)
    - `OTP_COOLDOWN_SECONDS`: Minimum time in seconds between sending verification codes (default: 60)
    - `SCALEWAY_ACCESS_KEY`, `SCALEWAY_SECRET_KEY`, `SCALEWAY_PROJECT_ID`: Required for production email sending
+   - `NEXT_PUBLIC_SUPPORT_EMAIL`: Email address displayed for support contact in the application
 
 4. Start the PostgreSQL database:
    ```bash
