@@ -42,6 +42,9 @@ Unsub is a subscription management application that helps you track, manage, and
    - `BETTER_AUTH_SECRET`: Secret for authentication
    - `BETTER_AUTH_URL`: URL for authentication callbacks
    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`: For Google OAuth integration
+   - `EMAIL_FROM`: Email address used as the sender
+   - `EMAIL_NAME`: Display name for the sender (used in production)
+   - `SCALEWAY_ACCESS_KEY`, `SCALEWAY_SECRET_KEY`, `SCALEWAY_PROJECT_ID`: Required for production email sending
 
 4. Start the PostgreSQL database:
    ```bash
@@ -91,6 +94,32 @@ bun dev
 ```
 
 The application will be available at [http://localhost:3000](http://localhost:3000).
+
+## Local Email Development
+
+For local development, the application uses MailDev to capture and view emails sent by the application without actually sending them to real recipients.
+
+### Starting the Local Email Server
+
+Start the MailDev server:
+
+```bash
+npm run maildev
+# or
+bun run maildev
+```
+
+This will start a local SMTP server on port 1025 and a web interface on port 1080.
+
+### Viewing Sent Emails
+
+Once the MailDev server is running, you can view all emails sent by the application by opening:
+
+[http://localhost:1080](http://localhost:1080)
+
+### How It Works
+
+In development mode, the application automatically sends emails to the local SMTP server on port 1025. The emails are captured by MailDev and can be viewed in its web interface. This allows you to test email functionality without sending real emails.
 
 ## Processing Subscription Renewals
 
