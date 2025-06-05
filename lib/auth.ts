@@ -5,7 +5,7 @@ import {nextCookies} from "better-auth/next-js";
 import * as schema from "@/db/schema/auth"
 import {emailOTP} from "better-auth/plugins";
 import {emailOTPClient} from "better-auth/client/plugins";
-import {sendVerificationEmail} from "@/lib/email";
+import {sendVerificationEmail, sendDeleteAccountEmail} from "@/lib/email";
 
 
 export const auth = betterAuth({
@@ -29,6 +29,12 @@ export const auth = betterAuth({
         required: false,
         default: null,
         input: false,
+      }
+    },
+    deleteUser: {
+      enabled: true,
+      async sendDeleteAccountVerification({ user, url }) {
+        await sendDeleteAccountEmail(user.email, url);
       }
     }
   },

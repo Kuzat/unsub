@@ -2,6 +2,7 @@ import * as nodemailer from "nodemailer"
 import {scalewayTEM} from "@/lib/scaleway";
 import {render} from "@react-email/render";
 import ConfirmEmail from "@/emails/transactional/confirm-email";
+import DeleteAccount from "@/emails/transactional/delete-account";
 
 interface EmailOptions {
   to: string;
@@ -74,6 +75,26 @@ export async function sendVerificationEmail(email: string, otpToken: string) {
     plainText: true,
   });
   const subject = "Your Unsub💸 email verification code"
+
+  await sendEmail({
+    to: email,
+    subject: subject,
+    html: html,
+    text: text,
+  });
+}
+
+/**
+ * Sends an account deletion verification email with a link to confirm the deletion
+ * @param email The recipient's email address
+ * @param token The verification token
+ */
+export async function sendDeleteAccountEmail(email: string, url: string) {
+  const html = await render(<DeleteAccount url={url} email={email} />);
+  const text = await render(<DeleteAccount url={url} email={email} />, {
+    plainText: true,
+  });
+  const subject = "Confirm Your Unsub💸 Account Deletion Request"
 
   await sendEmail({
     to: email,

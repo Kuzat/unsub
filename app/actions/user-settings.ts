@@ -1,9 +1,8 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { z } from "zod";
-import { authClient } from "@/lib/client";
+import {auth} from "@/lib/auth";
+import {headers} from "next/headers";
+import {z} from "zod";
 
 // Schema for validating display name input
 const displayNameSchema = z.object({
@@ -59,6 +58,67 @@ export async function updateDisplayName(input: UpdateDisplayNameInput) {
     return {
       success: false,
       message: "An error occurred while updating your display name",
+    };
+  }
+}
+
+// Schema for validating delete account input
+const deleteAccountSchema = z.object({
+  confirmation: z.literal("DELETE", {
+    invalid_type_error: "Please type DELETE to confirm account deletion",
+    required_error: "Confirmation is required",
+  }),
+});
+
+// Type for the delete account input
+type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+
+/**
+ * Initiates the process to delete the authenticated user's account
+ * @param input Object containing the confirmation text
+ * @returns Object with success status and message
+ */
+export async function initiateDeleteAccount(input: DeleteAccountInput) {
+  try {
+    // Get the current session
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    // Check if user is authenticated
+    if (!session) {
+      return {
+        success: false,
+        message: "You must be logged in to delete your account",
+      };
+    }
+
+    // Validate the input
+    const validatedInput = deleteAccountSchema.safeParse(input);
+    if (!validatedInput.success) {
+      return {
+        success: false,
+        message: validatedInput.error.errors[0]?.message || "Invalid confirmation",
+      };
+    }
+
+    // Initiate the account deletion process using the better-auth API
+    await auth.api.deleteUser({
+      headers: await headers(),
+      body: {
+        callbackURL: "/"
+      }
+    });
+
+    return {
+      success: true,
+      message: "Account deletion initiated. Please check your email for verification.",
+    };
+  } catch (error) {
+    console.error("Error initiating account deletion:", error);
+    return {
+      success: false,
+      message: "An error occurred while initiating account deletion",
     };
   }
 }
