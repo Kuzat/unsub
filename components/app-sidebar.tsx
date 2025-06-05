@@ -106,11 +106,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <BadgeDollarSign className="size-4" />
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <div
+                  className="text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center rounded-lg overflow-hidden">
+                  <img
+                    src="/unsub.svg"
+                    alt="Unsub Logo"
+                    className="size-10 rounded-md object-contain"
+                  />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-md leading-tight">
                   <span className="truncate font-medium">Unsub</span>
                 </div>
               </Link>
