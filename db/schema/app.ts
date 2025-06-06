@@ -151,3 +151,20 @@ export const guideVote = pgTable("guide_vote", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/* ---------- user settings ---------- */
+export const userSettings = pgTable("user_settings", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, {onDelete: "cascade"}),
+  receiveEmails: boolean("receive_emails").notNull().default(true),
+  sendRenewalReminderEmails: boolean("send_renewal_reminder_emails").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const userSettingsRelations = relations(userSettings, ({one}) => ({
+  user: one(user, {fields: [userSettings.userId], references: [user.id]}),
+}));
