@@ -2,6 +2,8 @@
 
 This document provides guidelines and information for developers working on the Unsub project.
 
+Use Tailwind v4 which means you do the config in global.css
+
 ## Build/Configuration Instructions
 
 ### Prerequisites
