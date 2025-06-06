@@ -28,7 +28,11 @@ export function formatCurrency(amount: number, currency: string): string {
   }).format(amount)
 }
 
-export function calculateNextRenewal(startDate: Date, billingCycle: string, fromDate: Date = new Date()): Date {
+export function calculateNextRenewal(
+  startDate: Date,
+  billingCycle: string,
+  fromDate: Date = new Date(),
+): Date {
   const currentDate = new Date(fromDate)
 
   // Set time too midnight to avoid time comparison issues
@@ -44,6 +48,13 @@ export function calculateNextRenewal(startDate: Date, billingCycle: string, from
 
   // Calculate the next renewal date based on the billing cycle
   switch (billingCycle) {
+    case "daily":
+      // Find the next daily occurrence after the current date
+      while (nextRenewal <= currentDate) {
+        nextRenewal.setDate(nextRenewal.getDate() + 1)
+      }
+      break
+
     case "weekly":
       // Find the next weekly occurrence after the current date
       while (nextRenewal <= currentDate) {
@@ -65,19 +76,16 @@ export function calculateNextRenewal(startDate: Date, billingCycle: string, from
       }
       break
 
-    case "biannually":
-      // Find the next biannual occurrence after the current date
-      while (nextRenewal <= currentDate) {
-        nextRenewal.setMonth(nextRenewal.getMonth() + 6)
-      }
-      break
-
-    case "annually":
-      // Find the next annual occurrence after the current date
+    case "yearly":
+      // Find the next yearly occurrence after the current date
       while (nextRenewal <= currentDate) {
         nextRenewal.setFullYear(nextRenewal.getFullYear() + 1)
       }
       break
+
+    case "one_time":
+      // One-time subscriptions don't renew; return the start date
+      return nextRenewal
 
     default:
       // Default to monthly if the billing cycle is not recognized
