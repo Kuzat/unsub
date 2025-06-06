@@ -1,5 +1,3 @@
-/* app/page.tsx */
-import Image from "next/image";
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import Header from "@/components/landing/header";
@@ -11,7 +9,7 @@ export default async function Home() {
       <Header/>
 
       {/* ---------- Hero ---------- */}
-      <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center gap-10">
+      <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 pt-32 text-center gap-10 bg-gradient-to-br from-purple-500/[.07] via-transparent to-sky-500/[.07]">
         <h1 className="text-4xl sm:text-6xl font-bold max-w-4xl tracking-tight">
           Stop paying for subscriptions you don’t use.
         </h1>
@@ -63,14 +61,14 @@ export default async function Home() {
       {/* ---------- Pricing ---------- */}
       <section id="pricing" className="py-20">
         <div className="container mx-auto px-6 flex flex-col items-center gap-8 text-center">
-          <h2 className="text-3xl font-bold">Free while in beta</h2>
+          <h2 className="text-3xl font-bold">Always free core features</h2>
           <p className="text-muted-foreground max-w-2xl">
-            The core tracking and reminder features are 100 % free. Later, upgrade for automatic bank import for a
-            one-time fee.
+            Subscription management and unsubscription guides will always be free. Connect your bank account for
+            automatic imports with a one-time payment (coming soon).
           </p>
           <Link href="/register">
             <Button size="lg" className="px-8 py-6 text-base sm:text-lg">
-              Get started - it’s free
+              Get started - it's free
             </Button>
           </Link>
         </div>

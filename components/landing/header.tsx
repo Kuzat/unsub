@@ -12,7 +12,7 @@ export default async function Header() {
   });
 
   return (
-    <header className="flex items-center justify-between px-10 py-6">
+    <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-10 py-6 bg-background/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50">
       <Link href="/" className="flex items-center gap-2">
         {/* Logo lives in /public as unsub.svg */}
         <Image
@@ -21,7 +21,9 @@ export default async function Header() {
           width={130}
           height={32}
           priority
-          className="aspect-square size-16 rounded-lg"
+          // The existing classes for the image are fine, let's keep them.
+          // Adjusted size slightly for better fit if needed, but original was size-16
+          className="size-10 lg:size-14 rounded-lg" // Example: Adjust size as needed
         />
       </Link>
 
@@ -38,13 +40,13 @@ export default async function Header() {
       </nav>
 
       {session ? (
-        <Link href="/dashboard" className="text-gray-700 hover:text-gray-900">
+        <Link href="/dashboard">
           <Button>
             Dashboard
           </Button>
         </Link>
       ) : (
-        <Link href="/login" className="text-gray-700 hover:text-gray-900">
+        <Link href="/login">
           <Button>
             Login
           </Button>
