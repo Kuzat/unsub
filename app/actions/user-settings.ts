@@ -3,6 +3,10 @@
 import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {z} from "zod";
+import {db} from "@/db";
+import {userSettings} from "@/db/schema/app";
+import {eq} from "drizzle-orm";
+import {randomUUID} from "crypto";
 
 // Schema for validating display name input
 const displayNameSchema = z.object({
@@ -119,6 +123,78 @@ export async function initiateDeleteAccount(input: DeleteAccountInput) {
     return {
       success: false,
       message: "An error occurred while initiating account deletion",
+    };
+  }
+}
+
+// Schema for validating email notification preferences
+const emailNotificationSchema = z.object({
+  receiveEmails: z.boolean(),
+});
+
+// Type for the email notification preferences input
+type UpdateEmailNotificationInput = z.infer<typeof emailNotificationSchema>;
+
+/**
+ * Updates the email notification preferences of the authenticated user
+ * @param input Object containing the new email notification preference
+ * @returns Object with success status and message
+ */
+export async function updateEmailNotifications(input: UpdateEmailNotificationInput) {
+  try {
+    // Get the current session
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    // Check if user is authenticated
+    if (!session) {
+      return {
+        success: false,
+        message: "You must be logged in to update your notification preferences",
+      };
+    }
+
+    // Validate the input
+    const validatedInput = emailNotificationSchema.safeParse(input);
+    if (!validatedInput.success) {
+      return {
+        success: false,
+        message: validatedInput.error.errors[0]?.message || "Invalid notification preference",
+      };
+    }
+
+    // Check if user settings record exists
+    const existingSettings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, session.user.id),
+    });
+
+    if (existingSettings) {
+      // Update existing user settings
+      await db.update(userSettings)
+        .set({
+          receiveEmails: validatedInput.data.receiveEmails,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSettings.userId, session.user.id));
+    } else {
+      // Create new user settings record
+      await db.insert(userSettings).values({
+        id: randomUUID(),
+        userId: session.user.id,
+        receiveEmails: validatedInput.data.receiveEmails,
+      });
+    }
+
+    return {
+      success: true,
+      message: "Email notification preferences updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating email notification preferences:", error);
+    return {
+      success: false,
+      message: "An error occurred while updating your notification preferences",
     };
   }
 }
