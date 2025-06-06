@@ -130,6 +130,7 @@ export async function initiateDeleteAccount(input: DeleteAccountInput) {
 // Schema for validating email notification preferences
 const emailNotificationSchema = z.object({
   receiveEmails: z.boolean(),
+  sendRenewalReminderEmails: z.boolean(),
 });
 
 // Type for the email notification preferences input
@@ -174,6 +175,7 @@ export async function updateEmailNotifications(input: UpdateEmailNotificationInp
       await db.update(userSettings)
         .set({
           receiveEmails: validatedInput.data.receiveEmails,
+          sendRenewalReminderEmails: validatedInput.data.sendRenewalReminderEmails,
           updatedAt: new Date(),
         })
         .where(eq(userSettings.userId, session.user.id));
@@ -183,6 +185,7 @@ export async function updateEmailNotifications(input: UpdateEmailNotificationInp
         id: randomUUID(),
         userId: session.user.id,
         receiveEmails: validatedInput.data.receiveEmails,
+        sendRenewalReminderEmails: validatedInput.data.sendRenewalReminderEmails,
       });
     }
 

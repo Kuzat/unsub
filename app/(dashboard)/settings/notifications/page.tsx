@@ -22,12 +22,16 @@ export default async function NotificationsPage() {
 
   // Default to true if no settings record exists
   const receiveEmails = userSettingsRecord?.receiveEmails ?? true;
+  const sendRenewalReminderEmails = userSettingsRecord?.sendRenewalReminderEmails ?? true;
 
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold">Notifications Settings</h1>
       <div className="rounded-lg border p-4 space-y-6">
-        <EmailNotificationsForm receiveEmails={receiveEmails} />
+        <EmailNotificationsForm 
+          receiveEmails={receiveEmails} 
+          sendRenewalReminderEmails={sendRenewalReminderEmails} 
+        />
       </div>
     </div>
   )
