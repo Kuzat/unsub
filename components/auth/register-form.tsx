@@ -1,6 +1,6 @@
 "use client"
 
-import {cn} from "@/lib/utils"
+import {cn, getGravatarUrl} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
 import {
   Card,
@@ -45,10 +45,14 @@ export function RegisterForm({className, ...props}: React.ComponentProps<"div">)
 
   const onSubmit = async (data: FormSchema) => {
     try {
+      // Generate Gravatar URL from email
+      const gravatarUrl = getGravatarUrl(data.email);
+
       const {error} = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.name,
+        image: gravatarUrl, // Add Gravatar URL as user image
         callbackURL: "/dashboard",
       });
 

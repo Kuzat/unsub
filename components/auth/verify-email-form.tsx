@@ -31,7 +31,7 @@ export function VerifyEmailForm({
     setIsVerifying(true);
     try {
       // Verify the OTP
-      authClient.emailOtp.verifyEmail({
+      await authClient.emailOtp.verifyEmail({
         email: email,
         otp: otp,
       });
