@@ -139,7 +139,7 @@ export default function NewSubscriptionForm() {
       price: 0,
       currency: "EUR",
       isActive: true,
-      remindDaysBefore: 5,
+      remindDaysBefore: 3,
       notes: "",
     },
   });

@@ -49,7 +49,7 @@ export const subscription = pgTable(
     remindDaysBefore: numeric("remind_days_before", {
       precision: 4,
       scale: 0,
-    }).notNull().default("5"),
+    }).notNull().default("3"),
     notes: text("notes"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
