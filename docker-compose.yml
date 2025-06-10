@@ -1,15 +1,46 @@
 version: '3.8'
 services:
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_URL=postgresql://${SERVICE_USER_POSTGRES_USER}:${SERVICE_PASSWORD_64_POSTGRES_PASSWORD}@postgres:5432/unsub
+
+      - BETTER_AUTH_SECRET=${SERVICE_PASSWORD_64_BETTER_AUTH_SECRET}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      - SCALEWAY_ACCESS_KEY=${SCALEWAY_ACCESS_KEY}
+      - SCALEWAY_SECRET_KEY=${SCALEWAY_SECRET_KEY}
+      - SCALEWAY_PROJECT_ID=${SCALEWAY_PROJECT_ID}
+
+      - EMAIL_FROM=${EMAIL_FROM:-hey@unsub.cash}
+      - EMAIL_NAME=${EMAIL_NAME:-Unsub}
+      - OTP_COOLDOWN_SECONDS=${OTP_COOLDOWN_SECONDS:-60}
+
+      - # Public env variables
+      - NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL:-support@unsub.cash}
+    depends_on:
+      - postgres
+    restart: always
+
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${SERVICE_USER_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES_PASSWORD}
+      POSTGRES_DB: unsub
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
 
 volumes:
   postgres_data:

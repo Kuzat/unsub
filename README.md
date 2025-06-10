@@ -156,9 +156,66 @@ This ensures that subscription renewals are processed automatically without manu
 
 ## Building for Production
 
+### Standard Build
+
 ```bash
 npm run build
 npm run start
+```
+
+### Docker Deployment
+
+The application includes Docker configuration for production deployment.
+
+#### Prerequisites
+
+- Docker and Docker Compose installed on your server
+
+#### Environment Setup
+
+1. Create a production environment file:
+   ```bash
+   cp .env.example .env.production
+   ```
+
+2. Edit the `.env.production` file with your production configuration:
+   - Set `NODE_ENV=production`
+   - Configure `DATABASE_URL` to use the PostgreSQL service: `postgres://postgres:postgres@postgres:5432/postgres`
+   - Set all other required environment variables for production
+
+#### Building and Running with Docker
+
+1. Build and start the containers:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+2. Apply database migrations:
+   ```bash
+   docker-compose exec nextjs npx drizzle-kit migrate
+   ```
+
+3. The application will be available at http://localhost:3000 (or your configured domain)
+
+#### Stopping the Application
+
+```bash
+docker-compose down
+```
+
+#### Viewing Logs
+
+```bash
+docker-compose logs -f nextjs
+```
+
+#### Updating the Application
+
+To update the application with new code:
+
+```bash
+git pull
+docker-compose up -d --build
 ```
 
 ## Technologies Used
@@ -169,3 +226,4 @@ npm run start
 - PostgreSQL
 - Tailwind CSS
 - Better Auth for authentication
+- Docker for containerization and deployment
