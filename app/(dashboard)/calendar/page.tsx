@@ -10,6 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { RenewalCalendar } from "@/components/ui/renewal-calendar";
 import Link from "next/link";
 
+/**
+ * Renders the subscription renewal calendar and a list of upcoming renewals for the authenticated user.
+ *
+ * Redirects to the login page if the user is not authenticated. Fetches the user's active subscriptions, calculates upcoming renewals within the next three months, groups them by renewal date, and displays them in both a calendar view and a detailed list.
+ *
+ * @returns The subscription calendar page as a React server component.
+ */
 export default async function CalendarPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
