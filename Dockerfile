@@ -22,17 +22,16 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Explicitly set NODE_PATH to help Node find globally installed packages.
+ENV NODE_PATH=/usr/local/lib/node_modules
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install drizzle-kit and pg globally.
-# pg is a peer dependency for drizzle-kit when working with PostgreSQL.
-# This is done as root before switching to the nextjs user.
+# Install drizzle-kit and its required peer dependencies globally.
 RUN npm install -g drizzle-kit pg dotenv
 
 # Copy Drizzle configuration and migration files from the builder stage.
-# These are needed by 'drizzle-kit migrate'.
-# Ensure these paths match your project structure (e.g., drizzle.config.ts and drizzle/ folder at the root).
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle ./drizzle
 
