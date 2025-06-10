@@ -41,7 +41,7 @@ export default function NewSubscriptionForm() {
   const [isLoadingServices, setIsLoadingServices] = React.useState(false);
   const [isCreatingService, setIsCreatingService] = React.useState(false);
   const [priceInput, setPriceInput] = React.useState<string>('0');
-  const [remindDaysInput, setRemindDaysInput] = React.useState<string>('5');
+  const [remindDaysInput, setRemindDaysInput] = React.useState<string>('3');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
 
   // Load initial services
