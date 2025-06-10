@@ -51,7 +51,4 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 
-# Modify CMD to run migrations then start the server.
-# 'drizzle-kit migrate' will use the globally installed package.
-# 'node server.js' starts your Next.js application.
 CMD ["sh", "-c", "drizzle-kit migrate && node server.js"]
