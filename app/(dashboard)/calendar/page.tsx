@@ -8,7 +8,15 @@ import { calculateNextRenewal, formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RenewalCalendar } from "@/components/ui/renewal-calendar";
+import Link from "next/link";
 
+/**
+ * Renders the subscription renewal calendar and a list of upcoming renewals for the authenticated user.
+ *
+ * Redirects to the login page if the user is not authenticated. Fetches the user's active subscriptions, calculates upcoming renewals within the next three months, groups them by renewal date, and displays them in both a calendar view and a detailed list.
+ *
+ * @returns The subscription calendar page as a React server component.
+ */
 export default async function CalendarPage() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -109,20 +117,24 @@ export default async function CalendarPage() {
                     </div>
                     <div className="space-y-2">
                       {renewals.map((renewal) => (
-                        <div key={renewal.id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                        <Link
+                          key={renewal.id}
+                          href={`/subscriptions/${renewal.id}`}
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                        >
                           <div className="flex items-center gap-2">
                             <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
                               <span className="text-sm font-bold">{renewal.serviceName.charAt(0)}</span>
                             </div>
                             <div>
-                              <p className="font-medium">{renewal.serviceName}</p>
+                              <p className="font-medium hover:underline">{renewal.serviceName}</p>
                               <p className="text-xs text-muted-foreground">{renewal.billingCycle}</p>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="font-medium">{formatCurrency(renewal.price, renewal.currency)}</p>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
