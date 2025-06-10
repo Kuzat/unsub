@@ -22,32 +22,32 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Explicitly set NODE_PATH to help Node find globally installed packages.
-ENV NODE_PATH=/usr/local/lib/node_modules
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install drizzle-kit and its required peer dependencies globally.
-RUN npm install -g drizzle-kit pg dotenv
+# Copy necessary files from the builder stage
+# We copy package.json to install the exact dependencies for our project
+COPY --chown=nextjs:nodejs --from=builder /app/package.json ./
+COPY --chown=nextjs:nodejs --from=builder /app/package-lock.json ./
 
-# Copy Drizzle configuration and migration files from the builder stage.
-COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+# Copy the built application and public assets
+COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+COPY --chown=nextjs:nodejs --from=builder /app/public ./public
+
+# Copy config files needed for migration and running the app
+COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle ./drizzle
+COPY --chown=nextjs:nodejs --from=builder /app/next.config.ts ./
 
-# Copy the built application files
-COPY --from=builder /app/public ./public
-
-# Ensure .next directory exists and has correct permissions before copying static assets into it
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Install ALL dependencies (prod and dev) from the lock file.
+# This makes our dev tools, like drizzle-kit, available.
+RUN npm ci
 
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 
-CMD ["sh", "-c", "drizzle-kit migrate && node server.js"]
+# Use 'npx' to run the drizzle-kit from node_modules, ensuring we use the project's version.
+# Then, start the application using the 'start' script from package.json.
+CMD ["sh", "-c", "npx drizzle-kit migrate && npm run start"]
