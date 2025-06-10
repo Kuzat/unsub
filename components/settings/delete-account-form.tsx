@@ -47,7 +47,7 @@ export function DeleteAccountForm() {
   const form = useForm<DeleteAccountFormValues>({
     resolver: zodResolver(deleteAccountSchema),
     defaultValues: {
-      confirmation: "" as any,
+      confirmation: undefined,
     },
   });
 
@@ -109,6 +109,7 @@ export function DeleteAccountForm() {
                       <Input
                         placeholder="Type DELETE to confirm"
                         {...field}
+                        value={field.value === undefined ? "" : field.value}
                         autoComplete="off"
                       />
                     </FormControl>

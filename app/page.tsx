@@ -68,7 +68,7 @@ export default async function Home() {
           </p>
           <Link href="/register">
             <Button size="lg" className="px-8 py-6 text-base sm:text-lg">
-              Get started - it's free
+              Get started - it&apos;s free
             </Button>
           </Link>
         </div>

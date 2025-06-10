@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  BadgeDollarSign,
   LifeBuoy,
   Calendar,
   Send,
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/sidebar"
 import {authClient} from "@/lib/client";
 import Link from "next/link";
+import Image from "next/image";
 
 const data = {
   navMain: [
@@ -110,9 +110,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/dashboard" className="flex items-center gap-2">
                 <div
                   className="text-sidebar-primary-foreground flex aspect-square size-10 items-center justify-center rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src="/unsub.svg"
                     alt="Unsub Logo"
+                    width={32}
+                    height={32}
+                    priority
                     className="size-10 rounded-md object-contain"
                   />
                 </div>

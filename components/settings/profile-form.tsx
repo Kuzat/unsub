@@ -53,7 +53,7 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while updating your display name")
     } finally {
       setIsLoading(false)
