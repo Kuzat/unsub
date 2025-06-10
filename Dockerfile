@@ -28,7 +28,7 @@ RUN adduser --system --uid 1001 nextjs
 # Install drizzle-kit and pg globally.
 # pg is a peer dependency for drizzle-kit when working with PostgreSQL.
 # This is done as root before switching to the nextjs user.
-RUN npm install -g drizzle-kit pg
+RUN npm install -g drizzle-kit pg dotenv
 
 # Copy Drizzle configuration and migration files from the builder stage.
 # These are needed by 'drizzle-kit migrate'.
