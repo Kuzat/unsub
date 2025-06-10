@@ -1,53 +1,47 @@
-# Use Node.js 20 as the base image
+# --- Base Stage ---
+# Defines the Node.js version we'll use
 FROM node:20-alpine AS base
 
-# Install dependencies and build in one stage for debugging
+# --- Builder Stage ---
+# This stage installs all dependencies (including dev) and builds the application
 FROM base AS builder
 WORKDIR /app
-
 COPY package.json package-lock.json ./
+# Run `npm ci` to install all dependencies from the lockfile, including devDependencies
 RUN npm ci
-
 COPY . .
-
+# Set NODE_ENV to production specifically for the build command
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
 RUN npm run build
 
-# Production image, copy all the files and run next
+# --- Runner Stage ---
+# This is the final, lean image that will run in production
 FROM base AS runner
 WORKDIR /app
 
+# Set the final production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files from the builder stage
-# We copy package.json to install the exact dependencies for our project
-COPY --chown=nextjs:nodejs --from=builder /app/package.json ./
-COPY --chown=nextjs:nodejs --from=builder /app/package-lock.json ./
-
-# Copy the built application and public assets
-COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+# Copy only the necessary files from the builder stage
+# This is the key: we copy the pre-installed node_modules, which includes drizzle-kit
+COPY --chown=nextjs:nodejs --from=builder /app/node_modules ./node_modules
+COPY --chown=nextjs:nodejs --from=builder /app/package.json ./package.json
 COPY --chown=nextjs:nodejs --from=builder /app/public ./public
-
-# Copy config files needed for migration and running the app
+COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle ./drizzle
-COPY --chown=nextjs:nodejs --from=builder /app/next.config.ts ./
 
-# Install ALL dependencies (prod and dev) from the lock file.
-# This makes our dev tools, like drizzle-kit, available.
-RUN npm ci
-
+# Switch to the non-root user
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 
-# Use 'npx' to run the drizzle-kit from node_modules, ensuring we use the project's version.
-# Then, start the application using the 'start' script from package.json.
+# The final command. 'npx' will find drizzle-kit in the copied node_modules.
+# `npm run start` will execute `next start` as defined in package.json.
 CMD ["sh", "-c", "npx drizzle-kit migrate && npm run start"]
