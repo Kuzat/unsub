@@ -1,4 +1,3 @@
-import {GalleryVerticalEnd} from "lucide-react"
 
 import {RegisterForm} from "@/components/auth/register-form";
 import Link from "next/link";
