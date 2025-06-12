@@ -91,7 +91,7 @@ export async function sendVerificationEmail(email: string, otpToken: string) {
 /**
  * Sends an account deletion verification email with a link to confirm the deletion
  * @param email The recipient's email address
- * @param token The verification token
+ * @param url The verification url
  */
 export async function sendDeleteAccountEmail(email: string, url: string) {
   const html = await render(<DeleteAccount url={url} email={email}/>);
@@ -117,11 +117,22 @@ export async function sendRenewalReminderEmail(
   const utcDate = toZonedTime(renewalDate, 'UTC');
   const dateString = format(utcDate, 'dd MMMM yyyy');
 
+  // Construct the dashboard URL using the environment variable or fallback to default
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://unsub.cash'}/subscriptions`;
+
   const html = await render(
-    <RenewalReminder serviceName={serviceName} renewalDate={dateString}/>
+    <RenewalReminder 
+      serviceName={serviceName} 
+      renewalDate={dateString}
+      dashboardUrl={dashboardUrl}
+    />
   );
   const text = await render(
-    <RenewalReminder serviceName={serviceName} renewalDate={dateString}/>,
+    <RenewalReminder 
+      serviceName={serviceName} 
+      renewalDate={dateString}
+      dashboardUrl={dashboardUrl}
+    />,
     {plainText: true}
   );
   const subject = `${serviceName} subscription renews on ${dateString}`;
