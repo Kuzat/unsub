@@ -6,7 +6,7 @@ import {relations} from "drizzle-orm";
 /* ---------- service ---------- */
 export const service = pgTable("service", {
   id: text("id").primaryKey(), // UUID string
-  name: text("name").unique().notNull(),
+  name: text("name").notNull(),
   category: categoryEnum("category").notNull(),
   url: text("url"),
   description: text("description"),
@@ -20,8 +20,6 @@ export const service = pgTable("service", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (t) => ({
-  // Avoid duplicates within each scope
-  uniqNamePerScope: unique().on(t.name, t.scope),
 
   // fast look-ups picker:
   // WHERE scope = 'global' OR owner_id = $currentUser

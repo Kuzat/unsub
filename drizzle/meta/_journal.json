@@ -8,6 +8,13 @@
       "when": 1749556025492,
       "tag": "0000_easy_micromax",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1749729465157,
+      "tag": "0001_curious_red_shift",
+      "breakpoints": true
     }
   ]
 }
