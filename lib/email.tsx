@@ -3,6 +3,7 @@ import {scalewayTEM} from "@/lib/scaleway";
 import {render} from "@react-email/render";
 import ConfirmEmail from "@/emails/transactional/confirm-email";
 import DeleteAccount from "@/emails/transactional/delete-account";
+import RenewalReminder from "@/emails/transactional/renewal-reminder";
 
 interface EmailOptions {
   to: string;
@@ -103,3 +104,32 @@ export async function sendDeleteAccountEmail(email: string, url: string) {
     text: text,
   });
 }
+
+export async function sendRenewalReminderEmail(
+  email: string,
+  serviceName: string,
+  renewalDate: Date
+) {
+  const dateString = renewalDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  const html = await render(
+    <RenewalReminder serviceName={serviceName} renewalDate={dateString} />
+  );
+  const text = await render(
+    <RenewalReminder serviceName={serviceName} renewalDate={dateString} />,
+    { plainText: true }
+  );
+  const subject = `${serviceName} subscription renews on ${dateString}`;
+
+  await sendEmail({
+    to: email,
+    subject: subject,
+    html: html,
+    text: text,
+  });
+}
+
