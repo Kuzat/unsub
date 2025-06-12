@@ -9,6 +9,8 @@ export async function processReminders(): Promise<{
   sent: number;
   errors: number;
 }> {
+  // TODO: Future scaling, this now could end up running twice at the same time if the cron job is run more frequently
+  // or run on multiple servers
   const now = new Date();
   const dueReminders = await db
     .select({
