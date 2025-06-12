@@ -1,5 +1,4 @@
-import { processSubscriptionRenewals } from '../lib/jobs/processRenewals';
-import { db } from '@/db';
+import { processSubscriptionRenewals } from '@/lib/jobs/processRenewals';
 
 /**
  * Main function to run the subscription renewal process

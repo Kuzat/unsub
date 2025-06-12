@@ -35,6 +35,11 @@ COPY --chown=nextjs:nodejs --from=builder /app/public ./public
 COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle ./drizzle
+COPY --chown=nextjs:nodejs --from=builder /app/scripts ./scripts
+COPY --chown=nextjs:nodejs --from=builder /app/lib ./lib
+COPY --chown=nextjs:nodejs --from=builder /app/db ./db
+COPY --chown=nextjs:nodejs --from=builder /app/tsconfig.json ./
+
 
 # Switch to the non-root user
 USER nextjs
