@@ -1,3 +1,4 @@
+import * as React from 'react';
 import * as nodemailer from "nodemailer"
 import {scalewayTEM} from "@/lib/scaleway";
 import {render} from "@react-email/render";
