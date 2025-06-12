@@ -46,8 +46,6 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
 
       if (error) {
         toast.error(error.message)
-      } else {
-        router.push("/dashboard")
       }
     } catch {
       toast.error("An error occurred during login.")
@@ -63,8 +61,6 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
 
       if (error) {
         toast.error(error.message)
-      } else {
-        router.push("/dashboard")
       }
     } catch {
       toast.error("An error occurred during login.")
