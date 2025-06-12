@@ -218,7 +218,18 @@ export default function NewSubscriptionForm() {
                         </div>
                       )}
                       <div>
-                        <p className="font-medium">{service.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{service.name}</p>
+                          {service.scope === "global" ? (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                              Global
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                              Custom
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">{service.category}</p>
                       </div>
                     </button>
@@ -380,7 +391,18 @@ export default function NewSubscriptionForm() {
                 </div>
               )}
               <div>
-                <p className="font-medium">{selectedService.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{selectedService.name}</p>
+                  {selectedService.scope === "global" ? (
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                      Global
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                      Custom
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{selectedService.category}</p>
               </div>
             </div>
