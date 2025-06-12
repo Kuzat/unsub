@@ -1,4 +1,4 @@
-import {boolean, index, integer, numeric, pgTable, text, timestamp, unique, varchar} from "drizzle-orm/pg-core";
+import {boolean, index, integer, numeric, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {relations} from "drizzle-orm";
