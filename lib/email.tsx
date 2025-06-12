@@ -3,6 +3,9 @@ import {scalewayTEM} from "@/lib/scaleway";
 import {render} from "@react-email/render";
 import ConfirmEmail from "@/emails/transactional/confirm-email";
 import DeleteAccount from "@/emails/transactional/delete-account";
+import RenewalReminder from "@/emails/transactional/renewal-reminder";
+import {format} from "date-fns";
+import {toZonedTime} from "date-fns-tz";
 
 interface EmailOptions {
   to: string;
@@ -70,8 +73,8 @@ export async function sendEmail(options: EmailOptions) {
 }
 
 export async function sendVerificationEmail(email: string, otpToken: string) {
-  const html = await render(<ConfirmEmail token={otpToken} />);
-  const text = await render(<ConfirmEmail token={otpToken} />, {
+  const html = await render(<ConfirmEmail token={otpToken}/>);
+  const text = await render(<ConfirmEmail token={otpToken}/>, {
     plainText: true,
   });
   const subject = "Your Unsub💸 email verification code"
@@ -90,11 +93,37 @@ export async function sendVerificationEmail(email: string, otpToken: string) {
  * @param token The verification token
  */
 export async function sendDeleteAccountEmail(email: string, url: string) {
-  const html = await render(<DeleteAccount url={url} email={email} />);
-  const text = await render(<DeleteAccount url={url} email={email} />, {
+  const html = await render(<DeleteAccount url={url} email={email}/>);
+  const text = await render(<DeleteAccount url={url} email={email}/>, {
     plainText: true,
   });
   const subject = "Confirm Your Unsub💸 Account Deletion Request"
+
+  await sendEmail({
+    to: email,
+    subject: subject,
+    html: html,
+    text: text,
+  });
+}
+
+export async function sendRenewalReminderEmail(
+  email: string,
+  serviceName: string,
+  renewalDate: Date
+) {
+  // Format the date in UTC to ensure consistent display regardless of server timezone
+  const utcDate = toZonedTime(renewalDate, 'UTC');
+  const dateString = format(utcDate, 'dd MMMM yyyy');
+
+  const html = await render(
+    <RenewalReminder serviceName={serviceName} renewalDate={dateString}/>
+  );
+  const text = await render(
+    <RenewalReminder serviceName={serviceName} renewalDate={dateString}/>,
+    {plainText: true}
+  );
+  const subject = `${serviceName} subscription renews on ${dateString}`;
 
   await sendEmail({
     to: email,
