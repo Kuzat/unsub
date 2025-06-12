@@ -11,10 +11,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ArrowLeftIcon, CalendarIcon } from "lucide-react"
 import {CreateSubscriptionSchema, createSubscriptionSchema} from "@/lib/validation/subscription"
 import { useRouter } from "next/navigation"
 import { updateSubscription, EditSubscription } from "@/app/actions/subscriptions"
+import { searchServices, Service } from "@/app/actions/services"
 import { toast } from "sonner"
 import Link from "next/link"
 import { cn, formatDate } from "@/lib/utils"
@@ -31,6 +33,48 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
   const [dateOpen, setDateOpen] = React.useState(false)
   const [priceInput, setPriceInput] = React.useState(subscription.price)
   const [remindDaysInput, setRemindDaysInput] = React.useState(subscription.remindDaysBefore)
+  const [serviceDialogOpen, setServiceDialogOpen] = React.useState(false)
+  const [services, setServices] = React.useState<Service[]>([])
+  const [isLoadingServices, setIsLoadingServices] = React.useState(false)
+  const [searchQuery, setSearchQuery] = React.useState<string>('')
+  const [selectedService, setSelectedService] = React.useState<Service | null>(null)
+
+  // Load services when dialog opens
+  const loadServices = React.useCallback(async (query: string = '') => {
+    setIsLoadingServices(true)
+    try {
+      const services = await searchServices(query)
+      setServices(services)
+    } catch (error) {
+      console.error("Failed to load services:", error)
+      toast.error("Failed to load services")
+    } finally {
+      setIsLoadingServices(false)
+    }
+  }, [])
+
+  // Handle service search
+  const handleServiceSearch = async (query: string) => {
+    setSearchQuery(query)
+    await loadServices(query)
+  }
+
+  // Handle service selection
+  const handleServiceSelect = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId)
+    if (service) {
+      setSelectedService(service)
+      form.setValue("serviceId", service.id)
+      setServiceDialogOpen(false)
+      toast.success(`Service changed to ${service.name}`)
+    }
+  }
+
+  // Open service dialog
+  const handleOpenServiceDialog = () => {
+    setServiceDialogOpen(true)
+    loadServices()
+  }
 
   // Create a form with subscription data as default values
   const form = useForm({
@@ -88,13 +132,23 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
 
       {/* Service Information */}
       <div className="p-4 border rounded-lg">
-        <h3 className="text-lg font-medium mb-4">Service Information</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium">Service Information</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleOpenServiceDialog}
+            className="flex items-center text-sm"
+          >
+            Change Service
+          </Button>
+        </div>
         <div className="flex items-center gap-3">
-          {subscription.serviceLogoUrl ? (
+          {(selectedService?.logoUrl || subscription.serviceLogoUrl) ? (
             <div className="h-12 w-12 rounded overflow-hidden">
               <Image 
-                src={subscription.serviceLogoUrl} 
-                alt={subscription.serviceName} 
+                src={selectedService?.logoUrl || subscription.serviceLogoUrl || ''} 
+                alt={selectedService?.name || subscription.serviceName} 
                 width={48} 
                 height={48} 
                 className="object-cover"
@@ -102,15 +156,86 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
             </div>
           ) : (
             <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
-              <span className="text-xl font-bold">{subscription.serviceName.charAt(0)}</span>
+              <span className="text-xl font-bold">{(selectedService?.name || subscription.serviceName).charAt(0)}</span>
             </div>
           )}
           <div>
-            <p className="font-medium">{subscription.serviceName}</p>
-            <p className="text-sm text-muted-foreground">{subscription.serviceCategory}</p>
+            <p className="font-medium">{selectedService?.name || subscription.serviceName}</p>
+            <p className="text-sm text-muted-foreground">{selectedService?.category || subscription.serviceCategory}</p>
           </div>
         </div>
       </div>
+
+      {/* Service Selection Dialog */}
+      <Dialog open={serviceDialogOpen} onOpenChange={setServiceDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Service</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search for a service..."
+                value={searchQuery}
+                onChange={(e) => handleServiceSearch(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Service list */}
+            <div className="mt-2 max-h-[300px] overflow-y-auto rounded-md border">
+              {isLoadingServices ? (
+                <div className="py-6 text-center text-sm">Loading...</div>
+              ) : services.length === 0 ? (
+                <div className="py-6 text-center text-sm">No services found</div>
+              ) : (
+                <div className="space-y-1 p-1">
+                  {services.map((service) => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-muted"
+                      onClick={() => handleServiceSelect(service.id)}
+                    >
+                      {service.logoUrl ? (
+                        <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
+                          <Image
+                            src={service.logoUrl}
+                            alt={service.name}
+                            width={32}
+                            height={32}
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-8 w-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold">{service.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{service.name}</p>
+                          {service.scope === "global" ? (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                              Global
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                              Custom
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{service.category}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
