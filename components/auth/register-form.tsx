@@ -12,7 +12,6 @@ import {
 import {Input} from "@/components/ui/input"
 import Link from "next/link"
 import {z} from "zod"
-import {useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {authClient} from "@/lib/client";
@@ -32,7 +31,6 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 export function RegisterForm({className, ...props}: React.ComponentProps<"div">) {
-  const router = useRouter()
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
