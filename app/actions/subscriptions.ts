@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription, transaction, reminder} from "@/db/schema/app";
-import {and, eq, desc} from "drizzle-orm";
+import {and, eq, desc, between} from "drizzle-orm";
 import {service} from "@/db/schema/app";
 import {calculateNextRenewal} from "@/lib/utils";
 
@@ -358,13 +358,19 @@ export async function activateSubscription(
       sendAt.setDate(
         sendAt.getDate() - parseInt(activatedSubscription.remindDaysBefore)
       );
+
+      const start = new Date(sendAt);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(sendAt);
+      end.setHours(23, 59, 59, 999);
+
       const exists = await tx
         .select()
         .from(reminder)
         .where(
           and(
             eq(reminder.subscriptionId, activatedSubscription.id),
-            eq(reminder.sendAt, sendAt)
+            between(reminder.sendAt, start, end)
           )
         )
         .limit(1);
