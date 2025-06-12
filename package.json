@@ -32,7 +32,7 @@
     "@scaleway/sdk-client": "^1.2.3",
     "@scaleway/sdk-tem": "^1.0.4",
     "@tanstack/react-table": "^8.21.3",
-    "better-auth": "^1.2.7",
+    "better-auth": "^1.2.9",
     "chalk": "^5.4.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
