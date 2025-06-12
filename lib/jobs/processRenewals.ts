@@ -1,6 +1,6 @@
 import {db} from "@/db";
-import {subscription, transaction, reminder } from "@/db/schema/app";
-import {eq, and, desc, or} from "drizzle-orm";
+import {subscription, transaction, reminder} from "@/db/schema/app";
+import {eq, and, desc, or, between} from "drizzle-orm";
 import {calculateNextRenewal} from "@/lib/utils";
 
 /**
@@ -200,13 +200,21 @@ export async function processSubscriptionRenewals(): Promise<{
               );
               const sendAt = new Date(nextRenewal);
               sendAt.setDate(sendAt.getDate() - parseInt(sub.remindDaysBefore));
+
+              const start = new Date(sendAt);
+              start.setHours(0, 0, 0, 0);
+
+              const end = new Date(sendAt);
+              end.setHours(23, 59, 59, 999);
+
               const existingReminder = await db
                 .select()
                 .from(reminder)
                 .where(
                   and(
                     eq(reminder.subscriptionId, sub.id),
-                    eq(reminder.sendAt, sendAt)
+                    // Use BETWEEN clause to compare dates ignoring time
+                    between(reminder.sendAt, start, end),
                   )
                 )
                 .limit(1);
