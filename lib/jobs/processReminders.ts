@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { reminder, subscription, service } from "@/db/schema/app";
+import { reminder, subscription, service, userSettings } from "@/db/schema/app";
 import { user } from "@/db/schema/auth";
 import { and, eq, lte } from "drizzle-orm";
 import { sendRenewalReminderEmail } from "@/lib/email";
@@ -22,11 +22,14 @@ export async function processReminders(): Promise<{
       subscriptionId: reminder.subscriptionId,
       billingCycle: subscription.billingCycle,
       startDate: subscription.startDate,
+      userId: subscription.userId,
+      sendRenewalReminderEmails: userSettings.sendRenewalReminderEmails,
     })
     .from(reminder)
     .innerJoin(subscription, eq(reminder.subscriptionId, subscription.id))
     .innerJoin(service, eq(subscription.serviceId, service.id))
     .innerJoin(user, eq(subscription.userId, user.id))
+    .leftJoin(userSettings, eq(subscription.userId, userSettings.userId))
     .where(
       and(
         eq(reminder.sent, false),
@@ -44,13 +47,33 @@ export async function processReminders(): Promise<{
     try {
       const renewalDate = new Date(r.sendAt);
       renewalDate.setDate(renewalDate.getDate() + parseInt(r.remindDaysBefore));
-      await sendRenewalReminderEmail(r.userEmail, r.serviceName, renewalDate);
+
+      // Pass user settings to the email function to check if emails are enabled
+      const emailSent = await sendRenewalReminderEmail(
+        r.userEmail, 
+        r.serviceName, 
+        renewalDate,
+        {
+          checkUserSettings: true,
+          userSettings: {
+            sendRenewalReminderEmails: r.sendRenewalReminderEmails || undefined
+          }
+        }
+      );
+
+      if (emailSent) {
+        sentCount++;
+        console.log(`Sent reminder ${r.id} to ${r.userEmail}`);
+      } else {
+        console.log(`Skipped sending reminder ${r.id} to ${r.userEmail} (user disabled reminder emails)`);
+      }
+
+      // Mark as sent regardless of whether email was actually sent
+      // This prevents repeated processing of the same reminder
       await db
         .update(reminder)
         .set({ sent: true, updatedAt: new Date() })
         .where(eq(reminder.id, r.id));
-      sentCount++;
-      console.log(`Sent reminder ${r.id} to ${r.userEmail}`);
     } catch (err) {
       errorCount++;
       console.error(`Failed to send reminder ${r.id}:`, err);

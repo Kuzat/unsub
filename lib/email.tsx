@@ -111,8 +111,24 @@ export async function sendDeleteAccountEmail(email: string, url: string) {
 export async function sendRenewalReminderEmail(
   email: string,
   serviceName: string,
-  renewalDate: Date
+  renewalDate: Date,
+  options?: {
+    checkUserSettings?: boolean;
+    userSettings?: {
+      sendRenewalReminderEmails?: boolean;
+    };
+  }
 ) {
+  // If checkUserSettings is true and userSettings are provided,
+  // check if the user has enabled renewal reminder emails
+  if (options?.checkUserSettings && options.userSettings) {
+    const shouldSendEmail = options.userSettings.sendRenewalReminderEmails ?? true;
+    if (!shouldSendEmail) {
+      console.log(`Skipping renewal reminder email for ${email} (user disabled reminder emails)`);
+      return false;
+    }
+  }
+
   // Format the date in UTC to ensure consistent display regardless of server timezone
   const utcDate = toZonedTime(renewalDate, 'UTC');
   const dateString = format(utcDate, 'dd MMMM yyyy');
@@ -143,4 +159,6 @@ export async function sendRenewalReminderEmail(
     html: html,
     text: text,
   });
+
+  return true;
 }
