@@ -297,7 +297,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                       mode="single"
                       selected={field.value}
                       onSelect={(date) => {
-                        field.onChange(date);
+                        field.onChange(date || field.value);
                         setDateOpen(false);
                       }}
                       initialFocus

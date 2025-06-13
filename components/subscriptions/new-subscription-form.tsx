@@ -474,7 +474,7 @@ export default function NewSubscriptionForm() {
                     captionLayout="dropdown"
                     selected={date || field.value}
                     onSelect={(selectedDate) => {
-                      setDate(selectedDate!);
+                      setDate(selectedDate || field.value);
                       field.onChange(selectedDate);
                     }}
                     hideNavigation={true}
