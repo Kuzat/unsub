@@ -24,6 +24,7 @@ import {toast} from "sonner";
 import Image from "next/image";
 import {format} from "date-fns";
 import {useState} from "react";
+import {categoryEnum} from "@/db/schema/_common";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 type Step = "selectService" | "subscriptionDetails";
@@ -283,13 +284,11 @@ export default function NewSubscriptionForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="streaming">Streaming</SelectItem>
-                          <SelectItem value="software">Software</SelectItem>
-                          <SelectItem value="news">News</SelectItem>
-                          <SelectItem value="gaming">Gaming</SelectItem>
-                          <SelectItem value="utilities">Utilities</SelectItem>
-                          <SelectItem value="hosting">Hosting</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          {categoryEnum.enumValues.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage/>
