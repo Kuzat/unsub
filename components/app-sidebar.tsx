@@ -1,18 +1,11 @@
 "use client"
 
 import * as React from "react"
-import {
-  LifeBuoy,
-  Calendar,
-  Send,
-  UserRound,
-  Cog,
-  SquareTerminal,
-} from "lucide-react"
+import {Calendar, Cog, LifeBuoy, Send, SquareTerminal, UserRound, UserRoundCog,} from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import {NavMain} from "@/components/nav-main"
+import {NavSecondary} from "@/components/nav-secondary"
+import {NavUser} from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +18,7 @@ import {
 import {authClient} from "@/lib/client";
 import Link from "next/link";
 import Image from "next/image";
+import {NavAdmin} from "@/components/nav-admin";
 
 const data = {
   navMain: [
@@ -80,6 +74,14 @@ const data = {
     //   ],
     // },
   ],
+  navAdmin: [
+    {
+      title: "Users",
+      url: "/admin/users",
+      icon: UserRoundCog,
+      collapsible: false,
+    },
+  ],
   navSecondary: [
     {
       title: "Support",
@@ -129,6 +131,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain}  />
+        <NavAdmin items={data.navAdmin} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
