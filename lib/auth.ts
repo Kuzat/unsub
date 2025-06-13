@@ -3,7 +3,7 @@ import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import {db} from "@/db";
 import {nextCookies} from "better-auth/next-js";
 import * as schema from "@/db/schema/auth"
-import {emailOTP} from "better-auth/plugins";
+import {admin, emailOTP} from "better-auth/plugins";
 import {emailOTPClient} from "better-auth/client/plugins";
 import {sendVerificationEmail, sendDeleteAccountEmail} from "@/lib/email";
 
@@ -40,6 +40,7 @@ export const auth = betterAuth({
     }
   },
   plugins: [
+    admin(),
     emailOTP({
       sendVerificationOnSignUp: true,
       disableSignUp: true,

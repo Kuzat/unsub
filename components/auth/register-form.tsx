@@ -17,6 +17,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {authClient} from "@/lib/client";
 import {toast} from "sonner";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {useRouter} from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,6 +32,7 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>
 
 export function RegisterForm({className, ...props}: React.ComponentProps<"div">) {
+  const router = useRouter();
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,6 +58,8 @@ export function RegisterForm({className, ...props}: React.ComponentProps<"div">)
 
       if (error) {
         toast.error(error.message);
+      } else {
+        router.push("/dashboard");
       }
     } catch {
       toast.error("Something went wrong. Please try again.");
