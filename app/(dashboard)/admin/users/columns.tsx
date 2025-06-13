@@ -6,7 +6,7 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
 import {format} from "date-fns";
 import {ShieldUser, UserRound} from "lucide-react";
-import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
+import {AdminUserActions} from "@/components/admin/admin-user-actions";
 
 export const columns: ColumnDef<UserWithRole>[] = [
   {
@@ -85,7 +85,8 @@ export const columns: ColumnDef<UserWithRole>[] = [
   {
     id: "actions",
     cell: ({row}) => {
-
+      const user = row.original;
+      return <AdminUserActions user={user} />;
     },
   },
 ]
