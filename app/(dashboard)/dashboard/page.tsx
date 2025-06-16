@@ -1,5 +1,8 @@
+import {requireSession} from "@/lib/auth";
 
-export default function Page() {
+export default async function DashboardPage() {
+  await requireSession();
+
   return (
     <>
       <div className="grid auto-rows-min gap-4 md:grid-cols-3">

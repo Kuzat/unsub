@@ -6,6 +6,8 @@ import * as schema from "@/db/schema/auth"
 import {admin, emailOTP} from "better-auth/plugins";
 import {emailOTPClient} from "better-auth/client/plugins";
 import {sendVerificationEmail, sendDeleteAccountEmail} from "@/lib/email";
+import { headers } from "next/headers";
+import {redirect} from "next/navigation";
 
 
 export const auth = betterAuth({
@@ -54,3 +56,27 @@ export const auth = betterAuth({
     nextCookies() // Needs to be the last plugin in the array
   ]
 });
+
+
+export async function requireSession() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  if (!session) {
+    redirect("/login")
+  }
+
+  return session;
+}
+
+export async function requireAdmin() {
+  const session = await requireSession();
+  if (!session) {
+    redirect("/login")
+  }
+  if (session.user.role !== "admin") {
+    redirect("/dashboard")
+  }
+
+  return session;
+}
