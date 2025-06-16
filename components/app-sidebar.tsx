@@ -97,11 +97,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const {
-    data: session,
-  } = authClient.useSession()
-  const user = session?.user
+export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -130,12 +126,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain}  />
-        <NavAdmin items={data.navAdmin} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={data.navMain}/>
+        <NavAdmin items={data.navAdmin}/>
+        <NavSecondary items={data.navSecondary} className="mt-auto"/>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser/>
       </SidebarFooter>
     </Sidebar>
   )

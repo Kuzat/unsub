@@ -29,6 +29,7 @@ type UserRole = "user" | "admin" | ("user" | "admin")[];
 
 export function AdminUserActions({ user }: AdminUserActionsProps) {
   const router = useRouter();
+  const {refetch} = authClient.useSession()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,8 +66,12 @@ export function AdminUserActions({ user }: AdminUserActionsProps) {
   const handleImpersonate = async () => {
     setIsLoading(true);
     try {
-      await impersonateUser(user.id);
-      // The impersonateUser function will redirect if successful
+      await authClient.admin.impersonateUser({
+        userId: user.id,
+      });
+      toast.success("Impersonating user");
+      refetch();
+      router.push("/dashboard");
     } catch (error) {
       toast.error("Failed to impersonate user");
       console.error(error);
@@ -83,12 +88,12 @@ export function AdminUserActions({ user }: AdminUserActionsProps) {
       } else {
         result = await banUser(user.id);
       }
-      
+
       if (result === undefined) {
         toast.error(`Failed to ${user.banned ? 'unban' : 'ban'} user`);
         return;
       }
-      
+
       if ("success" in result) {
         toast.success(result.success);
         router.refresh();
