@@ -72,7 +72,7 @@ export function SessionsForm() {
         createdAt: session.createdAt,
         updatedAt: session.updatedAt,
         userAgent: session.userAgent ?? undefined,
-        ip: session.ipAddress,
+        ip: session.ipAddress ?? undefined,
         isCurrent: session.token === currentSession?.session.token
       }));
 
@@ -119,11 +119,6 @@ export function SessionsForm() {
     } finally {
       setIsRevokingAll(false);
     }
-  };
-
-  // Function to format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   // Function to extract device info from user agent
@@ -265,7 +260,7 @@ export function SessionsForm() {
                     {session.isCurrent && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Current</span>}
                   </CardTitle>
                   <CardDescription>
-                    Last active: {formatDate(session.updatedAt)}
+                    Last active: {session.updatedAt.toLocaleString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pb-2 text-sm">
@@ -273,7 +268,7 @@ export function SessionsForm() {
                     IP: {session.ip || "Unknown"}
                   </p>
                   <p className="text-muted-foreground">
-                    Created: {formatDate(session.createdAt)}
+                    Created: {session.createdAt.toLocaleString()}
                   </p>
                 </CardContent>
                 <CardFooter>

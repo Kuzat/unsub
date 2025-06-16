@@ -76,7 +76,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
     cell: ({row}) => {
       const user = row.original;
       return user?.banned ? (
-        <Badge variant="destructive">Banned</Badge>
+        <Badge variant="outline" className="bg-red-100 text-red-800">Banned</Badge>
       ) : (
         <Badge variant="outline" className="bg-green-100 text-green-800">Active</Badge>
       )
