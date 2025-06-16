@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,14 +13,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Edit, Trash2, Shield, UserRound, Ban, UserCheck } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { UserWithRole } from "better-auth/plugins";
+import {MoreVertical, Edit, Trash2, Shield, UserRound, Ban, UserCheck} from "lucide-react";
+import {useRouter} from "next/navigation";
+import {useState} from "react";
+import {toast} from "sonner";
+import {UserWithRole} from "better-auth/plugins";
 import {authClient} from "@/lib/client";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 
 interface AdminUserActionsProps {
   user: UserWithRole;
@@ -28,7 +28,7 @@ interface AdminUserActionsProps {
 
 type UserRole = "user" | "admin" | ("user" | "admin")[];
 
-export function AdminUserActions({ user }: AdminUserActionsProps) {
+export function AdminUserActions({user}: AdminUserActionsProps) {
   const router = useRouter();
   const {refetch} = authClient.useSession()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -146,17 +146,17 @@ export function AdminUserActions({ user }: AdminUserActionsProps) {
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      const result = await deleteUser(user.id);
-      if (result === undefined) {
-        toast.error("Failed to delete user");
+      const result = await authClient.admin.removeUser({
+        userId: user.id
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
         return;
       }
-      if ("success" in result) {
-        toast.success(result.success);
-        router.refresh();
-      } else {
-        toast.error(result.error);
-      }
+
+      toast.success(`User ${user.email} deleted successfully.`)
+      router.refresh();
     } catch (error) {
       toast.error("Failed to delete user");
       console.error(error);
@@ -252,7 +252,7 @@ export function AdminUserActions({ user }: AdminUserActionsProps) {
                   onClick={() => setNewRole("user")}
                   className="flex-1"
                 >
-                  <UserRound className="mr-2 h-4 w-4" />
+                  <UserRound className="mr-2 h-4 w-4"/>
                   User
                 </Button>
                 <Button
@@ -260,7 +260,7 @@ export function AdminUserActions({ user }: AdminUserActionsProps) {
                   onClick={() => setNewRole("admin")}
                   className="flex-1"
                 >
-                  <Shield className="mr-2 h-4 w-4" />
+                  <Shield className="mr-2 h-4 w-4"/>
                   Admin
                 </Button>
               </div>
