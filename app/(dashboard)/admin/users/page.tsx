@@ -3,9 +3,6 @@
 import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
-import {Button} from "@/components/ui/button";
-import Link from "next/link";
-import {PlusIcon} from "lucide-react";
 import {DataTable} from "@/components/ui/data-table";
 import {columns} from "@/app/(dashboard)/admin/users/columns";
 
@@ -33,12 +30,6 @@ export default async function AdminUsersPage() {
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Users</h1>
-        {/*<Button asChild>*/}
-        {/*  <Link href="/admin/users/new">*/}
-        {/*    <PlusIcon className="mr-2 h-4 w-4"/>*/}
-        {/*    New User*/}
-        {/*  </Link>*/}
-        {/*</Button>*/}
       </div>
       {userListResponse.users.length === 0 ? (
         <p className="text-muted-foreground text-center py-6">
