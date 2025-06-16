@@ -3,6 +3,7 @@ import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import {Toaster} from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,12 @@ export default function RootLayout({
           <Toaster/>
         </ThemeProvider>
       </body>
+      <Script
+        async
+        src="https://analytics.bjorsvik.cloud/script.js"
+        data-website-id="140a6866-52a2-40ba-9f82-03ac0e6edf8c"
+        data-domains="unsub.cash"
+      />
     </html>
   );
 }
