@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {useState, useEffect, useCallback} from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -44,13 +44,10 @@ export function SessionsForm() {
   const [showAllSessions, setShowAllSessions] = useState(false);
   const { data: currentSession } = authClient.useSession();
 
-  // Fetch sessions when the component mounts
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+
 
   // Function to fetch sessions
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     setIsLoading(true);
     try {
       const sessionsData = await authClient.listSessions();
@@ -83,7 +80,12 @@ export function SessionsForm() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentSession?.session.token]);
+
+  // Fetch sessions when the component mounts
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
 
   // Function to revoke a specific session
   const revokeSession = async (session: Session) => {

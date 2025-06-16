@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {authClient} from "@/lib/client";
 import Link from "next/link";
 import Image from "next/image";
 import {NavAdmin} from "@/components/nav-admin";
