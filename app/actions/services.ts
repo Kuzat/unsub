@@ -104,14 +104,19 @@ async function _fetchServices({
       searchCond
     ));
 
-  const rows = await db
+  const dbQuery = db
     .select()
     .from(service)
     .where(and(whereClause, searchCond))
     .limit(validPageSize)
     .offset(offset)
     .orderBy(service.name) // TODO: Might make this configable, if we add popularity or other sorting options
-    .leftJoin(user, scope === "all" ? eq(service.ownerId, user.id) : undefined);
+
+  if (scope === "all") {
+    dbQuery.leftJoin(user, eq(service.ownerId, user.id));
+  }
+
+  const rows = await dbQuery
 
   return {
     services: rows,
