@@ -38,18 +38,26 @@ const verifyTotpSchema = z.object({
   code: z.string().min(6, "Code must be at least 6 characters").max(6, "Code must be at most 6 characters"),
 });
 
+// Schema for disabling 2FA
+const disableTwoFactorSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
 // Type for the form values
 type EnableTwoFactorFormValues = z.infer<typeof enableTwoFactorSchema>;
 type VerifyTotpFormValues = z.infer<typeof verifyTotpSchema>;
+type DisableTwoFactorFormValues = z.infer<typeof disableTwoFactorSchema>;
 
 export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEnabling, setIsEnabling] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isDisabling, setIsDisabling] = useState(false);
+  const [isDisableDialogOpen, setIsDisableDialogOpen] = useState(false);
   const [twoFactorData, setTwoFactorData] = useState<{ totpURI: string; backupCodes: string[] } | null>(null);
   const [step, setStep] = useState<"enable" | "verify">("enable");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
-  const {data: session } = authClient.useSession();
+  const {data: session, isPending, refetch } = authClient.useSession();
 
   // Generate QR code when twoFactorData changes
   useEffect(() => {
@@ -77,6 +85,13 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
     resolver: zodResolver(verifyTotpSchema),
     defaultValues: {
       code: "",
+    },
+  });
+
+  const disableForm = useForm<DisableTwoFactorFormValues>({
+    resolver: zodResolver(disableTwoFactorSchema),
+    defaultValues: {
+      password: "",
     },
   });
 
@@ -133,6 +148,33 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
     }
   }
 
+  // Handles disable form submission
+  async function onDisableSubmit(data: DisableTwoFactorFormValues) {
+    setIsDisabling(true);
+    try {
+      const result = await authClient.twoFactor.disable({
+        password: data.password,
+      });
+
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      toast.success("Two-factor authentication disabled successfully!");
+      setIsDisableDialogOpen(false);
+      disableForm.reset();
+
+      // Refresh the session to update the twoFactorEnabled status
+      refetch();
+    } catch (error) {
+      console.error("Error disabling 2FA:", error);
+      toast.error("Failed to disable two-factor authentication");
+    } finally {
+      setIsDisabling(false);
+    }
+  }
+
   // Reset the form and state when the dialog is closed
   const handleDialogChange = (open: boolean) => {
     setIsOpen(open);
@@ -144,6 +186,14 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
     }
   };
 
+  // Reset the disable form when the disable dialog is closed
+  const handleDisableDialogChange = (open: boolean) => {
+    setIsDisableDialogOpen(open);
+    if (!open) {
+      disableForm.reset();
+    }
+  };
+
   const isTwoFactorEnabled = session?.user.twoFactorEnabled;
 
   return (
@@ -151,20 +201,44 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
       <div>
         <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
         <p className="text-sm text-muted-foreground">
-          Add an extra layer of security to your account by enabling two-factor authentication.
+          {isPending ? (
+            "Loading..."
+          ) : (
+            isTwoFactorEnabled
+              ? "Your account is protected with two-factor authentication."
+              : "Add an extra layer of security to your account by enabling two-factor authentication."
+          )}
         </p>
       </div>
 
       <Dialog open={isOpen} onOpenChange={handleDialogChange}>
         <DialogTrigger asChild>
-          <Button
-            variant={isTwoFactorEnabled ? "outline" : "default"}
-            disabled={isTwoFactorEnabled ?? undefined}
-            className="flex items-center gap-2"
-          >
-            <Shield className="h-4 w-4"/>
-            {isTwoFactorEnabled ? "Two-Factor Authentication Enabled" : "Enable Two-Factor Authentication"}
-          </Button>
+          {isPending ? (
+            <Button variant="default" className="flex items-center gap-2" disabled>
+              <Loader2 className="h-4 w-4 animate-spin"/>
+              Loading...
+            </Button>
+          ) : !isTwoFactorEnabled ? (
+            <Button
+              variant="default"
+              className="flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4"/>
+              Enable Two-Factor Authentication
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsDisableDialogOpen(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4"/>
+              Disable Two-Factor Authentication
+            </Button>
+          )}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -312,6 +386,71 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
               </Form>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for disabling 2FA */}
+      <Dialog open={isDisableDialogOpen} onOpenChange={handleDisableDialogChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5"/>
+              Disable Two-Factor Authentication
+            </DialogTitle>
+            <DialogDescription>
+              This will remove the extra layer of security from your account. You'll need to enter your password to confirm.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...disableForm}>
+            <form onSubmit={disableForm.handleSubmit(onDisableSubmit)} className="space-y-4">
+              <FormField
+                control={disableForm.control}
+                name="password"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Enter your password"
+                        {...field}
+                        autoComplete="current-password"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Please enter your password to disable two-factor authentication.
+                    </FormDescription>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDisableDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="destructive"
+                  disabled={isDisabling}
+                >
+                  {isDisabling ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                      Disabling...
+                    </>
+                  ) : (
+                    "Disable"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
