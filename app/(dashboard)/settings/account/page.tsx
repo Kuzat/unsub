@@ -5,6 +5,7 @@ import { DeleteAccountForm } from "@/components/settings/delete-account-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {SessionsForm} from "@/components/settings/sessions-form";
 import {Separator} from "@/components/ui/separator";
+import {TwoFactorCard} from "@/components/settings/two-factor-card";
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({
@@ -40,6 +41,8 @@ export default async function AccountPage() {
             </div>
           </CardContent>
         </Card>
+
+        <TwoFactorCard />
 
         <Card>
           <CardHeader>
