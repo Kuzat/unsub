@@ -3,14 +3,15 @@ import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import {db} from "@/db";
 import {nextCookies} from "better-auth/next-js";
 import * as schema from "@/db/schema/auth"
-import {admin, emailOTP} from "better-auth/plugins";
+import {admin, emailOTP, twoFactor} from "better-auth/plugins";
 import {emailOTPClient} from "better-auth/client/plugins";
 import {sendVerificationEmail, sendDeleteAccountEmail} from "@/lib/email";
-import { headers } from "next/headers";
+import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 
 
 export const auth = betterAuth({
+  appName: "Unsub",
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: schema
@@ -36,13 +37,14 @@ export const auth = betterAuth({
     },
     deleteUser: {
       enabled: true,
-      async sendDeleteAccountVerification({ user, url }) {
+      async sendDeleteAccountVerification({user, url}) {
         await sendDeleteAccountEmail(user.email, url);
       }
     }
   },
   plugins: [
     admin(),
+    twoFactor(),
     emailOTP({
       sendVerificationOnSignUp: true,
       disableSignUp: true,
