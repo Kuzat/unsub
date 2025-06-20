@@ -9,6 +9,8 @@ import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {User} from "better-auth";
 import {categoryEnum} from "@/db/schema/_common";
+import {cache} from "react";
+import {user} from "@/db/schema/auth";
 
 export type Service = {
   id: string;
@@ -52,54 +54,118 @@ export async function searchServices(query: string): Promise<Service[]> {
     .limit(20);
 }
 
-/**
- * Get all services with pagination
- * @param page The page number (1-based)
- * @param pageSize The number of items per page
- * @returns An object containing the services and pagination info
- */
-export async function getServices(page: number = 1, pageSize: number = 10): Promise<{
-  services: Service[];
-  totalServices: number;
-  totalPages: number;
-  currentPage: number;
-}> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
+export type ServiceScope =
+  | "userAndGlobal"
+  | "globalOnly"
+  | "all";
 
-  // Get services should also be available for non-authenticated users, but then only global services should be returned
-  const serviceScopeCondition = getServiceScopeCondition(session);
+interface FetchServicesOptions {
+  scope: ServiceScope;
+  userId?: string;
+  page: number;
+  pageSize: number;
+  query?: string;
+}
 
-  // Ensure page and pageSize are valid
+export async function fetchServices({
+                                scope,
+                                userId,
+                                page,
+                                pageSize,
+                                query = "",
+                              }: FetchServicesOptions) {
   const validPage = Math.max(1, page);
   const validPageSize = Math.max(1, pageSize);
-  const offset = (validPage - 1) * validPageSize;
+  const offset = (page - 1) * validPageSize;
 
-  // Get a total count of services
-  const totalServicesResult = await db
+  let whereClause;
+  if (scope === "userAndGlobal" && userId) {
+    whereClause = or(
+      eq(service.scope, "global"),
+      eq(service.ownerId, userId),
+    );
+  } else if (scope === "globalOnly") {
+    whereClause = eq(service.scope, "global");
+  } else if (scope === "all") {
+    whereClause = undefined;
+  } else {
+    throw new Error(`Invalid service scope: ${scope}`);
+  }
+
+  // Add a text-search condition if `query` is present
+  const searchCond = query ? ilike(service.name, `%${query}%`) : undefined;
+
+  // count + paginate
+  const [{count: totalServices}] = await db
     .select({count: count()})
     .from(service)
-    .where(serviceScopeCondition);
+    .where(and(
+      whereClause,
+      searchCond
+    ));
 
-  const totalServices = Number(totalServicesResult[0].count);
-  const totalPages = Math.ceil(totalServices / validPageSize);
-
-  // Get services for the current page
-  const services = await db
+  const dbQuery = db
     .select()
     .from(service)
-    .where(serviceScopeCondition)
+    .where(and(whereClause, searchCond))
     .limit(validPageSize)
     .offset(offset)
-    .orderBy(service.name);
+    .orderBy(service.name) // TODO: Might make this configable, if we add popularity or other sorting options
+
+  if (scope === "all") {
+    dbQuery.leftJoin(user, eq(service.ownerId, user.id));
+  }
+
+  const rows = await dbQuery
 
   return {
-    services,
-    totalServices,
-    totalPages,
+    services: rows,
+    totalPages: Math.ceil(totalServices / validPageSize),
     currentPage: validPage,
-  };
+  }
+}
+
+export async function getServicesForUser(
+  session: { user: User },
+  page: number = 1,
+  pageSize: number = 10,
+  query?: string
+) {
+  return fetchServices({
+    scope: "userAndGlobal",
+    userId: session.user.id,
+    page,
+    pageSize,
+    query,
+  });
+}
+
+
+export async function getServicesForAdmin(
+  page: number = 1,
+  pageSize: number = 10,
+  query?: string
+) {
+  return fetchServices({
+    scope: "all",
+    page,
+    pageSize,
+    query,
+  });
+}
+
+
+export async function getGlobalServices(
+  page: number = 1,
+  pageSize: number = 10,
+  query?: string
+) {
+  return fetchServices({
+    scope: "globalOnly",
+    page,
+    pageSize,
+    query,
+  });
 }
 
 export async function createService(input: CreateServiceFormValues): Promise<Service | { error: string }> {
@@ -166,7 +232,7 @@ export async function updateService(
   });
 
   if (!session) {
-    return { error: "You must be logged in to update a service" };
+    return {error: "You must be logged in to update a service"};
   }
 
   try {
@@ -185,7 +251,7 @@ export async function updateService(
       .limit(1);
 
     if (existingService.length === 0) {
-      return { error: "Service not found or you don't have permission to update it" };
+      return {error: "Service not found or you don't have permission to update it"};
     }
 
     // Update the service
@@ -206,7 +272,7 @@ export async function updateService(
       .returning();
 
     if (result.length === 0) {
-      return { error: "Failed to update service" };
+      return {error: "Failed to update service"};
     }
 
     return {
@@ -220,7 +286,7 @@ export async function updateService(
     };
   } catch (error) {
     console.error("Error updating service:", error);
-    return { error: "Failed to update service" };
+    return {error: "Failed to update service"};
   }
 }
 
@@ -230,7 +296,7 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
   });
 
   if (!session) {
-    return { error: "You must be logged in to view this service" };
+    return {error: "You must be logged in to view this service"};
   }
 
   try {
@@ -248,7 +314,7 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
       .limit(1);
 
     if (result.length === 0) {
-      return { error: "Service not found" };
+      return {error: "Service not found"};
     }
 
     return {
@@ -262,7 +328,7 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
     };
   } catch (error) {
     console.error("Error fetching service:", error);
-    return { error: "Failed to fetch service" };
+    return {error: "Failed to fetch service"};
   }
 }
 
@@ -272,7 +338,7 @@ export async function deleteService(serviceId: string): Promise<{ success: strin
   });
 
   if (!session) {
-    return { error: "You must be logged in to delete a service" };
+    return {error: "You must be logged in to delete a service"};
   }
 
   try {
@@ -288,7 +354,7 @@ export async function deleteService(serviceId: string): Promise<{ success: strin
       .limit(1);
 
     if (existingService.length === 0) {
-      return { error: "Service not found or you don't have permission to delete it" };
+      return {error: "Service not found or you don't have permission to delete it"};
     }
 
     // Delete the service
@@ -298,16 +364,16 @@ export async function deleteService(serviceId: string): Promise<{ success: strin
         eq(service.id, serviceId),
         eq(service.ownerId, session.user.id)
       ))
-      .returning({ id: service.id });
+      .returning({id: service.id});
 
     if (result.length === 0) {
-      return { error: "Failed to delete service" };
+      return {error: "Failed to delete service"};
     }
 
-    return { success: "Service deleted successfully" };
+    return {success: "Service deleted successfully"};
   } catch (error) {
     console.error("Error deleting service:", error);
-    return { error: "Failed to delete service" };
+    return {error: "Failed to delete service"};
   }
 }
 

@@ -5,7 +5,7 @@ import {
   Bell,
   ChevronsUpDown,
   LogOut, Settings,
-  Sparkles,
+  Sparkles, UserRoundX,
 } from "lucide-react"
 
 import {
@@ -30,14 +30,12 @@ import {
 } from "@/components/ui/sidebar"
 import {authClient} from "@/lib/client";
 import {useRouter} from "next/navigation";
-import {User} from "better-auth";
 import Link from "next/link";
+import {toast} from "sonner";
 
-export function NavUser({
-                          user,
-                        }: {
-  user: User | undefined
-}) {
+export function NavUser() {
+  const {data, refetch} = authClient.useSession()
+
   const {isMobile} = useSidebar()
   const router = useRouter()
 
@@ -51,10 +49,26 @@ export function NavUser({
     }
   }
 
-  const avatarSrc = user?.image || ""
+  const handleStopImpersonating = async () => {
+    try {
+      await authClient.admin.stopImpersonating()
+      refetch();
+      toast.success("Stopped impersonating");
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast.error("Failed to stop impersonating");
+      router.push("/login");
+    }
+  }
+
+  const avatarSrc = data?.user?.image || ""
+
+  const isImpersonating = data ? data.session.impersonatedBy !== null : false;
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className={isImpersonating ? "border-destructive border-2 rounded-lg" : ""}>
+      {isImpersonating && <div className="px-2 font-bold text-destructive">Impersonating</div>}
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -63,11 +77,11 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={avatarSrc} alt={user?.name}/>
-                <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                <AvatarImage src={avatarSrc} alt={data?.user?.name}/>
+                <AvatarFallback className="rounded-lg">{data?.user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.name}</span>
+                <span className="truncate font-medium">{data?.user?.name}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4"/>
             </SidebarMenuButton>
@@ -81,11 +95,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={avatarSrc} alt={user?.name}/>
-                  <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarImage src={avatarSrc} alt={data?.user?.name}/>
+                  <AvatarFallback
+                    className="rounded-lg">{data?.user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user?.name}</span>
+                  <span className="truncate font-medium">{data?.user?.name}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -118,6 +133,12 @@ export function NavUser({
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator/>
+            {isImpersonating &&
+                <DropdownMenuItem variant={"destructive"} onClick={handleStopImpersonating}>
+                    <UserRoundX/>
+                    Stop impersonating
+                </DropdownMenuItem>
+            }
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut/>
               Log out
@@ -128,3 +149,4 @@ export function NavUser({
     </SidebarMenu>
   )
 }
+

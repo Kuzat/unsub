@@ -1,18 +1,11 @@
 "use client"
 
 import * as React from "react"
-import {
-  LifeBuoy,
-  Calendar,
-  Send,
-  UserRound,
-  Cog,
-  SquareTerminal,
-} from "lucide-react"
+import {Calendar, CloudCog, Cog, LifeBuoy, Send, SquareTerminal, UserRound, UserRoundCog,} from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import {NavMain} from "@/components/nav-main"
+import {NavSecondary} from "@/components/nav-secondary"
+import {NavUser} from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -22,9 +15,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {authClient} from "@/lib/client";
 import Link from "next/link";
 import Image from "next/image";
+import {NavAdmin} from "@/components/nav-admin";
 
 const data = {
   navMain: [
@@ -80,6 +73,20 @@ const data = {
     //   ],
     // },
   ],
+  navAdmin: [
+    {
+      title: "Users",
+      url: "/admin/users",
+      icon: UserRoundCog,
+      collapsible: false,
+    },
+    {
+      title: "Service Catalog",
+      url: "/admin/service-catalog",
+      icon: CloudCog,
+      collapsible: false,
+    }
+  ],
   navSecondary: [
     {
       title: "Support",
@@ -95,11 +102,7 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const {
-    data: session,
-  } = authClient.useSession()
-  const user = session?.user
+export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -128,11 +131,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain}  />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={data.navMain}/>
+        <NavAdmin items={data.navAdmin}/>
+        <NavSecondary items={data.navSecondary} className="mt-auto"/>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser/>
       </SidebarFooter>
     </Sidebar>
   )

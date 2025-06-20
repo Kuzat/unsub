@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { updateDisplayName } from "@/app/actions/user-settings"
+import {authClient} from "@/lib/client";
 
 // Schema for validating display name input
 const formSchema = z.object({
@@ -30,8 +30,8 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ initialName }: ProfileFormProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const {refetch} = authClient.useSession();
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -49,7 +49,7 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
         toast.success(result.message)
 
         // Refresh the page to ensure all components using the session are updated
-        router.refresh()
+        refetch();
       } else {
         toast.error(result.message)
       }

@@ -2,8 +2,10 @@ import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import { DeleteAccountForm } from "@/components/settings/delete-account-form";
-import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {SessionsForm} from "@/components/settings/sessions-form";
+import {Separator} from "@/components/ui/separator";
+import {TwoFactorCard} from "@/components/settings/two-factor-card";
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({
@@ -37,6 +39,20 @@ export default async function AccountPage() {
                 <p className="text-sm text-muted-foreground">{session.user.email}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <TwoFactorCard />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Session Management</CardTitle>
+            <CardDescription>
+              Manage your active sessions across devices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SessionsForm />
           </CardContent>
         </Card>
 

@@ -1,26 +1,18 @@
 import {AppSidebar} from "@/components/app-sidebar";
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
-import {auth} from "@/lib/auth";
-import {headers} from "next/headers";
+import {requireSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
 
 
-export default async function DashboardLayout({children }: {
+export default async function DashboardLayout({children}: {
   children: React.ReactNode
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  })
+  const session = await requireSession()
 
-  if (!session) {
-    return redirect('/login')
+  // Check if user is admin and not have 2fa enabled
+  if (session.user.role === "admin" && !session.user.twoFactorEnabled) {
+    return redirect('/enable-2fa')
   }
-
-  // Check if user's email is verified
-  if (!session.user.emailVerified) {
-    return redirect('/verify-email')
-  }
-
 
   return (
     <SidebarProvider>

@@ -30,7 +30,7 @@ export const EmailLayout: React.FC<EmailLayoutProps> = ({
         <Container style={container}>
           <Section style={logoContainer}>
             <Img
-              src={`${process.env.NEXT_PUBLIC_APP_URL || 'https://unsub.cash'}/unsub.svg`}
+              src={`${process.env.NEXT_PUBLIC_APP_URL || 'https://unsub.cash'}/unsub.png`}
               width="120"
               height="120"
               alt="Unsub Logo"
