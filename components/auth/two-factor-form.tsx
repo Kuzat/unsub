@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {Loader2, Shield, QrCode} from "lucide-react";
+import {Loader2, Shield} from "lucide-react";
 import QRCode from "qrcode";
 import Link from "next/link";
 import Image from "next/image";
