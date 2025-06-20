@@ -6,3 +6,6 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
   - This also should work with limited time offers where you get lower price for a few months before going back to normal prices.
 - [ ]  For the Service Cancellation guides it is probably good to support multiple languages, and regions for the guides. As how you cancel might differ from different regions.
 - [ ] Add all the currencies
+- [ ] Admin feature, such as being able to edit all services and create new global services.
+- [ ] The merge services page to help find duplicate services and merge them into new global services
+- 
