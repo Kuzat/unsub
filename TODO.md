@@ -8,4 +8,4 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Add all the currencies
 - [ ] Admin feature, such as being able to edit all services and create new global services.
 - [ ] The merge services page to help find duplicate services and merge them into new global services
-- 
+- [ ] Add pagination UI and search fields to Services, and Subscription page
