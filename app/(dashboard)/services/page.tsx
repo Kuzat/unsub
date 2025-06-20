@@ -1,5 +1,5 @@
 import {DataTable} from "@/components/ui/data-table"
-import {getServicesForUser} from "@/app/actions/services";
+import {getServicesForUser, Service} from "@/app/actions/services";
 import {columns} from "./columns"
 import {Suspense} from "react";
 import {PaginationControl} from "@/components/services/pagination-control";
@@ -45,7 +45,7 @@ export default async function ServicesPage(props: ServicesPageProps) {
       ) : (
         <>
           <div className="rounded-md border">
-            <DataTable columns={columns} data={services}/>
+            <DataTable columns={columns} data={services as Service[]}/>
           </div>
           <Suspense fallback={<div>Loading pagination...</div>}>
             <PaginationControl currentPage={currentPage} totalPages={totalPages} />

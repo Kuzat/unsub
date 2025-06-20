@@ -10,6 +10,7 @@ import {headers} from "next/headers";
 import {User} from "better-auth";
 import {categoryEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
+import {ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
 
 export type Service = {
   id: string;
@@ -67,12 +68,12 @@ interface FetchServicesOptions {
 }
 
 export async function fetchServices({
-                                scope,
-                                userId,
-                                page,
-                                pageSize,
-                                query = "",
-                              }: FetchServicesOptions) {
+                                      scope,
+                                      userId,
+                                      page,
+                                      pageSize,
+                                      query = "",
+                                    }: FetchServicesOptions) {
   const validPage = Math.max(1, page);
   const validPageSize = Math.max(1, pageSize);
   const offset = (page - 1) * validPageSize;
@@ -103,7 +104,7 @@ export async function fetchServices({
       searchCond
     ));
 
-  const dbQuery = db
+  const queryBuilder = db
     .select()
     .from(service)
     .where(and(whereClause, searchCond))
@@ -111,11 +112,10 @@ export async function fetchServices({
     .offset(offset)
     .orderBy(service.name) // TODO: Might make this configable, if we add popularity or other sorting options
 
-  if (scope === "all") {
-    dbQuery.leftJoin(user, eq(service.ownerId, user.id));
-  }
+  const rows = (scope === "all"
+    ? await queryBuilder.leftJoin(user, eq(service.ownerId, user.id)) as ServiceWithUser[]
+    : await queryBuilder as Service[]);
 
-  const rows = await dbQuery
 
   return {
     services: rows,

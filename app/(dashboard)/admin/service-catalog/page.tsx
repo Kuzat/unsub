@@ -6,7 +6,7 @@ import {PlusIcon} from "lucide-react";
 import {DataTable} from "@/components/ui/data-table";
 import {Suspense} from "react";
 import {PaginationControl} from "@/components/services/pagination-control";
-import {columns} from "@/app/(dashboard)/admin/service-catalog/columns";
+import {columns, ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
 
 // Define the props for the page component
 interface ServicesPageProps {
@@ -49,7 +49,7 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
       ) : (
         <>
           <div className="rounded-md border">
-            <DataTable columns={columns} data={services}/>
+            <DataTable columns={columns} data={services as ServiceWithUser[]}/>
           </div>
           <Suspense fallback={<div>Loading pagination...</div>}>
             <PaginationControl currentPage={currentPage} totalPages={totalPages}/>
