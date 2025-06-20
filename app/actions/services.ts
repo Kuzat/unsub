@@ -2,7 +2,7 @@
 
 import {db} from "@/db";
 import {service} from "@/db/schema/app";
-import {and, count, eq, ilike, or, SQL} from "drizzle-orm";
+import {and, count, eq, ilike, or} from "drizzle-orm";
 import crypto from "crypto";
 import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/service";
 import {auth} from "@/lib/auth";

@@ -74,8 +74,6 @@ export async function requireSession() {
     return redirect('/verify-email')
   }
 
-  console.log(session)
-
   return session;
 }
 

@@ -29,6 +29,7 @@ import {
 import {Loader2, Shield, QrCode} from "lucide-react";
 import QRCode from "qrcode";
 import Link from "next/link";
+import Image from "next/image";
 
 // Schema for validating 2FA setup
 const enableTwoFactorSchema = z.object({
@@ -315,7 +316,7 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
                     <QrCode className="h-48 w-48 text-black"/>
                     <div className="absolute inset-0 flex items-center justify-center">
                       {qrCodeDataUrl ? (
-                        <img
+                        <Image
                           src={qrCodeDataUrl}
                           alt="QR Code for 2FA"
                           width={200}
@@ -403,7 +404,7 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
               Disable Two-Factor Authentication
             </DialogTitle>
             <DialogDescription>
-              This will remove the extra layer of security from your account. You'll need to enter your password to confirm.
+              This will remove the extra layer of security from your account. You&apos;ll need to enter your password to confirm.
             </DialogDescription>
           </DialogHeader>
 
