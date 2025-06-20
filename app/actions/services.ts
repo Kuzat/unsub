@@ -67,7 +67,7 @@ interface FetchServicesOptions {
   query?: string;
 }
 
-async function _fetchServices({
+export async function fetchServices({
                                 scope,
                                 userId,
                                 page,
@@ -124,9 +124,6 @@ async function _fetchServices({
     currentPage: validPage,
   }
 }
-
-export const fetchServices = cache(_fetchServices);
-
 
 export async function getServicesForUser(
   session: { user: User },
