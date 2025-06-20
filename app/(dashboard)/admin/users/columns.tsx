@@ -19,7 +19,7 @@ export const columns: ColumnDef<UserWithRole>[] = [
           <div className="h-8 w-8 rounded overflow-hidden">
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage src={user?.image || ""} alt={user?.name}/>
-              <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              <AvatarFallback className="rounded-lg">{user?.name.substring(0, 2).toUpperCase() || "??"}</AvatarFallback>
             </Avatar>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
