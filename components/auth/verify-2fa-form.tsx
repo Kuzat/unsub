@@ -30,7 +30,6 @@ import {useRouter} from "next/navigation";
 // Schema for validating 2FA verification
 const verifyTwoFactorSchema = z.object({
   code: z.string(),
-  trustDevice: z.boolean(),
 });
 
 // Type for the form values
@@ -45,7 +44,6 @@ export function VerifyTwoFactorForm({className, ...props}: React.ComponentProps<
     resolver: zodResolver(verifyTwoFactorSchema),
     defaultValues: {
       code: "",
-      trustDevice: false,
     },
   });
 
