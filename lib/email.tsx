@@ -5,6 +5,7 @@ import {render} from "@react-email/render";
 import ConfirmEmail from "@/emails/transactional/confirm-email";
 import DeleteAccount from "@/emails/transactional/delete-account";
 import RenewalReminder from "@/emails/transactional/renewal-reminder";
+import ResetPassword from "@/emails/transactional/reset-password";
 import {format} from "date-fns";
 import {toZonedTime} from "date-fns-tz";
 
@@ -99,6 +100,21 @@ export async function sendDeleteAccountEmail(email: string, url: string) {
     plainText: true,
   });
   const subject = "Confirm Your Unsub💸 Account Deletion Request"
+
+  await sendEmail({
+    to: email,
+    subject: subject,
+    html: html,
+    text: text,
+  });
+}
+
+export async function sendResetPasswordEmail(email: string, otpToken: string) {
+  const html = await render(<ResetPassword token={otpToken}/>);
+  const text = await render(<ResetPassword token={otpToken}/>, {
+    plainText: true,
+  });
+  const subject = "Your Unsub💸 password reset code"
 
   await sendEmail({
     to: email,

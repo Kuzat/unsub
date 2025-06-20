@@ -5,7 +5,7 @@ import {nextCookies} from "better-auth/next-js";
 import * as schema from "@/db/schema/auth"
 import {admin, emailOTP, twoFactor} from "better-auth/plugins";
 import {emailOTPClient} from "better-auth/client/plugins";
-import {sendVerificationEmail, sendDeleteAccountEmail} from "@/lib/email";
+import {sendVerificationEmail, sendDeleteAccountEmail, sendResetPasswordEmail} from "@/lib/email";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 
@@ -51,6 +51,8 @@ export const auth = betterAuth({
       async sendVerificationOTP({email, otp, type}) {
         if (type === "email-verification") {
           await sendVerificationEmail(email, otp)
+        } else if (type === "forget-password") {
+          await sendResetPasswordEmail(email, otp)
         }
       }
     }),
