@@ -9,7 +9,6 @@ import {auth} from "@/lib/auth";
 import {headers} from "next/headers";
 import {User} from "better-auth";
 import {categoryEnum} from "@/db/schema/_common";
-import {cache} from "react";
 import {user} from "@/db/schema/auth";
 
 export type Service = {
