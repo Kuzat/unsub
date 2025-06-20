@@ -59,7 +59,7 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
   const [twoFactorData, setTwoFactorData] = useState<{ totpURI: string; backupCodes: string[] } | null>(null);
   const [step, setStep] = useState<"enable" | "verify">("enable");
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
-  const {data: session, isPending, refetch } = authClient.useSession();
+  const {data: session, isPending, refetch} = authClient.useSession();
 
   // Generate QR code when twoFactorData changes
   useEffect(() => {
@@ -313,19 +313,17 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
               {twoFactorData && (
                 <div className="flex flex-col items-center space-y-4">
                   <div className="bg-white p-2 rounded-md relative">
-                    <QrCode className="h-48 w-48 text-black"/>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      {qrCodeDataUrl ? (
-                        <Image
-                          src={qrCodeDataUrl}
-                          alt="QR Code for 2FA"
-                          width={200}
-                          height={200}
-                        />
-                      ) : (
-                        <Loader2 className="h-8 w-8 animate-spin"/>
-                      )}
-                    </div>
+                    {qrCodeDataUrl ? (
+                      <Image
+                        src={qrCodeDataUrl}
+                        alt="QR Code for 2FA"
+                        className="h-48 w-48"
+                        width={200}
+                        height={200}
+                      />
+                    ) : (
+                      <Loader2 className="h-8 w-8 animate-spin"/>
+                    )}
                   </div>
 
                   <div className="w-full">
@@ -404,7 +402,8 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
               Disable Two-Factor Authentication
             </DialogTitle>
             <DialogDescription>
-              This will remove the extra layer of security from your account. You&apos;ll need to enter your password to confirm.
+              This will remove the extra layer of security from your account. You&apos;ll need to enter your password to
+              confirm.
             </DialogDescription>
           </DialogHeader>
 
@@ -440,8 +439,8 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   variant="destructive"
                   disabled={isDisabling}
                 >
