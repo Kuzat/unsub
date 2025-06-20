@@ -1,21 +1,12 @@
-import { auth } from "@/lib/auth";
-import {headers} from "next/headers";
-import {redirect} from "next/navigation";
-
+import {requireAdmin} from "@/lib/auth";
 
 export default async function MergeSuggestionsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
+  await requireAdmin();
 
-  if (!session) {
-    return redirect('/login')
-  }
-
-  if (session.user.role !== "admin") {
-    return redirect('/dashboard')
-  }
-
-  debugger;
-
+  return (
+    <div>
+      <h1>Merge suggestions</h1>
+      <p>Feature coming soon...</p>
+    </div>
+  );
 }
