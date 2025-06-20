@@ -36,14 +36,22 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
 
   const onSubmit = async (data: FormSchema) => {
     try {
-      const {error} = await authClient.signIn.email({
+      const result = await authClient.signIn.email({
         email: data.email,
         password: data.password,
         callbackURL: "/dashboard",
+      }, {
+        async onSuccess(context) {
+          if (context.data.twoFactorRedirect) {
+            // The twoFactorClient plugin will handle the redirect to /verify-2fa
+            // This is configured in lib/client.ts
+            return;
+          }
+        }
       })
 
-      if (error) {
-        toast.error(error.message)
+      if (result.error) {
+        toast.error(result.error.message)
       }
     } catch {
       toast.error("An error occurred during login.")
@@ -52,13 +60,21 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
 
   const onGoogleLogin = async () => {
     try {
-      const {error} = await authClient.signIn.social({
+      const result = await authClient.signIn.social({
         provider: "google",
         callbackURL: "/dashboard",
+      }, {
+        async onSuccess(context) {
+          if (context.data.twoFactorRedirect) {
+            // The twoFactorClient plugin will handle the redirect to /verify-2fa
+            // This is configured in lib/client.ts
+            return;
+          }
+        }
       })
 
-      if (error) {
-        toast.error(error.message)
+      if (result.error) {
+        toast.error(result.error.message)
       }
     } catch {
       toast.error("An error occurred during login.")

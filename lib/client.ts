@@ -4,7 +4,11 @@ import {adminClient, emailOTPClient, twoFactorClient} from "better-auth/client/p
 export const authClient = createAuthClient({
   plugins: [
     adminClient(),
-    twoFactorClient(),
+    twoFactorClient({
+      onTwoFactorRedirect(){
+        window.location.href = "/verify-2fa";
+      }
+    }),
     emailOTPClient()
   ]
 });
