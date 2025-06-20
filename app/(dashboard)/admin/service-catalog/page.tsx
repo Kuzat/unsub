@@ -1,4 +1,4 @@
-import { requireAdmin} from "@/lib/auth";
+import {requireAdmin} from "@/lib/auth";
 import {getServicesForAdmin} from "@/app/actions/services";
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
@@ -22,11 +22,14 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
 
   const searchParams = await props.searchParams;
   // Parse page and pageSize from query parameters, defaulting to 1 and 10
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 10;
+  const page = Math.max(1, searchParams.page ? parseInt(searchParams.page) : 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, searchParams.pageSize ? parseInt(searchParams.pageSize) : 10)
+  );
 
   // Fetch services with pagination
-  const { services, totalPages, currentPage } = await getServicesForAdmin(page, pageSize);
+  const {services, totalPages, currentPage} = await getServicesForAdmin(page, pageSize);
 
   return (
     <div className="container mx-auto py-2">
@@ -34,7 +37,7 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
         <h1 className="text-2xl font-bold">Services</h1>
         <Button asChild>
           <Link href="/admin/service-catalog/new">
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 h-4 w-4"/>
             New Service
           </Link>
         </Button>
@@ -49,7 +52,7 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
             <DataTable columns={columns} data={services}/>
           </div>
           <Suspense fallback={<div>Loading pagination...</div>}>
-            <PaginationControl currentPage={currentPage} totalPages={totalPages} />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages}/>
           </Suspense>
         </>
       )}

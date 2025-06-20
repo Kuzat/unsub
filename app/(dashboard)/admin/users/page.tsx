@@ -18,8 +18,11 @@ export default async function AdminUsersPage(props: PageProps) {
   const searchParams = await props.searchParams;
 
   // Parse page and pageSize from query parameters, defaulting to 1 and 100
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 100;
+  const page = Math.max(1, searchParams.page ? parseInt(searchParams.page) : 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, searchParams.pageSize ? parseInt(searchParams.pageSize) : 10)
+  );
 
   const userListResponse = await auth.api.listUsers({
     headers: await headers(),
