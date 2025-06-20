@@ -58,8 +58,6 @@ export function SessionsForm() {
         return;
       }
 
-      console.log("Sessions:", sessionsData.data);
-
       // Mark the current session
       const enhancedSessions = sessionsData.data.map(session => ({
         id: session.id,
