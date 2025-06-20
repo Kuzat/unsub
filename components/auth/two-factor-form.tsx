@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import {Loader2, Shield, QrCode} from "lucide-react";
 import QRCode from "qrcode";
+import Link from "next/link";
 
 // Schema for validating 2FA setup
 const enableTwoFactorSchema = z.object({
@@ -272,6 +273,10 @@ export function TwoFactorForm({onCompleted}: { onCompleted: () => void }) {
                       </FormControl>
                       <FormDescription>
                         Please enter your password to enable two-factor authentication.
+                        If you do not have a password or have forgot it then you can
+                        <Link href="/reset-password" className="underline text-primary ml-1">
+                          reset password
+                        </Link>.
                       </FormDescription>
                       <FormMessage/>
                     </FormItem>

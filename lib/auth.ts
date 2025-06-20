@@ -59,7 +59,6 @@ export const auth = betterAuth({
   ]
 });
 
-
 export async function requireSession() {
   const session = await auth.api.getSession({
     headers: await headers()
@@ -67,6 +66,13 @@ export async function requireSession() {
   if (!session) {
     redirect("/login")
   }
+
+  // Check if user's email is verified
+  if (!session.user.emailVerified) {
+    return redirect('/verify-email')
+  }
+
+  console.log(session)
 
   return session;
 }
