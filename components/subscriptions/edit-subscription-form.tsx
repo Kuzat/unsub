@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ArrowLeftIcon, CalendarIcon } from "lucide-react"
+import {ArrowLeftIcon, CalendarIcon, Check, ChevronsUpDown} from "lucide-react"
 import {CreateSubscriptionSchema, createSubscriptionSchema} from "@/lib/validation/subscription"
 import { useRouter } from "next/navigation"
 import { updateSubscription, EditSubscription } from "@/app/actions/subscriptions"
@@ -21,6 +21,9 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { cn, formatDate } from "@/lib/utils"
 import Image from "next/image"
+import {currencyFormMap} from "@/db/data/currencies";
+import {Command} from "cmdk";
+import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 
 interface EditSubscriptionFormProps {
   subscription: EditSubscription;
@@ -38,6 +41,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
   const [isLoadingServices, setIsLoadingServices] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState<string>('')
   const [selectedService, setSelectedService] = React.useState<Service | null>(null)
+  const [currencyComboboxOpen, setCurrencyComboboxOpen] = React.useState(false)
 
   // Load services when dialog opens
   const loadServices = React.useCallback(async (query: string = '') => {
@@ -342,21 +346,62 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
               control={form.control}
               name="currency"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Currency" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                      <SelectItem value="NOK">NOK</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Popover open={currencyComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl onClick={() => setCurrencyComboboxOpen(!currencyComboboxOpen)}>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-[200px] justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? currencyFormMap.find(
+                              (currency) => currency.value === field.value
+                            )?.value
+                            : "Select Currency"}
+                          <ChevronsUpDown className="opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search currency..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No currency found.</CommandEmpty>
+                          <CommandGroup>
+                            {currencyFormMap.map((currency) => (
+                              <CommandItem
+                                value={currency.value}
+                                key={currency.value}
+                                onSelect={() => {
+                                  form.setValue("currency", currency.value)
+                                  setCurrencyComboboxOpen(false)
+                                }}
+                              >
+                                {currency.value}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    currency.value === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

@@ -12,7 +12,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Switch} from "@/components/ui/switch"
 import {Textarea} from "@/components/ui/textarea"
-import {CalendarIcon, PlusIcon, ArrowLeftIcon} from "lucide-react"
+import {CalendarIcon, PlusIcon, ArrowLeftIcon, ChevronsUpDown, Check} from "lucide-react"
 import {cn} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service";
@@ -24,7 +24,10 @@ import {toast} from "sonner";
 import Image from "next/image";
 import {format} from "date-fns";
 import {useState} from "react";
-import {categoryEnum} from "@/db/schema/_common";
+import {categoryEnum } from "@/db/schema/_common";
+import {Command} from "cmdk";
+import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import {currencyFormMap} from "@/db/data/currencies";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 type Step = "selectService" | "subscriptionDetails";
@@ -44,6 +47,7 @@ export default function NewSubscriptionForm() {
   const [priceInput, setPriceInput] = React.useState<string>('0');
   const [remindDaysInput, setRemindDaysInput] = React.useState<string>('3');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
+  const [currencyComboboxOpen, setCurrencyComboboxOpen] = useState(false);
 
   // Load initial services
   React.useEffect(() => {
@@ -222,11 +226,13 @@ export default function NewSubscriptionForm() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{service.name}</p>
                           {service.scope === "global" ? (
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                            <span
+                              className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                               Global
                             </span>
                           ) : (
-                            <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                            <span
+                              className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
                               Custom
                             </span>
                           )}
@@ -393,11 +399,13 @@ export default function NewSubscriptionForm() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{selectedService.name}</p>
                   {selectedService.scope === "global" ? (
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                    <span
+                      className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                       Global
                     </span>
                   ) : (
-                    <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                    <span
+                      className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
                       Custom
                     </span>
                   )}
@@ -522,23 +530,64 @@ export default function NewSubscriptionForm() {
           <FormField
             control={form.control}
             name="currency"
-            render={({field}) => (
-              <FormItem>
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
                 <FormLabel>Currency</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Currency"/>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
-                    <SelectItem value="NOK">NOK</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage/>
+                <Popover open={currencyComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl onClick={() => setCurrencyComboboxOpen(!currencyComboboxOpen)}>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-[200px] justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? currencyFormMap.find(
+                            (currency) => currency.value === field.value
+                          )?.value
+                          : "Select Currency"}
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search currency..."
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No currency found.</CommandEmpty>
+                        <CommandGroup>
+                          {currencyFormMap.map((currency) => (
+                            <CommandItem
+                              value={currency.value}
+                              key={currency.value}
+                              onSelect={() => {
+                                form.setValue("currency", currency.value)
+                                setCurrencyComboboxOpen(false)
+                              }}
+                            >
+                              {currency.value}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  currency.value === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />
