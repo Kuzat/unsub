@@ -1,12 +1,7 @@
 import {pgEnum} from "drizzle-orm/pg-core";
+import {currencyCodes} from "@/db/data/currencies";
 
-
-// TODO: Expand this with more currencies
-export const currencyEnum = pgEnum("currency", [
-  "EUR",
-  "USD",
-  "GBP",
-]);
+export const currencyEnum = pgEnum("currency", currencyCodes as [string, ...string[]]);
 
 export const billingCycleEnum = pgEnum("billing_cycle", [
   "daily",
