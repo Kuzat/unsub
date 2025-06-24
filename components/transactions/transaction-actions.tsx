@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,47 +15,87 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { 
+import {Input} from "@/components/ui/input";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {deleteTransaction, TransactionData, updateTransaction} from "@/app/actions/subscriptions";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { TransactionWithService } from "@/app/actions/subscriptions";
+import {Check, ChevronsUpDown, MoreVertical, Edit, Trash2} from "lucide-react";
+import {useRouter} from "next/navigation";
+import {useState} from "react";
+import {toast} from "sonner";
+import {TransactionWithService} from "@/app/actions/subscriptions";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {currencyFormMap} from "@/db/data/currencies";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {cn} from "@/lib/utils";
+import {Command} from "cmdk";
+import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import * as React from "react";
+import * as z from "zod";
+import {currencyEnum, transactionTypeEnum} from "@/db/schema/_common";
+
+export const updateTransactionSchema = z.object({
+  amount: z.string().min(1, "Amount is required"),
+  currency: z.enum(currencyEnum.enumValues as [string, ...string[]]),
+  occurredAt: z.string().min(1, "Date is required"),
+  type: z.enum(transactionTypeEnum.enumValues as [string, ...string[]]),
+});
+
+export type UpdateTransactionFormValues = z.infer<typeof updateTransactionSchema>;
 
 interface TransactionActionsProps {
   transaction: TransactionWithService;
 }
 
-export function TransactionActions({ transaction }: TransactionActionsProps) {
+export function TransactionActions({transaction}: TransactionActionsProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Form state for editing
-  const [formData, setFormData] = useState({
-    amount: transaction.amount,
-    currency: transaction.currency,
-    occurredAt: transaction.occurredAt.toISOString().split('T')[0],
-    type: transaction.type,
-  } as TransactionData);
+  const [currencyComboboxOpen, setCurrencyComboboxOpen] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Function to handle delete dialog open state changes
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    setShowDeleteDialog(open);
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Initialize form with react-hook-form
+  const form = useForm<UpdateTransactionFormValues>({
+    resolver: zodResolver(updateTransactionSchema),
+    defaultValues: {
+      amount: transaction.amount,
+      currency: transaction.currency,
+      occurredAt: transaction.occurredAt.toISOString().split('T')[0],
+      type: transaction.type,
+    },
+  });
+
+  // Function to handle edit dialog open state changes
+  const handleEditDialogOpenChange = (open: boolean) => {
+    setShowEditDialog(open);
+    // Reset form data when dialog is closed
+    if (!open) {
+      form.reset({
+        amount: transaction.amount,
+        currency: transaction.currency,
+        occurredAt: transaction.occurredAt.toISOString().split('T')[0],
+        type: transaction.type,
+      });
+    }
   };
 
   const handleDelete = async () => {
@@ -76,14 +116,14 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       console.error(error);
     } finally {
       setIsLoading(false);
-      setShowDeleteDialog(false);
+      handleDeleteDialogOpenChange(false);
     }
   };
 
-  const handleEdit = async () => {
+  const onSubmit = async (values: UpdateTransactionFormValues) => {
     setIsLoading(true);
     try {
-      const result = await updateTransaction(transaction.id, formData);
+      const result = await updateTransaction(transaction.id, values as TransactionData);
       if (result === undefined) {
         toast.error("Failed to update transaction");
         return;
@@ -91,6 +131,7 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       if ("success" in result) {
         toast.success(result.success);
         router.refresh();
+        setShowEditDialog(false);
       } else {
         toast.error(result.error);
       }
@@ -99,13 +140,12 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       console.error(error);
     } finally {
       setIsLoading(false);
-      setShowEditDialog(false);
     }
   };
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
             <span className="sr-only">Open menu</span>
@@ -128,7 +168,7 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       </DropdownMenu>
 
       {/* Delete Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <Dialog open={showDeleteDialog} onOpenChange={handleDeleteDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Transaction</DialogTitle>
@@ -139,7 +179,7 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
+              onClick={() => handleDeleteDialogOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
@@ -156,7 +196,7 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <Dialog open={showEditDialog} onOpenChange={handleEditDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Transaction</DialogTitle>
@@ -164,89 +204,158 @@ export function TransactionActions({ transaction }: TransactionActionsProps) {
               Update the details of this transaction.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="amount" className="text-right">
-                Amount
-              </Label>
-              <Input
-                id="amount"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={form.control}
                 name="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={handleInputChange}
-                className="col-span-3"
+                render={({field}) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Amount</FormLabel>
+                    <div className="col-span-3">
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage/>
+                    </div>
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="currency" className="text-right">
-                Currency
-              </Label>
-              <Select 
-                value={formData.currency} 
-                onValueChange={(value) => handleSelectChange("currency", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="occurredAt" className="text-right">
-                Date
-              </Label>
-              <Input
-                id="occurredAt"
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({field}) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel>Currency</FormLabel>
+                    <Popover open={currencyComboboxOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl onClick={() => setCurrencyComboboxOpen(!currencyComboboxOpen)}>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-[200px] justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? currencyFormMap.find(
+                                (currency) => currency.value === field.value
+                              )?.value
+                              : "Select Currency"}
+                            <ChevronsUpDown className="opacity-50"/>
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search currency..."
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>No currency found.</CommandEmpty>
+                            <CommandGroup>
+                              {currencyFormMap.map((currency) => (
+                                <CommandItem
+                                  value={currency.value}
+                                  key={currency.value}
+                                  onSelect={() => {
+                                    form.setValue("currency", currency.value)
+                                    setCurrencyComboboxOpen(false)
+                                  }}
+                                >
+                                  {currency.value}
+                                  <Check
+                                    className={cn(
+                                      "ml-auto",
+                                      currency.value === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="occurredAt"
-                type="date"
-                value={formData.occurredAt}
-                onChange={handleInputChange}
-                className="col-span-3"
+                render={({field}) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Date</FormLabel>
+                    <div className="col-span-3">
+                      <FormControl>
+                        <Input
+                          type="date"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage/>
+                    </div>
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
-                Type
-              </Label>
-              <Select 
-                value={formData.type} 
-                onValueChange={(value) => handleSelectChange("type", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="initial">Initial</SelectItem>
-                  <SelectItem value="renewal">Renewal</SelectItem>
-                  <SelectItem value="refund">Refund</SelectItem>
-                  <SelectItem value="adjustment">Adjustment</SelectItem>
-                  <SelectItem value="hypothetical_initial">Hypothetical Initial</SelectItem>
-                  <SelectItem value="hypothetical_renewal">Hypothetical Renewal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowEditDialog(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleEdit}
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
+              <FormField
+                control={form.control}
+                name="type"
+                render={({field}) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Type</FormLabel>
+                    <div className="col-span-3">
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type"/>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="initial">Initial</SelectItem>
+                            <SelectItem value="renewal">Renewal</SelectItem>
+                            <SelectItem value="refund">Refund</SelectItem>
+                            <SelectItem value="adjustment">Adjustment</SelectItem>
+                            <SelectItem value="hypothetical_initial">Hypothetical Initial</SelectItem>
+                            <SelectItem value="hypothetical_renewal">Hypothetical Renewal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage/>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                  disabled={isLoading}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </>
