@@ -23,7 +23,14 @@ export default async function DashboardPage() {
           <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>
         </>
       ) : (
-        <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
+        <>
+          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+            <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
+            <div className="bg-none aspect-video rounded-xl"/>
+            <div className="bg-none aspect-video rounded-xl"/>
+          </div>
+          <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>
+        </>
       )}
     </>
   )
