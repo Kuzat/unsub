@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     <>
       {activeSubscriptions.length > 0 ? (
         <>
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+          <div className="grid auto-rows-min gap-4 xl:grid-cols-3">
             <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
             <MonthlySubscriptionCost activeSubscriptions={activeSubscriptions}/>
             <UpcomingRenewalsModule activeSubscriptions={activeSubscriptions}/>

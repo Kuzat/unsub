@@ -1,7 +1,8 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {calculateNextRenewal, formatCurrency} from "@/lib/utils";
 import {service, subscription} from "@/db/schema/app";
-import {CalendarIcon} from "lucide-react";
+import {CalendarIcon, ExternalLinkIcon} from "lucide-react";
+import Link from "next/link";
 
 type SubscriptionWithService = typeof subscription.$inferSelect & { service: typeof service.$inferSelect | null }
 
@@ -40,11 +41,21 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Upcoming Renewals</CardTitle>
-        <CardDescription>
-          Your subscriptions that will renew soon
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Upcoming Renewals</CardTitle>
+          <CardDescription>
+            Your subscriptions that will renew soon
+          </CardDescription>
+        </div>
+        <Link 
+          href="/calendar" 
+          className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+          title="View full calendar"
+        >
+          <span className="truncate">View all</span>
+          <ExternalLinkIcon className="h-3 w-3" />
+        </Link>
       </CardHeader>
       <CardContent>
         {nextRenewals.length > 0 ? (
