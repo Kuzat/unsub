@@ -16,6 +16,5 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
   - [x] A current spending per month on subscription number
     - [ ] Currently it shows total monthly cost grouped by currencies as you might have in different currencies. Would be interesting if it was also able to convert to a single currency and just show in that price. Will need fetching some currencies conversion data.
   - [ ] A graph of spending over time on subscriptions (could use the transactions for this? how to handle yearly or subscription over larger time span?)
-  - [ ] Update feed module showing updates to services they have used, or other updates to the app
 - [ ] Have a notification system with a notification bell in top right corner showing notifications, should be configurable, and able to add more destinations in the future
   - [ ] example destinations, sms, mobile-push (app?), discord, general webhook, etc.
