@@ -6,6 +6,17 @@ FROM node:20-alpine AS base
 # This stage installs all dependencies (including dev) and builds the application
 FROM base AS builder
 WORKDIR /app
+
+# Setup the needed build args secret. Only do this in private build server
+ARG BETTER_AUTH_SECRET
+ARG FX_RATES_API_TOKEN
+ARG GOOGLE_CLIENT_ID
+ARG GOOGLE_CLIENT_SECRET
+ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
+    FX_RATES_API_TOKEN=$FX_RATES_API_TOKEN \
+    GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
+    GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+
 COPY package.json package-lock.json ./
 # Run `npm ci` to install all dependencies from the lockfile, including devDependencies
 RUN npm ci
