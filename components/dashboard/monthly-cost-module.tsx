@@ -25,9 +25,9 @@ export async function MonthlySubscriptionCost({activeSubscriptions}: MonthlySubs
 
       switch (sub.billingCycle) {
         case "daily":
-          return sum + price * 30;
+          return sum + (price * 365) / 12;
         case "weekly":
-          return sum + price * 4.33;
+          return sum + (price * 52) / 12;
         case "monthly":
           return sum + price;
         case "quarterly":
