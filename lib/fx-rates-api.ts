@@ -1,4 +1,7 @@
-const API_TOKEN = process.env.FX_RATES_API_TOKEN!
+const API_TOKEN = process.env.FX_RATES_API_TOKEN
+if (!API_TOKEN) {
+  throw new Error("FX_RATES_API_TOKEN environment variable is required");
+}
 const API_URL = "https://api.fxratesapi.com"
 
 type FxRatesApiResponse = {
