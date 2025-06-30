@@ -46,21 +46,19 @@ export async function MonthlySubscriptionCost({activeSubscriptions, preferredCur
           Total cost of all your active subscriptions per month
           <Tooltip>
             <TooltipTrigger asChild>
-              <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground" />
+              <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground"/>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              Converted to your preferred currency. Note that amounts may vary slightly as currency conversion rates are periodically updated.
+              Converted to your preferred currency. Note that amounts may vary slightly as currency conversion rates are
+              periodically updated.
             </TooltipContent>
           </Tooltip>
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Total in {preferredCurrency}</span>
+      <CardContent className="min-h-[100px]">
+        <div className="flex flex-col justify-center items-center h-full">
             <span
-              className="text-xl font-bold">{formatCurrency(monthlyCostInPreferredCurrency, preferredCurrency)}</span>
-          </div>
+              className="text-4xl font-bold">{formatCurrency(monthlyCostInPreferredCurrency, preferredCurrency)}</span>
         </div>
       </CardContent>
     </Card>
