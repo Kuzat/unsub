@@ -15,4 +15,4 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
   - [ ] A graph of spending over time on subscriptions (could use the transactions for this? how to handle yearly or subscription over larger time span?)
 - [ ] Have a notification system with a notification bell in top right corner showing notifications, should be configurable, and able to add more destinations in the future
   - [ ] example destinations, sms, mobile-push (app?), discord, general webhook, etc.
-- [ ] Main currency and currency conversion for display.
+- [ ] Have an onboarding section after registering where they can set preferred currency and other preferences
