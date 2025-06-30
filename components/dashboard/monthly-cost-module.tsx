@@ -14,28 +14,51 @@ interface MonthlySubscriptionCostProps {
 export async function MonthlySubscriptionCost({activeSubscriptions, preferredCurrency}: MonthlySubscriptionCostProps) {
   // Calculate total monthly cost in preferred currency
   let monthlyCostInPreferredCurrency = 0
-  for (const sub of activeSubscriptions) {
-    const price = parseFloat(sub.price.toString());
-    const normPrice = await convert(price, sub.currency, preferredCurrency);
+  try {
+    // Convert all prices in parallel for better performance
+    const conversionPromises = activeSubscriptions.map(async (sub) => {
+      const price = parseFloat(sub.price.toString());
+      const convertedPrice = await convert(price, sub.currency, preferredCurrency);
+      return { sub, convertedPrice };
+    });
 
-    switch (sub.billingCycle) {
-      case "daily":
-        monthlyCostInPreferredCurrency += (normPrice * 365) / 12;
-        break;
-      case "weekly":
-        monthlyCostInPreferredCurrency += (normPrice * 52) / 12;
-        break;
-      case "monthly":
-        monthlyCostInPreferredCurrency += normPrice;
-        break;
-      case "quarterly":
-        monthlyCostInPreferredCurrency += normPrice / 3;
-        break;
-      case "yearly":
-        monthlyCostInPreferredCurrency += normPrice / 12;
-        break;
+    const conversions = await Promise.all(conversionPromises);
+
+    for (const {sub, convertedPrice} of conversions) {
+      switch (sub.billingCycle) {
+        case "daily":
+          monthlyCostInPreferredCurrency += (convertedPrice * 365) / 12;
+          break;
+        case "weekly":
+          monthlyCostInPreferredCurrency += (convertedPrice * 52) / 12;
+          break;
+        case "monthly":
+          monthlyCostInPreferredCurrency += convertedPrice;
+          break;
+        case "quarterly":
+          monthlyCostInPreferredCurrency += convertedPrice / 3;
+          break;
+        case "yearly":
+          monthlyCostInPreferredCurrency += convertedPrice / 12;
+          break;
+      }
     }
+  } catch (error) {
+    console.error("Error calculating monthly subscription cost:", error);
+    // Fallback to showing an unconverted total or error state
+    return (
+      <Card>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <p className="text-muted-foreground">
+              Error calculating monthly subscription cost.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
+
 
 
   return (
