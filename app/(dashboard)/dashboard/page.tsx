@@ -2,7 +2,6 @@ import {requireSession} from "@/lib/auth";
 import {MonthlySubscriptionCost} from "@/components/dashboard/monthly-cost-module";
 import {ActiveSubscriptionsModule} from "@/components/dashboard/active-subscriptions-module";
 import {UpcomingRenewalsModule} from "@/components/dashboard/upcoming-renewals-module";
-import {CurrencyConverterModule} from "@/components/dashboard/currency-converter-module";
 import {db} from "@/db";
 import {and, eq} from "drizzle-orm";
 import {userSettings} from "@/db/schema/app";
@@ -36,17 +35,12 @@ export default async function DashboardPage() {
             }
             <UpcomingRenewalsModule activeSubscriptions={activeSubscriptions}/>
           </div>
-          <div className="mt-4 grid auto-rows-min gap-4 xl:grid-cols-3">
-            <CurrencyConverterModule/>
-            <div className="col-span-2 bg-muted/50 rounded-xl"/>
-          </div>
           <div className="mt-4 bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>
         </>
       ) : (
         <>
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
-            <CurrencyConverterModule/>
             <div className="bg-none aspect-video rounded-xl"/>
           </div>
           <div className="mt-4 bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>
