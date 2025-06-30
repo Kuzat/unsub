@@ -8,6 +8,7 @@ import {userSettings} from "@/db/schema/app";
 import {account} from "@/db/schema/auth";
 import {eq} from "drizzle-orm";
 import {randomUUID} from "crypto";
+import {currencyEnum} from "@/db/schema/_common";
 
 // Schema for validating display name input
 const displayNameSchema = z.object({
@@ -291,7 +292,7 @@ export async function updateEmailNotifications(input: UpdateEmailNotificationInp
 
 // Schema for validating preferred currency
 const preferredCurrencySchema = z.object({
-  preferredCurrency: z.string().min(1, "Preferred currency is required"),
+  preferredCurrency: z.enum(currencyEnum.enumValues as [string, ...string[]])
 });
 
 // Type for the preferred currency input
