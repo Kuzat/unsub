@@ -8,21 +8,24 @@ on:
 jobs:
   lint-and-build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
-      
+
       - name: Install dependencies
         run: bun install
-      
+
       - name: Run linting
         run: bun run lint
-      
+
+      - name: Copy .env.example to .env
+        run: cp .env.example .env
+
       - name: Build project
         run: bun run build
