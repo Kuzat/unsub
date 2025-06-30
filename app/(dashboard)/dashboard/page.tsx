@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   const session = await requireSession();
 
   const activeSubscriptions = await db.query.subscription.findMany({
-    where: (s) => and(eq(s.userId, session.user.id),eq(s.isActive, true)),
+    where: (s) => and(eq(s.userId, session.user.id), eq(s.isActive, true)),
     with: {
       service: true,
     }
