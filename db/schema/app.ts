@@ -1,4 +1,4 @@
-import {boolean, index, integer, numeric, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {boolean, index, integer, numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
 import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {relations} from "drizzle-orm";
@@ -159,6 +159,7 @@ export const userSettings = pgTable("user_settings", {
     .references(() => user.id, {onDelete: "cascade"}),
   receiveEmails: boolean("receive_emails").notNull().default(true),
   sendRenewalReminderEmails: boolean("send_renewal_reminder_emails").notNull().default(true),
+  preferredCurrency: currencyEnum("preferred_currency").notNull().default("USD"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -166,3 +167,13 @@ export const userSettings = pgTable("user_settings", {
 export const userSettingsRelations = relations(userSettings, ({one}) => ({
   user: one(user, {fields: [userSettings.userId], references: [user.id]}),
 }));
+
+/* ---------- fx rates ---------- */
+export const fxRates = pgTable("fx_rates", {
+  base: currencyEnum("base").notNull(),
+  quote: currencyEnum("quote").notNull(),
+  rate: numeric("rate", {precision: 18, scale: 8}).notNull(),
+  fetchedAt: timestamp("fetched_at").notNull(),
+}, (t) => [
+  primaryKey({columns: [t.base, t.quote]}),
+])

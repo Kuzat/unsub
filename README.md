@@ -46,6 +46,8 @@ Unsub is a subscription management application that helps you track, manage, and
    - `EMAIL_NAME`: Display name for the sender (used in production)
    - `OTP_COOLDOWN_SECONDS`: Minimum time in seconds between sending verification codes (default: 60)
    - `SCALEWAY_ACCESS_KEY`, `SCALEWAY_SECRET_KEY`, `SCALEWAY_PROJECT_ID`: Required for production email sending
+   - `FX_RATES_API_TOKEN`: API token for accessing currency exchange rates from fxratesapi.com
+   - `FX_CACHE_STALE_MS`: Time in milliseconds before cached exchange rates are considered stale (default: 604800000, which is 7 days)
    - `NEXT_PUBLIC_SUPPORT_EMAIL`: Email address displayed for support contact in the application
 
 4. Start the PostgreSQL database:
