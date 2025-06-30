@@ -24,6 +24,10 @@ export async function getLatestFxRates(base: string, quote: string) {
 
   const response = await fetch(url, {method: "GET"});
 
+  if (!response.ok) {
+    throw new Error(`Error fetching latest FX rates: ${response.statusText}`)
+  }
+
   const data = await response.json() as FxRatesApiResponse;
 
   if (!data.success) {
