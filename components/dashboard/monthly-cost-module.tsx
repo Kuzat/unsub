@@ -3,6 +3,8 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {formatCurrency} from "@/lib/utils";
 import {subscription} from "@/db/schema/app";
 import {convert} from "@/lib/fx-cache";
+import {HelpCircle} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 interface MonthlySubscriptionCostProps {
   activeSubscriptions: InferSelectModel<typeof subscription>[]
@@ -40,8 +42,16 @@ export async function MonthlySubscriptionCost({activeSubscriptions, preferredCur
     <Card>
       <CardHeader>
         <CardTitle>Monthly Subscription Cost</CardTitle>
-        <CardDescription>
+        <CardDescription className="flex items-center">
           Total cost of all your active subscriptions per month
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 ml-1 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              Converted to your preferred currency. Note that amounts may vary slightly as currency conversion rates are periodically updated.
+            </TooltipContent>
+          </Tooltip>
         </CardDescription>
       </CardHeader>
       <CardContent>
