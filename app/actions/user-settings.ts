@@ -288,3 +288,75 @@ export async function updateEmailNotifications(input: UpdateEmailNotificationInp
     };
   }
 }
+
+// Schema for validating preferred currency
+const preferredCurrencySchema = z.object({
+  preferredCurrency: z.string().min(1, "Preferred currency is required"),
+});
+
+// Type for the preferred currency input
+type UpdatePreferredCurrencyInput = z.infer<typeof preferredCurrencySchema>;
+
+/**
+ * Updates the preferred currency of the authenticated user
+ * @param input Object containing the new preferred currency
+ * @returns Object with success status and message
+ */
+export async function updatePreferredCurrency(input: UpdatePreferredCurrencyInput) {
+  try {
+    // Get the current session
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    // Check if user is authenticated
+    if (!session) {
+      return {
+        success: false,
+        message: "You must be logged in to update your preferred currency",
+      };
+    }
+
+    // Validate the input
+    const validatedInput = preferredCurrencySchema.safeParse(input);
+    if (!validatedInput.success) {
+      return {
+        success: false,
+        message: validatedInput.error.errors[0]?.message || "Invalid currency selection",
+      };
+    }
+
+    // Check if user settings record exists
+    const existingSettings = await db.query.userSettings.findFirst({
+      where: eq(userSettings.userId, session.user.id),
+    });
+
+    if (existingSettings) {
+      // Update existing user settings
+      await db.update(userSettings)
+        .set({
+          preferredCurrency: validatedInput.data.preferredCurrency,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSettings.userId, session.user.id));
+    } else {
+      // Create new user settings record
+      await db.insert(userSettings).values({
+        id: randomUUID(),
+        userId: session.user.id,
+        preferredCurrency: validatedInput.data.preferredCurrency,
+      });
+    }
+
+    return {
+      success: true,
+      message: "Preferred currency updated successfully",
+    };
+  } catch (error) {
+    console.error("Error updating preferred currency:", error);
+    return {
+      success: false,
+      message: "An error occurred while updating your preferred currency",
+    };
+  }
+}
