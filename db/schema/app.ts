@@ -159,6 +159,7 @@ export const userSettings = pgTable("user_settings", {
     .references(() => user.id, {onDelete: "cascade"}),
   receiveEmails: boolean("receive_emails").notNull().default(true),
   sendRenewalReminderEmails: boolean("send_renewal_reminder_emails").notNull().default(true),
+  preferredCurrency: currencyEnum("preferred_currency").notNull().default("USD"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
