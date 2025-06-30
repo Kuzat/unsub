@@ -16,3 +16,4 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Have a notification system with a notification bell in top right corner showing notifications, should be configurable, and able to add more destinations in the future
   - [ ] example destinations, sms, mobile-push (app?), discord, general webhook, etc.
 - [ ] Have an onboarding section after registering where they can set preferred currency and other preferences
+- [ ] Monthly subscription cost should link statistic or something page where we can see the breakdown of the cost. So which ones cost how much per month. So we can see the monhtly cost of yearly subscriptions.
