@@ -24,6 +24,7 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
 
   // Sort by upcoming renewal date (closest first)
   const upcomingRenewals = subscriptionsWithRenewal.sort((a, b) => {
+    if (!a.nextRenewal || !b.nextRenewal) return 0;
     return a.nextRenewal!.getTime() - b.nextRenewal!.getTime();
   });
 
@@ -65,7 +66,7 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
                 <div className="flex items-center space-x-3">
                   <CalendarIcon className="h-4 w-4 text-muted-foreground"/>
                   <div>
-                    <p className="font-medium max-w-[200px] truncate">
+                    <p className="font-medium max-w-[120px] sm:max-w-[200px] truncate">
                       {sub.alias || (sub.service?.name ?? "Unnamed Service")}
                     </p>
                     <p className="text-sm text-muted-foreground">{formatDate(sub.nextRenewal!)}</p>
