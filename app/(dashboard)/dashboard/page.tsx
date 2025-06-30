@@ -5,6 +5,7 @@ import {UpcomingRenewalsModule} from "@/components/dashboard/upcoming-renewals-m
 import {CurrencyConverterModule} from "@/components/dashboard/currency-converter-module";
 import {db} from "@/db";
 import {and, eq} from "drizzle-orm";
+import {userSettings} from "@/db/schema/app";
 
 export default async function DashboardPage() {
   const session = await requireSession();
@@ -16,18 +17,28 @@ export default async function DashboardPage() {
     }
   });
 
+  const settings = await db.query.userSettings.findFirst({
+    where: eq(userSettings.userId, session.user.id),
+  });
+
+
   return (
     <>
       {activeSubscriptions.length > 0 ? (
         <>
           <div className="grid auto-rows-min gap-4 xl:grid-cols-3">
             <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
-            <MonthlySubscriptionCost activeSubscriptions={activeSubscriptions}/>
+            {settings &&
+                <MonthlySubscriptionCost
+                    activeSubscriptions={activeSubscriptions}
+                    preferredCurrency={settings?.preferredCurrency}
+                />
+            }
             <UpcomingRenewalsModule activeSubscriptions={activeSubscriptions}/>
           </div>
           <div className="mt-4 grid auto-rows-min gap-4 xl:grid-cols-3">
-            <CurrencyConverterModule />
-            <div className="col-span-2 bg-muted/50 rounded-xl" />
+            <CurrencyConverterModule/>
+            <div className="col-span-2 bg-muted/50 rounded-xl"/>
           </div>
           <div className="mt-4 bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>
         </>
@@ -35,7 +46,7 @@ export default async function DashboardPage() {
         <>
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
             <ActiveSubscriptionsModule activeSubscriptions={activeSubscriptions}/>
-            <CurrencyConverterModule />
+            <CurrencyConverterModule/>
             <div className="bg-none aspect-video rounded-xl"/>
           </div>
           <div className="mt-4 bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"/>

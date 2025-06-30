@@ -2,47 +2,39 @@ import {InferSelectModel} from "drizzle-orm";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {formatCurrency} from "@/lib/utils";
 import {subscription} from "@/db/schema/app";
+import {convert} from "@/lib/fx-cache";
 
 interface MonthlySubscriptionCostProps {
   activeSubscriptions: InferSelectModel<typeof subscription>[]
+  preferredCurrency: string;
 }
 
-export async function MonthlySubscriptionCost({activeSubscriptions}: MonthlySubscriptionCostProps) {
-  // Group subscriptions by currency
-  const currencyGroups = activeSubscriptions.reduce((groups, sub) => {
-    const currency = sub.currency;
-    if (!groups[currency]) {
-      groups[currency] = [];
+export async function MonthlySubscriptionCost({activeSubscriptions, preferredCurrency}: MonthlySubscriptionCostProps) {
+  // Calculate total monthly cost in preferred currency
+  let monthlyCostInPreferredCurrency = 0
+  for (const sub of activeSubscriptions) {
+    const price = parseFloat(sub.price.toString());
+    const normPrice = await convert(price, sub.currency, preferredCurrency);
+
+    switch (sub.billingCycle) {
+      case "daily":
+        monthlyCostInPreferredCurrency += (normPrice * 365) / 12;
+        break;
+      case "weekly":
+        monthlyCostInPreferredCurrency += (normPrice * 52) / 12;
+        break;
+      case "monthly":
+        monthlyCostInPreferredCurrency += normPrice;
+        break;
+      case "quarterly":
+        monthlyCostInPreferredCurrency += normPrice / 3;
+        break;
+      case "yearly":
+        monthlyCostInPreferredCurrency += normPrice / 12;
+        break;
     }
-    groups[currency].push(sub);
-    return groups;
-  }, {} as Record<string, typeof activeSubscriptions>);
+  }
 
-  // Calculate total monthly cost per currency
-  const monthlyCostsByCurrency = Object.entries(currencyGroups).map(([currency, subs]) => {
-    const total = subs.reduce((sum, sub) => {
-      const price = parseFloat(sub.price.toString());
-
-      switch (sub.billingCycle) {
-        case "daily":
-          return sum + (price * 365) / 12;
-        case "weekly":
-          return sum + (price * 52) / 12;
-        case "monthly":
-          return sum + price;
-        case "quarterly":
-          return sum + price / 3;
-        case "yearly":
-          return sum + price / 12;
-        case "one_time":
-          return sum;
-        default:
-          return sum;
-      }
-    }, 0);
-
-    return {currency, total};
-  });
 
   return (
     <Card>
@@ -54,12 +46,11 @@ export async function MonthlySubscriptionCost({activeSubscriptions}: MonthlySubs
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {monthlyCostsByCurrency.map(({currency, total}) => (
-            <div key={currency} className="flex justify-between items-center">
-              <span className="text-muted-foreground">Total in {currency}</span>
-              <span className="text-xl font-bold">{formatCurrency(total, currency)}</span>
-            </div>
-          ))}
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Total in {preferredCurrency}</span>
+            <span
+              className="text-xl font-bold">{formatCurrency(monthlyCostInPreferredCurrency, preferredCurrency)}</span>
+          </div>
         </div>
       </CardContent>
     </Card>
