@@ -37,5 +37,9 @@ export async function getLatestFxRates(base: string, quote: string) {
     }
   }
 
-  return data.rates[quote];
+  const rate = data.rates[quote]
+  if (!rate) {
+    throw new Error(`No rate found for ${quote}`)
+  }
+  return rate
 }
