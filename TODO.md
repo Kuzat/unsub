@@ -9,7 +9,7 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Calculate a popularity score for services, so they can be ordered by popularity when creating new subscriptions. 
 - [ ] Admin feature, such as being able to edit all services and create new global services.
 - [ ] The merge services page to help find duplicate services and merge them into new global services
-- [ ] Add pagination UI and search fields to Services, and Subscription page
+- [ ] add search field UI to Services, and Subscriptions page
 - [ ] Add dashboard with some modules
     - [ ] Currently it shows total monthly cost grouped by currencies as you might have in different currencies. Would be interesting if it was also able to convert to a single currency and just show in that price. Will need fetching some currencies conversion data.
   - [ ] A graph of spending over time on subscriptions (could use the transactions for this? how to handle yearly or subscription over larger time span?)
