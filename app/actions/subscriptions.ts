@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription, transaction, reminder} from "@/db/schema/app";
-import {and, eq, desc, between, like, ilike, count} from "drizzle-orm";
+import {and, eq, desc, between, ilike, count, or} from "drizzle-orm";
 import {service} from "@/db/schema/app";
 import {calculateNextRenewal} from "@/lib/utils";
 
@@ -432,7 +432,7 @@ export async function fetchSubscriptions({
 
   // Add a text-search coniditon if `query` is present
   const searchCond = query ?
-    and(
+    or(
       ilike(service.name, `%${query}%`),
       ilike(subscription.alias, `%${query}%`),
       ilike(subscription.notes, `%${query}%`)
