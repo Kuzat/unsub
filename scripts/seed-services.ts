@@ -41,18 +41,6 @@ async function main() {
         logoUrl: s.logoUrl,
         scope: "global",
       })
-      // if a row with the same name already exists, update mutable columns
-      .onConflictDoUpdate({
-        target: service.name, // UNIQUE constraint recommended on name
-        set: {
-          category: s.category,
-          url: s.url,
-          description: s.description,
-          logoUrl: s.logoUrl,
-          scope: "global",
-          updatedAt: new Date(),
-        },
-      });
 
     console.log(
       `${chalk.green("✔")} ${chalk.bold(s.name)} ${chalk.dim(`(${id})`)}`
