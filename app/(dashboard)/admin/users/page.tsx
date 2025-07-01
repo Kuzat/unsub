@@ -4,6 +4,8 @@ import {auth, requireAdmin} from "@/lib/auth";
 import {headers} from "next/headers";
 import {DataTable} from "@/components/ui/data-table";
 import {columns} from "@/app/(dashboard)/admin/users/columns";
+import {PaginationControl} from "@/components/services/pagination-control";
+import {Suspense} from "react";
 
 interface PageProps {
   searchParams: Promise<{
@@ -24,7 +26,7 @@ export default async function AdminUsersPage(props: PageProps) {
     Math.max(1, searchParams.pageSize ? parseInt(searchParams.pageSize) : 10)
   );
 
-  const userListResponse = await auth.api.listUsers({
+  const {users, total} = await auth.api.listUsers({
     headers: await headers(),
     query: {
       limit: pageSize,
@@ -34,33 +36,25 @@ export default async function AdminUsersPage(props: PageProps) {
     }
   })
 
+  const totalPages = Math.ceil(total / pageSize)
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Users</h1>
       </div>
-      {userListResponse.users.length === 0 ? (
+      {users.length === 0 ? (
         <p className="text-muted-foreground text-center py-6">
           There are no users yet.
         </p>
       ) : (
         <>
-          <DataTable columns={columns} data={userListResponse.users}/>
-          <div className="flex justify-center gap-2 mt-4">
-            <a
-              href={`?page=${page > 1 ? page - 1 : 1}&pageSize=${pageSize}`}
-              className={`px-4 py-2 rounded border ${page <= 1 ? 'bg-gray-100 text-gray-400' : 'bg-white hover:bg-gray-50'}`}
-            >
-              Previous
-            </a>
-            <span className="px-4 py-2">Page {page}</span>
-            <a
-              href={`?page=${page + 1}&pageSize=${pageSize}`}
-              className="px-4 py-2 rounded border bg-white hover:bg-gray-50"
-            >
-              Next
-            </a>
-          </div>
+          <DataTable columns={columns} data={users}/>
+          <Suspense fallback={<div>Loading pagination...</div>}>
+            <div className="flex justify-center gap-2 mt-4">
+              <PaginationControl currentPage={page} totalPages={totalPages}/>
+            </div>
+          </Suspense>
         </>
       )}
     </div>

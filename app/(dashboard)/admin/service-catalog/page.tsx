@@ -52,7 +52,9 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
             <DataTable columns={columns} data={services as ServiceWithUser[]}/>
           </div>
           <Suspense fallback={<div>Loading pagination...</div>}>
+            <div className="flex justify-center gap-2 mt-4">
             <PaginationControl currentPage={currentPage} totalPages={totalPages}/>
+            </div>
           </Suspense>
         </>
       )}
