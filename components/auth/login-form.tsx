@@ -21,6 +21,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  username: z.string().optional(), // Honeypot field
 });
 
 type FormSchema = z.infer<typeof formSchema>
@@ -31,11 +32,20 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
     defaultValues: {
       email: "",
       password: "",
+      username: "", // Honeypot field
     }
   });
 
   const onSubmit = async (data: FormSchema) => {
     try {
+      // Check if honeypot field is filled (bot detection)
+      if (data.username) {
+        // If honeypot field is filled, show a generic error message
+        // but don't actually try to log in
+        toast.error("Invalid login attempt")
+        return;
+      }
+
       const result = await authClient.signIn.email({
         email: data.email,
         password: data.password,
@@ -166,6 +176,26 @@ export function LoginForm({className, ...props}: React.ComponentProps<"div">) {
                             <Input type="password" {...field} />
                           </FormControl>
                           <FormMessage/>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Honeypot field - hidden from humans but visible to bots */}
+                  <div className="grid gap-3" style={{ display: 'none' }} aria-hidden="true">
+                    <FormField
+                      control={form.control}
+                      name="username"
+                      render={({field}) => (
+                        <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              tabIndex={-1} 
+                              autoComplete="off" 
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />

@@ -24,6 +24,7 @@ const formSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(8, "Confirm Password is required"),
+  website: z.string().optional(), // Honeypot field
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -40,11 +41,20 @@ export function RegisterForm({className, ...props}: React.ComponentProps<"div">)
       email: "",
       password: "",
       confirmPassword: "",
+      website: "", // Honeypot field
     }
   });
 
   const onSubmit = async (data: FormSchema) => {
     try {
+      // Check if honeypot field is filled (bot detection)
+      if (data.website) {
+        // If honeypot field is filled, show a generic error message
+        // but don't actually try to register
+        toast.error("Invalid registration attempt")
+        return;
+      }
+
       // Generate Gravatar URL from email
       const gravatarUrl = getGravatarUrl(data.email);
 
@@ -178,6 +188,26 @@ export function RegisterForm({className, ...props}: React.ComponentProps<"div">)
                             <Input type="password" {...field} />
                           </FormControl>
                           <FormMessage/>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Honeypot field - hidden from humans but visible to bots */}
+                  <div className="grid gap-3" style={{ display: 'none' }} aria-hidden="true">
+                    <FormField
+                      control={form.control}
+                      name="website"
+                      render={({field}) => (
+                        <FormItem>
+                          <FormLabel>Website</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              tabIndex={-1} 
+                              autoComplete="off" 
+                            />
+                          </FormControl>
                         </FormItem>
                       )}
                     />
