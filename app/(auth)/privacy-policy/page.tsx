@@ -308,7 +308,7 @@ export default async function PrivacyPolicyPage() {
                 <li>
                   <p>
                     <strong>To contact You:</strong> To contact You by email, telephone calls, SMS, or
-                    other equivalent forms of electronic communication, such as a mobile application's
+                    other equivalent forms of electronic communication, such as a mobile application&apos;s
                     push notifications regarding updates or informative communications related to the
                     functionalities, products or contracted services, including the security updates,
                     when necessary or reasonable for their implementation.
@@ -399,7 +399,7 @@ export default async function PrivacyPolicyPage() {
 
               <h3 className="text-2xl font-semibold mt-6 mb-3">Transfer of Your Personal Data</h3>
               <p className="text-base leading-relaxed">
-                Your information, including Personal Data, is processed at the Company's operating
+                Your information, including Personal Data, is processed at the Company&apos;s operating
                 offices and in any other places where the parties involved in the processing are
                 located. It means that this information may be transferred to — and maintained on —
                 computers located outside of Your state, province, country or other governmental
