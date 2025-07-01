@@ -76,7 +76,7 @@ export async function fetchServices({
                                     }: FetchServicesOptions) {
   const validPage = Math.max(1, page);
   const validPageSize = Math.max(1, pageSize);
-  const offset = (page - 1) * validPageSize;
+  const offset = (validPage - 1) * validPageSize;
 
   let whereClause;
   if (scope === "userAndGlobal" && userId) {

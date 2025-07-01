@@ -24,13 +24,16 @@ import {InferSelectModel} from "drizzle-orm";
 import {subscription} from "@/db/schema/app";
 import {Service} from "@/app/actions/services";
 
-type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service | null };
+type SubscriptionWithService = {
+  subscription: InferSelectModel<typeof subscription>,
+  service: Service | null
+};
 
 interface SubscriptionActionsProps {
-  subscription: SubscriptionWithService;
+  data: SubscriptionWithService;
 }
 
-export function SubscriptionActions({subscription}: SubscriptionActionsProps) {
+export function SubscriptionActions({data}: SubscriptionActionsProps) {
   const router = useRouter();
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
@@ -40,6 +43,7 @@ export function SubscriptionActions({subscription}: SubscriptionActionsProps) {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
+  const {subscription} = data;
 
   const handleEdit = () => {
     router.push(`/subscriptions/edit/${subscription.id}`);

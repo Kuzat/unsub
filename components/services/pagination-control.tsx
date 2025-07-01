@@ -48,9 +48,11 @@ export function PaginationControl({
             <PaginationItem>
               <PaginationLink href={getPageLink(currentPage + 1)}>{currentPage + 1}</PaginationLink>
             </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis/>
-            </PaginationItem>
+            {currentPage + 1 < totalPages && (
+              <PaginationItem>
+                <PaginationEllipsis/>
+              </PaginationItem>
+            )}
             <PaginationItem>
               <PaginationNext href={getPageLink(currentPage + 1)}/>
             </PaginationItem>

@@ -6,7 +6,7 @@ import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
 import {subscription, transaction, reminder} from "@/db/schema/app";
-import {and, eq, desc, between} from "drizzle-orm";
+import {and, eq, desc, between, like, ilike, count} from "drizzle-orm";
 import {service} from "@/db/schema/app";
 import {calculateNextRenewal} from "@/lib/utils";
 
@@ -412,6 +412,56 @@ export type EditSubscription = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type FetchSubscriptionsOptions = {
+  userId: string;
+  page: number;
+  pageSize: number;
+  query: string;
+}
+
+export async function fetchSubscriptions({
+                                           userId,
+                                           page,
+                                           pageSize,
+                                           query = ""
+                                         }: FetchSubscriptionsOptions) {
+  const validPage = Math.max(1, page);
+  const validPageSize = Math.max(1, pageSize);
+  const offset = (validPage - 1) * validPageSize;
+
+  // Add a text-search coniditon if `query` is present
+  const searchCond = query ?
+    and(
+      ilike(service.name, `%${query}%`),
+      ilike(subscription.alias, `%${query}%`),
+      ilike(subscription.notes, `%${query}%`)
+    ) : undefined
+
+  const [{count: totalSubscriptions}] = await db
+    .select({count: count()})
+    .from(subscription)
+    .innerJoin(service, eq(subscription.serviceId, service.id))
+    .where(and(
+      searchCond,
+      eq(subscription.userId, userId)
+    ));
+
+  const rows = await db
+    .select()
+    .from(subscription)
+    .where(and(searchCond, eq(subscription.userId, userId)))
+    .innerJoin(service, eq(subscription.serviceId, service.id))
+    .limit(validPageSize)
+    .offset(offset)
+    .orderBy(desc(subscription.startDate)); // TODO: could have this be a optio for the user
+
+  return {
+    subscriptions: rows,
+    totalPages: Math.ceil(totalSubscriptions / validPageSize),
+    currentPage: validPage,
+  }
+}
 
 export async function getSubscriptionById(
   subscriptionId: string

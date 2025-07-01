@@ -1,30 +1,37 @@
 import {DataTable} from "@/components/ui/data-table"
-import {desc, eq} from "drizzle-orm"
-import {db} from "@/db";
-import {subscription} from "@/db/schema/app";
 import {columns} from "./columns"
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
 import {PlusIcon} from "lucide-react";
-import {auth} from "@/lib/auth";
-import {redirect} from "next/navigation";
-import {headers} from "next/headers";
+import {fetchSubscriptions} from "@/app/actions/subscriptions";
+import {requireSession} from "@/lib/auth";
+import {PaginationControl} from "@/components/services/pagination-control";
+import {Suspense} from "react";
 
-export default async function SubscriptionPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+// Define the props for the page component
+interface ServicesPageProps {
+  searchParams: Promise<{
+    page?: string;
+    pageSize?: string;
+  }>;
+}
 
-  if (!session) {
-    redirect('/login');
-  }
+export default async function SubscriptionPage(props: ServicesPageProps) {
+  const session = await requireSession();
 
-  const allSubscriptions = await db.query.subscription.findMany({
-    where: eq(subscription.userId, session.user.id),
-    orderBy: [desc(subscription.startDate)],
-    with: {
-      service: true,
-    }
+  const searchParams = await props.searchParams;
+  // Parse page and pageSize from query parameters, defaulting to 1 and 10
+  const page = Math.max(1, searchParams.page ? parseInt(searchParams.page) : 1);
+  const pageSize = Math.min(
+    100,
+    Math.max(1, searchParams.pageSize ? parseInt(searchParams.pageSize) : 10)
+  );
+
+  const {subscriptions, totalPages, currentPage} = await fetchSubscriptions({
+    userId: session.user.id,
+    page,
+    pageSize,
+    query: ""
   })
 
   return (
@@ -38,12 +45,19 @@ export default async function SubscriptionPage() {
           </Link>
         </Button>
       </div>
-      {allSubscriptions.length === 0 ? (
+      {subscriptions.length === 0 ? (
         <p className="text-muted-foreground text-center py-6">
           You don&apos;t have any subscriptions yet.
         </p>
       ) : (
-        <DataTable columns={columns} data={allSubscriptions}/>
+        <>
+          <DataTable columns={columns} data={subscriptions}/>
+          <Suspense fallback={<div>Loading pagination...</div>}>
+            <div className="flex justify-center gap-2 mt-4">
+              <PaginationControl currentPage={currentPage} totalPages={totalPages}/>
+            </div>
+          </Suspense>
+        </>
       )}
     </div>
   )

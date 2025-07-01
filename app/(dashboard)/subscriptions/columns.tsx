@@ -9,7 +9,10 @@ import {Service} from "@/app/actions/services";
 import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
 import Link from "next/link";
 
-type SubscriptionWithService = InferSelectModel<typeof subscription> & { service: Service | null }
+type SubscriptionWithService = {
+  subscription: InferSelectModel<typeof subscription>,
+  service: Service | null
+}
 
 export const columns: ColumnDef<SubscriptionWithService>[] = [
   {
@@ -17,10 +20,10 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
     header: "Service",
     cell: ({row}) => {
       const service = row.original.service;
-      const subscriptionId = row.original.id;
+      const subscription = row.original.subscription;
       return (
-        <Link 
-          href={`/subscriptions/${subscriptionId}`}
+        <Link
+          href={`/subscriptions/${subscription.id}`}
           className="flex items-center gap-3"
         >
           {service?.logoUrl ? (
@@ -39,7 +42,7 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
             </div>
           )}
           <div className="hover:underline">
-            <p className="font-medium">{service?.name || row.original.alias || 'Unknown Service'}</p>
+            <p className="font-medium">{service?.name || subscription.alias || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}
           </div>
         </Link>
@@ -49,23 +52,23 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
   {
     accessorKey: "price",
     header: "Price",
-    cell: ({row}) => formatCurrency(row.getValue("price"), row.original.currency),
+    cell: ({row}) => formatCurrency(parseFloat(row.original.subscription.price), row.original.subscription.currency),
   },
   {
     accessorKey: "billingCycle",
     header: "Billing",
-    cell: ({row}) => <span className="capitalize">{row.getValue("billingCycle")}</span>,
+    cell: ({row}) => <span className="capitalize">{row.original.subscription.billingCycle}</span>,
   },
   {
     accessorKey: "nextRenewal",
     header: "Next renewal date",
-    cell: ({row}) => formatDate(calculateNextRenewal(row.original.startDate, row.original.billingCycle).toISOString()),
+    cell: ({row}) => formatDate(calculateNextRenewal(row.original.subscription.startDate, row.original.subscription.billingCycle).toISOString()),
   },
   {
     accessorKey: "isActive",
     header: "Status",
     cell: ({row}) => {
-      const isActive = row.original.isActive;
+      const isActive = row.original.subscription.isActive;
       return (
         <div className={cn(
           "px-2.5 py-0.5 rounded-full text-xs font-medium w-fit",
@@ -81,8 +84,7 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
   {
     id: "actions",
     cell: ({row}) => {
-      const subscription = row.original;
-      return <SubscriptionActions subscription={subscription} />;
+      return <SubscriptionActions data={row.original}/>;
     },
   },
 ]
