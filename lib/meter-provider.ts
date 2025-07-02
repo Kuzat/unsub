@@ -11,7 +11,9 @@ import {
 
 const exporter = new OTLPMetricExporter({
   url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
-  headers: {Authorization: `Basic ${process.env.GRAFANA_AUTH_BASIC}`}
+  ...(process.env.GRAFANA_AUTH_BASIC && {
+    headers: {Authorization: `Basic ${process.env.GRAFANA_AUTH_BASIC}`},
+  }),
 });
 
 const metricReader = new PeriodicExportingMetricReader({
