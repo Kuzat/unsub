@@ -63,4 +63,4 @@ ENV PORT=3000
 
 # The final command. 'bunx' will find drizzle-kit in the copied node_modules.
 # `bun run start` will execute `next start` as defined in package.json.
-CMD ["sh", "-c", "bunx drizzle-kit migrate && bun run start"]
+CMD ["sh", "-c", "bunx drizzle-kit migrate && bun run .next/standalone/server.js"]
