@@ -1,6 +1,6 @@
 # --- Base Stage ---
-# Defines the Node.js version we'll use
-FROM node:20-alpine AS base
+# Defines the Bun version we use
+FROM oven/bun:1.2-alpine AS base
 
 # --- Builder Stage ---
 # This stage installs all dependencies (including dev) and builds the application
@@ -17,13 +17,15 @@ ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
     GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID \
     GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
 
-COPY package.json package-lock.json ./
-# Run `npm ci` to install all dependencies from the lockfile, including devDependencies
-RUN npm ci
+COPY package.json bun.lock ./
+
+# Install production + dev exactly as locked
+RUN bun install --frozen-lockfile
+
+# Copy the rest of sources
 COPY . .
-# Set NODE_ENV to production specifically for the build command
 ENV NODE_ENV=production
-RUN npm run build
+RUN bun run build
 
 # --- Runner Stage ---
 # This is the final, lean image that will run in production
@@ -59,6 +61,6 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 
-# The final command. 'npx' will find drizzle-kit in the copied node_modules.
-# `npm run start` will execute `next start` as defined in package.json.
-CMD ["sh", "-c", "npx drizzle-kit migrate && npm run start"]
+# The final command. 'bunx' will find drizzle-kit in the copied node_modules.
+# `bun run start` will execute `next start` as defined in package.json.
+CMD ["sh", "-c", "bunx drizzle-kit migrate && bun run start"]
