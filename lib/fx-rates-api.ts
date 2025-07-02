@@ -1,3 +1,9 @@
+import {meter} from "@/lib/meter-provider";
+
+const latestFxRatesCounter = meter.createCounter("fx_rates_api.latest", {
+  description: "Number of times getLatestFxRates() was called",
+})
+
 const API_TOKEN = process.env.FX_RATES_API_TOKEN!
 const API_URL = "https://api.fxratesapi.com"
 
@@ -26,12 +32,14 @@ export async function getLatestFxRates(base: string, quote: string) {
   });
 
   if (!response.ok) {
+    latestFxRatesCounter.add(1, {to: quote, from: base, status: "error"})
     throw new Error(`Error fetching latest FX rates: ${response.statusText}`)
   }
 
   const data = await response.json() as FxRatesApiResponse;
 
   if (!data.success) {
+    latestFxRatesCounter.add(1, {to: quote, from: base, status: "error"})
     switch (data.error) {
       case "invalid_base_currency":
         throw new Error("Invalid base currency")
@@ -44,7 +52,10 @@ export async function getLatestFxRates(base: string, quote: string) {
 
   const rate = data.rates[quote]
   if (!rate) {
+    latestFxRatesCounter.add(1, {to: quote, from: base, status: "error"})
     throw new Error(`No rate found for ${quote}`)
   }
+
+  latestFxRatesCounter.add(1, {to: quote, from: base, status: "success"})
   return rate
 }
