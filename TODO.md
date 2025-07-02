@@ -18,3 +18,9 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Have an onboarding section after registering where they can set preferred currency and other preferences
 - [ ] Monthly subscription cost should link statistic or something page where we can see the breakdown of the cost. So which ones cost how much per month. So we can see the monhtly cost of yearly subscriptions.
 - [ ] Add propper skeleton loading using suspense and loading.tsx files.
+
+# Premium / Pro 
+Items related to the Pro plan 
+- [ ] import transactions from bank using GoCardless
+- [ ] Check for recurring transactions or transaction related to known services
+  - [ ] Automatically, suggest subscription based on bank transactions. These should be approved by the user as there could be some overlap or error in the way these are found
