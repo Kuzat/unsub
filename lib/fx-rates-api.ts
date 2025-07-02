@@ -17,9 +17,13 @@ type FxRatesApiResponse = {
  * @param quote
  */
 export async function getLatestFxRates(base: string, quote: string) {
-  const url = `${API_URL}/latest?base=${base}&currencies=${quote}&apiKey=${API_TOKEN}`
+  const url = `${API_URL}/latest?base=${base}&currencies=${quote}`
 
-  const response = await fetch(url, {method: "GET"});
+  const response = await fetch(url, {
+    method: "GET", headers: {
+      "Authorization": `Bearer ${API_TOKEN}`
+    }
+  });
 
   if (!response.ok) {
     throw new Error(`Error fetching latest FX rates: ${response.statusText}`)
