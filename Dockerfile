@@ -20,7 +20,7 @@ ENV BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
 COPY package.json bun.lock ./
 
 # Install production + dev exactly as locked
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy the rest of sources
 COPY . .
