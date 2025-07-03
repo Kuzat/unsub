@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { categoryEnum } from "@/db/schema/_common";
+import {categoryEnum, serviceScopeEnum} from "@/db/schema/_common";
 
 type Category = typeof categoryEnum.enumValues[number];
+type Scope = typeof serviceScopeEnum.enumValues[number];
 
 export const createServiceSchema = z.object({
   name: z.string({
@@ -16,6 +17,9 @@ export const createServiceSchema = z.object({
   url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   description: z.string().optional(),
   logoUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  scope: z.enum(serviceScopeEnum.enumValues as [Scope, ...Scope[]],
+    ).optional(),
+  ownerId: z.string().uuid().optional(),
 });
 
 export type CreateServiceFormValues = z.infer<typeof createServiceSchema>;

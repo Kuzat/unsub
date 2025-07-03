@@ -1,22 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeftIcon } from "lucide-react"
-import { createServiceSchema, CreateServiceFormValues } from "@/lib/validation/service"
-import { useRouter } from "next/navigation"
-import { createService } from "@/app/actions/services"
-import { toast } from "sonner"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {FormProvider, useForm, useFormContext} from "react-hook-form"
+import {Button} from "@/components/ui/button"
+import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
+import {Input} from "@/components/ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Textarea} from "@/components/ui/textarea"
+import {ArrowLeftIcon} from "lucide-react"
+import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service"
+import {useRouter} from "next/navigation"
+import {createService} from "@/app/actions/services"
+import {toast} from "sonner"
 import Link from "next/link"
-import { categoryEnum } from "@/db/schema/_common"
+import {categoryEnum, serviceScopeEnum} from "@/db/schema/_common"
 
-export default function NewServiceForm() {
+export default function NewServiceForm({isAdmin = false}: { isAdmin?: boolean; }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -29,6 +29,8 @@ export default function NewServiceForm() {
       url: "",
       description: "",
       logoUrl: "",
+      scope: "user",
+      ownerId: undefined
     },
   })
 
@@ -57,23 +59,23 @@ export default function NewServiceForm() {
     <div className="space-y-6">
       <Button variant="outline" size="sm" asChild className="mb-6">
         <Link href="/services">
-          <ArrowLeftIcon className="mr-2 h-4 w-4" />
+          <ArrowLeftIcon className="mr-2 h-4 w-4"/>
           Back to Services
         </Link>
       </Button>
 
-      <Form {...form}>
+      <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="name"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Service Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter service name" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -81,13 +83,13 @@ export default function NewServiceForm() {
           <FormField
             control={form.control}
             name="category"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Select a category"/>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -98,7 +100,7 @@ export default function NewServiceForm() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -106,13 +108,13 @@ export default function NewServiceForm() {
           <FormField
             control={form.control}
             name="url"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Website URL (optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="https://example.com" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -120,13 +122,13 @@ export default function NewServiceForm() {
           <FormField
             control={form.control}
             name="description"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Description (optional)</FormLabel>
                 <FormControl>
                   <Textarea placeholder="Enter a description of the service" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -134,16 +136,18 @@ export default function NewServiceForm() {
           <FormField
             control={form.control}
             name="logoUrl"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Logo URL (optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="https://example.com/logo.png" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
+
+          {isAdmin && <AdminServiceOptions/>}
 
           <div className="flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
@@ -151,7 +155,57 @@ export default function NewServiceForm() {
             </Button>
           </div>
         </form>
-      </Form>
+      </FormProvider>
     </div>
   )
+}
+
+
+function AdminServiceOptions() {
+  const {control} = useFormContext<CreateServiceFormValues>()
+
+  return (
+    <div className="space-y-6 border-2 p-4 rounded-xl border-primary">
+      <h3 className="text-lg font-medium text-primary">Admin Options</h3>
+
+      <FormField
+        control={control}
+        name="scope"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel>Scope</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a Scope"/>
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {serviceScopeEnum.enumValues.map((scope) => (
+                  <SelectItem key={scope} value={scope}>
+                    {scope.charAt(0).toUpperCase() + scope.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage/>
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="ownerId"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel>Owner ID (optional)</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )}
+      />
+    </div>
+  );
 }

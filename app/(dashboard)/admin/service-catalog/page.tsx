@@ -36,7 +36,7 @@ export default async function ServiceCatalogPage(props: ServicesPageProps) {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Services</h1>
         <Button asChild>
-          <Link href="/admin/service-catalog/new">
+          <Link href="/services/new">
             <PlusIcon className="mr-2 h-4 w-4"/>
             New Service
           </Link>

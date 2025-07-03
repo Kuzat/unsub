@@ -61,11 +61,18 @@ export const auth = betterAuth({
   ]
 });
 
-export async function requireSession() {
+
+type UserSession = typeof auth.$Infer.Session
+
+export async function requireSession(): Promise<UserSession> {
   const session = await auth.api.getSession({
     headers: await headers()
   });
   if (!session) {
+    redirect("/login")
+  }
+
+  if (!session.user) {
     redirect("/login")
   }
 
@@ -74,14 +81,18 @@ export async function requireSession() {
     return redirect('/verify-email')
   }
 
-  return session;
+  return session
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<UserSession> {
   const session = await requireSession();
-  if (session.user.role !== "admin") {
+  if (!isAdmin(session)) {
     redirect("/dashboard")
   }
 
   return session;
+}
+
+export function isAdmin(session: UserSession) {
+  return session.user.role === "admin";
 }

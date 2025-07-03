@@ -1,6 +1,6 @@
 import {AppSidebar} from "@/components/app-sidebar";
 import {SidebarInset, SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
-import {requireSession} from "@/lib/auth";
+import {isAdmin, requireSession} from "@/lib/auth";
 import {redirect} from "next/navigation";
 
 
@@ -10,7 +10,7 @@ export default async function DashboardLayout({children}: {
   const session = await requireSession()
 
   // Check if user is admin and not have 2fa enabled
-  if (session.user.role === "admin" && !session.user.twoFactorEnabled) {
+  if (isAdmin(session) && !session.user.twoFactorEnabled) {
     return redirect('/enable-2fa')
   }
 

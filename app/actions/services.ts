@@ -5,12 +5,13 @@ import {service} from "@/db/schema/app";
 import {and, count, eq, ilike, or} from "drizzle-orm";
 import crypto from "crypto";
 import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/service";
-import {auth} from "@/lib/auth";
+import {auth, isAdmin, requireSession} from "@/lib/auth";
 import {headers} from "next/headers";
 import {User} from "better-auth";
 import {categoryEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
+import {unauthorized} from "next/navigation";
 
 export type Service = {
   id: string;
@@ -168,16 +169,22 @@ export async function getGlobalServices(
 }
 
 export async function createService(input: CreateServiceFormValues): Promise<Service | { error: string }> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  })
-
-  if (!session) {
-    return {error: "You must be logged in to create a service"}
-  }
+  const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
 
   try {
     const data = createServiceSchema.parse(input)
+
+    // Check if a non admin tried to set only admin values
+    if (!userIsAdmin) {
+      if (data.scope !== "user"){
+        return unauthorized();
+      }
+      if (data.ownerId) {
+        return unauthorized();
+      }
+    }
+
     // Check if a service with this name already exists
     const existingService = await db
       .select()
@@ -199,8 +206,8 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       url: data.url || null,
       description: data.description || null,
       logoUrl: data.logoUrl || null,
-      scope: "user",
-      ownerId: session.user.id,
+      scope: userIsAdmin ? data.scope : "user",
+      ownerId: userIsAdmin ? data.ownerId : session.user.id,
       createdAt: new Date(),
       updatedAt: new Date(),
     };

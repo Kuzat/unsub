@@ -18,6 +18,7 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Have an onboarding section after registering where they can set preferred currency and other preferences
 - [ ] Monthly subscription cost should link statistic or something page where we can see the breakdown of the cost. So which ones cost how much per month. So we can see the monhtly cost of yearly subscriptions.
 - [ ] Add propper skeleton loading using suspense and loading.tsx files.
+- [ ] Make sure we use the same form components in all forms. Such as the calendar/date input is different in many places now. 
 
 # Premium / Pro 
 Items related to the Pro plan 
