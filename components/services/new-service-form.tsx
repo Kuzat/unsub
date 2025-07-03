@@ -30,7 +30,6 @@ export default function NewServiceForm({isAdmin = false}: { isAdmin?: boolean; }
       description: "",
       logoUrl: "",
       scope: "user",
-      ownerId: undefined
     },
   })
 
@@ -188,20 +187,6 @@ function AdminServiceOptions() {
                 ))}
               </SelectContent>
             </Select>
-            <FormMessage/>
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
-        name="ownerId"
-        render={({field}) => (
-          <FormItem>
-            <FormLabel>Owner ID (optional)</FormLabel>
-            <FormControl>
-              <Input {...field} />
-            </FormControl>
             <FormMessage/>
           </FormItem>
         )}

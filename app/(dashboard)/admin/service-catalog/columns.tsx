@@ -93,9 +93,7 @@ export const columns: ColumnDef<ServiceWithUser>[] = [
       if (!description) return <span className="text-muted-foreground">No description</span>;
 
       // Truncate long descriptions
-      return description.length > 100
-        ? `${description.substring(0, 100)}...`
-        : description;
+      return <p className="max-w-[120px] sm:max-w-[150px] md:max-w-[210px] lg:max-w-[300px] xl:max-w-[400px] truncate">{description}</p>
     },
   },
   {

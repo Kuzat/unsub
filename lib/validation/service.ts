@@ -19,7 +19,6 @@ export const createServiceSchema = z.object({
   logoUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   scope: z.enum(serviceScopeEnum.enumValues as [Scope, ...Scope[]],
     ).optional(),
-  ownerId: z.string().uuid().optional(),
 });
 
 export type CreateServiceFormValues = z.infer<typeof createServiceSchema>;

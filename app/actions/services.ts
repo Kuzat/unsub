@@ -177,10 +177,7 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
 
     // Check if a non admin tried to set only admin values
     if (!userIsAdmin) {
-      if (data.scope !== "user"){
-        return unauthorized();
-      }
-      if (data.ownerId) {
+      if (data.scope !== "user") {
         return unauthorized();
       }
     }
@@ -207,7 +204,7 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       description: data.description || null,
       logoUrl: data.logoUrl || null,
       scope: userIsAdmin ? data.scope : "user",
-      ownerId: userIsAdmin ? data.ownerId : session.user.id,
+      ownerId: (userIsAdmin && data.scope == "global") ? null : session.user.id,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
