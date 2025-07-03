@@ -15,6 +15,7 @@ import {createService} from "@/app/actions/services"
 import {toast} from "sonner"
 import Link from "next/link"
 import {categoryEnum, serviceScopeEnum} from "@/db/schema/_common"
+import LogoUrlInput from "@/components/ui/forms/LogoUrlInput";
 
 export default function NewServiceForm({isAdmin = false}: { isAdmin?: boolean; }) {
   const router = useRouter()
@@ -28,7 +29,9 @@ export default function NewServiceForm({isAdmin = false}: { isAdmin?: boolean; }
       category: "other",
       url: "",
       description: "",
-      logoUrl: "",
+      logoOriginalUrl: "",
+      logoHash: undefined,
+      logoCdnUrl: undefined,
       scope: "user",
     },
   })
@@ -132,19 +135,7 @@ export default function NewServiceForm({isAdmin = false}: { isAdmin?: boolean; }
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="logoUrl"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel>Logo URL (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://example.com/logo.png" {...field} />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
+          <LogoUrlInput/>
 
           {isAdmin && <AdminServiceOptions/>}
 
