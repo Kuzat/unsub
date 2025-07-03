@@ -10,7 +10,11 @@ export const service = pgTable("service", {
   category: categoryEnum("category").notNull(),
   url: text("url"),
   description: text("description"),
-  logoUrl: text("logo_url"),
+
+  /* logo pipeline */
+  logo_cdn_url: text("logo_cdn_url"),
+  logo_original_url: text("logo_original_url"),
+  logo_hash: text("logo_hash"),
 
   // Scopes who owns the services and who can see them
   scope: serviceScopeEnum("scope").notNull().default("user"),
