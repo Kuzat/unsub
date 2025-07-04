@@ -5,6 +5,7 @@ import Image from "next/image";
 import {headers} from "next/headers";
 import {auth} from "@/lib/auth";
 import {Button} from "../ui/button";
+import UnsubLogo from "@/public/unsub.svg"
 
 export default async function Header() {
   const session = await auth.api.getSession({
@@ -16,10 +17,8 @@ export default async function Header() {
       <Link href="/" className="flex items-center gap-2">
         {/* Logo lives in /public as unsub.svg */}
         <Image
-          src="/unsub.svg"
+          src={UnsubLogo}
           alt="unsub logo"
-          width={130}
-          height={32}
           priority
           // The existing classes for the image are fine, let's keep them.
           // Adjusted size slightly for better fit if needed, but original was size-16
