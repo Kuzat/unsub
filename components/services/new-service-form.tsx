@@ -8,6 +8,7 @@ import {useRouter} from "next/navigation"
 import {createService, Service} from "@/app/actions/services"
 import {toast} from "sonner"
 import ServiceForm from "@/components/services/service-form";
+import {Button} from "@/components/ui/button";
 
 export type NewServiceFormProps = {
   isAdmin?: boolean;
@@ -63,7 +64,12 @@ export default function NewServiceForm({isAdmin = false, onNewService}: NewServi
     <div className="space-y-6">
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <ServiceForm isSubmitting={isSubmitting} isAdmin={isAdmin}/>
+          <ServiceForm isAdmin={isAdmin}/>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Service"}
+            </Button>
+          </div>
         </form>
       </FormProvider>
     </div>

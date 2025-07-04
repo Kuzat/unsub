@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {useFormContext} from "react-hook-form"
-import {Button} from "@/components/ui/button"
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
@@ -12,11 +11,10 @@ import {categoryEnum, serviceScopeEnum} from "@/db/schema/_common"
 import LogoUrlInput from "@/components/ui/forms/logo-url-input";
 
 export type NewServiceFormProps = {
-  isSubmitting?: boolean;
   isAdmin?: boolean;
 }
 
-export default function ServiceForm({isAdmin = false, isSubmitting}: NewServiceFormProps) {
+export default function ServiceForm({isAdmin = false }: NewServiceFormProps) {
   const form = useFormContext<CreateServiceFormValues>()
 
   return (
@@ -92,11 +90,7 @@ export default function ServiceForm({isAdmin = false, isSubmitting}: NewServiceF
 
       {isAdmin && <AdminServiceOptions/>}
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create Service"}
-        </Button>
-      </div>
+
     </div>
   )
 }

@@ -9,6 +9,7 @@ import {useRouter} from "next/navigation"
 import {updateService, Service} from "@/app/actions/services"
 import {toast} from "sonner"
 import ServiceForm from "@/components/services/service-form";
+import {Button} from "@/components/ui/button";
 
 interface EditServiceFormProps {
   service: Service;
@@ -27,7 +28,7 @@ export default function EditServiceForm({service, isAdmin}: EditServiceFormProps
       category: service.category,
       url: service.url || "",
       description: service.description || "",
-      logoOriginalUrl: service.logoOriginalUrl ?? undefined,
+      logoOriginalUrl: service.logoOriginalUrl ?? "",
       logoCdnUrl: service.logoCdnUrl ?? undefined,
       logoHash: service.logoHash ?? undefined,
       scope: service.scope
@@ -59,7 +60,12 @@ export default function EditServiceForm({service, isAdmin}: EditServiceFormProps
     <div className="space-y-6">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <ServiceForm isSubmitting={isSubmitting} isAdmin={isAdmin}/>
+          <ServiceForm isAdmin={isAdmin}/>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Updating..." : "Update Service"}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>
