@@ -51,6 +51,7 @@ COPY --chown=nextjs:nodejs --from=builder /app/node_modules ./node_modules
 COPY --chown=nextjs:nodejs --from=builder /app/package.json ./package.json
 COPY --chown=nextjs:nodejs --from=builder /app/public ./public
 COPY --chown=nextjs:nodejs --from=builder /app/.next ./.next
+COPY --chown=nextjs:nodejs --from=builder /app/next.config.ts ./
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle.config.ts ./
 COPY --chown=nextjs:nodejs --from=builder /app/drizzle ./drizzle
 COPY --chown=nextjs:nodejs --from=builder /app/scripts ./scripts
