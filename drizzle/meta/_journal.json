@@ -50,6 +50,13 @@
       "when": 1751284903107,
       "tag": "0006_lethal_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1751547659389,
+      "tag": "0007_violet_angel",
+      "breakpoints": true
     }
   ]
 }

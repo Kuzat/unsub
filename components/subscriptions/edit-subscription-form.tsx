@@ -1,36 +1,37 @@
 "use client"
 
 import * as React from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {useForm} from "react-hook-form"
+import {Button} from "@/components/ui/button"
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
+import {Input} from "@/components/ui/input"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import {Textarea} from "@/components/ui/textarea"
+import {Switch} from "@/components/ui/switch"
+import {Calendar} from "@/components/ui/calendar"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {ArrowLeftIcon, CalendarIcon, Check, ChevronsUpDown} from "lucide-react"
 import {CreateSubscriptionSchema, createSubscriptionSchema} from "@/lib/validation/subscription"
-import { useRouter } from "next/navigation"
-import { updateSubscription, EditSubscription } from "@/app/actions/subscriptions"
-import { searchServices, Service } from "@/app/actions/services"
-import { toast } from "sonner"
+import {useRouter} from "next/navigation"
+import {updateSubscription, EditSubscription} from "@/app/actions/subscriptions"
+import {searchServices, Service} from "@/app/actions/services"
+import {toast} from "sonner"
 import Link from "next/link"
-import { cn, formatDate } from "@/lib/utils"
+import {cn, formatDate} from "@/lib/utils"
 import Image from "next/image"
 import {currencyFormMap} from "@/db/data/currencies";
 import {Command} from "cmdk";
 import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
+import ServiceLogo from "@/components/ui/service-logo";
 
 interface EditSubscriptionFormProps {
   subscription: EditSubscription;
   from?: string; // "view" if coming from subscription view, "list" if coming from subscriptions list
 }
 
-export default function EditSubscriptionForm({ subscription, from = "list" }: EditSubscriptionFormProps) {
+export default function EditSubscriptionForm({subscription, from = "list"}: EditSubscriptionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [dateOpen, setDateOpen] = React.useState(false)
@@ -129,7 +130,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
     <div className="space-y-6">
       <Button variant="outline" size="sm" asChild className="mb-6">
         <Link href={from === "view" ? `/subscriptions/${subscription.id}` : "/subscriptions"}>
-          <ArrowLeftIcon className="mr-2 h-4 w-4" />
+          <ArrowLeftIcon className="mr-2 h-4 w-4"/>
           {from === "view" ? "Back to Subscription" : "Back to Subscriptions"}
         </Link>
       </Button>
@@ -148,13 +149,13 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           </Button>
         </div>
         <div className="flex items-center gap-3">
-          {(selectedService?.logoUrl || subscription.serviceLogoUrl) ? (
+          {(selectedService?.logoCdnUrl || subscription.serviceLogoUrl) ? (
             <div className="h-12 w-12 rounded overflow-hidden">
-              <Image 
-                src={selectedService?.logoUrl || subscription.serviceLogoUrl || ''} 
-                alt={selectedService?.name || subscription.serviceName} 
-                width={48} 
-                height={48} 
+              <Image
+                src={selectedService?.logoCdnUrl || subscription.serviceLogoUrl || ''}
+                alt={selectedService?.name || subscription.serviceName}
+                width={48}
+                height={48}
                 className="object-cover"
               />
             </div>
@@ -202,30 +203,24 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                       className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-muted"
                       onClick={() => handleServiceSelect(service.id)}
                     >
-                      {service.logoUrl ? (
-                        <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
-                          <Image
-                            src={service.logoUrl}
-                            alt={service.name}
-                            width={32}
-                            height={32}
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-8 w-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold">{service.name.charAt(0)}</span>
-                        </div>
-                      )}
+                      <ServiceLogo
+                        image={service.logoCdnUrl}
+                        placeholder={service.name.charAt(0)}
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-lg"
+                      />
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{service.name}</p>
                           {service.scope === "global" ? (
-                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                            <span
+                              className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                               Global
                             </span>
                           ) : (
-                            <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
+                            <span
+                              className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
                               Custom
                             </span>
                           )}
@@ -247,15 +242,15 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="serviceId"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="hidden">
                 <FormControl>
-                  <Input 
-                    type="hidden" 
-                    {...field} 
+                  <Input
+                    type="hidden"
+                    {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -263,13 +258,13 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="alias"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Alias&nbsp;<span className="text-muted-foreground">(optional)</span></FormLabel>
                 <FormControl>
                   <Input placeholder="e.g. 'Family Netflix'" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -278,7 +273,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="startDate"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Start Date</FormLabel>
                 <Popover open={dateOpen} onOpenChange={setDateOpen}>
@@ -292,7 +287,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                         )}
                       >
                         {field.value ? formatDate(field.value.toISOString()) : "Pick a date"}
-                        <CalendarIcon className="ml-auto size-4 opacity-50" />
+                        <CalendarIcon className="ml-auto size-4 opacity-50"/>
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -308,7 +303,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                     />
                   </PopoverContent>
                 </Popover>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -317,13 +312,13 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="billingCycle"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Billing Cycle</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose cycle" />
+                      <SelectValue placeholder="Choose cycle"/>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -335,7 +330,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                     <SelectItem value="one_time">One-time</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -345,7 +340,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
             <FormField
               control={form.control}
               name="currency"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Currency</FormLabel>
                   <Popover open={currencyComboboxOpen}>
@@ -364,7 +359,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                               (currency) => currency.value === field.value
                             )?.value
                             : "Select Currency"}
-                          <ChevronsUpDown className="opacity-50" />
+                          <ChevronsUpDown className="opacity-50"/>
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -402,7 +397,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
+                  <FormMessage/>
                 </FormItem>
               )}
             />
@@ -410,7 +405,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
             <FormField
               control={form.control}
               name="price"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem className="flex-1">
                   <FormLabel>Price</FormLabel>
                   <FormControl>
@@ -430,7 +425,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                       }}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage/>
                 </FormItem>
               )}
             />
@@ -440,13 +435,13 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="isActive"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 max-w-xs">
                 <div className="space-y-0.5">
                   <FormLabel className="text-base">Active</FormLabel>
                 </div>
                 <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  <Switch checked={field.value} onCheckedChange={field.onChange}/>
                 </FormControl>
               </FormItem>
             )}
@@ -456,7 +451,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="remindDaysBefore"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="max-w-xs">
                 <FormLabel>Remind me (days before)</FormLabel>
                 <FormControl>
@@ -476,7 +471,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                     }}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
@@ -485,7 +480,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
           <FormField
             control={form.control}
             name="notes"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
@@ -494,7 +489,7 @@ export default function EditSubscriptionForm({ subscription, from = "list" }: Ed
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />

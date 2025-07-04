@@ -16,7 +16,9 @@ export const createServiceSchema = z.object({
   ),
   url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
   description: z.string().optional(),
-  logoUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  logoOriginalUrl: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  logoHash: z.string().optional(),
+  logoCdnUrl: z.string().optional(),
   scope: z.enum(serviceScopeEnum.enumValues as [Scope, ...Scope[]],
     ).optional(),
 });

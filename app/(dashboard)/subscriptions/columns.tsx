@@ -3,11 +3,11 @@
 import {ColumnDef} from "@tanstack/react-table"
 import {formatDate, formatCurrency, calculateNextRenewal, cn} from "@/lib/utils"
 import {subscription} from "@/db/schema/app"
-import Image from "next/image"
 import {InferSelectModel} from "drizzle-orm";
 import {Service} from "@/app/actions/services";
 import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
 import Link from "next/link";
+import ServiceLogo from "@/components/ui/service-logo";
 
 type SubscriptionWithService = {
   subscription: InferSelectModel<typeof subscription>,
@@ -26,21 +26,13 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
           href={`/subscriptions/${subscription.id}`}
           className="flex items-center gap-3"
         >
-          {service?.logoUrl ? (
-            <div className="h-8 w-8 rounded overflow-hidden">
-              <Image
-                src={service.logoUrl}
-                alt={service.name}
-                width={32}
-                height={32}
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="h-8 w-8 bg-muted rounded flex items-center justify-center">
-              <span className="text-sm font-bold">{service?.name?.charAt(0) || '?'}</span>
-            </div>
-          )}
+          <ServiceLogo
+            image={service?.logoCdnUrl}
+            placeholder={service?.name?.charAt(0)}
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-lg"
+          />
           <div className="hover:underline">
             <p className="font-medium">{service?.name || subscription.alias || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}

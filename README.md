@@ -48,7 +48,17 @@ Unsub is a subscription management application that helps you track, manage, and
    - `SCALEWAY_ACCESS_KEY`, `SCALEWAY_SECRET_KEY`, `SCALEWAY_PROJECT_ID`: Required for production email sending
    - `FX_RATES_API_TOKEN`: API token for accessing currency exchange rates from fxratesapi.com
    - `FX_CACHE_STALE_MS`: Time in milliseconds before cached exchange rates are considered stale (default: 604800000, which is 7 days)
+   - `GRAFANA_AUTH_BASIC`: Basic authentication for Grafana
+   - `OTEL_EXPORTER_OTLP_ENDPOINT`: OpenTelemetry exporter endpoint
+   - `OTEL_EXPORTER_OTLP_HEADERS`: Headers for OpenTelemetry exporter
+   - `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE`: Preference for OpenTelemetry metrics temporality
+   - `OTEL_TRACES_EXPORTER`: OpenTelemetry traces exporter configuration
+   - `OTEL_TRACES_SAMPLER`: OpenTelemetry traces sampler configuration
+   - `LOGO_CDN_URL`: CDN URL for service logos
+   - `BUNNY_STORAGE_ZONE`: Bunny storage zone for logos
+   - `BUNNY_STORAGE_ACCESS_KEY`: Access key for Bunny storage
    - `NEXT_PUBLIC_SUPPORT_EMAIL`: Email address displayed for support contact in the application
+   - `NEXT_PUBLIC_APP_URL`: Public URL of the application
 
 4. Start the PostgreSQL database:
    ```bash
@@ -226,6 +236,18 @@ docker-compose up -d --build
 - React 19
 - Drizzle ORM
 - PostgreSQL
-- Tailwind CSS
+- Tailwind CSS v4
 - Better Auth for authentication
 - Docker for containerization and deployment
+
+## Styling with Tailwind CSS v4
+
+This project uses Tailwind CSS v4 with configuration in `app/globals.css`. Key features include:
+
+- Direct CSS imports with `@import "tailwindcss";` instead of traditional `@tailwind` directives
+- Theme configuration using `@theme inline { ... }` syntax
+- Custom variants with `@custom-variant` syntax
+- OKLCH color format for better color representation
+- Comprehensive theme variables for colors, radius, and other design tokens
+
+For more information on Tailwind CSS v4, refer to the [official documentation](https://tailwindcss.com/).

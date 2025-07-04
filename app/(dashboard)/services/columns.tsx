@@ -2,9 +2,9 @@
 
 import {ColumnDef} from "@tanstack/react-table"
 import {Service} from "@/app/actions/services"
-import Image from "next/image"
 import {ServiceActions} from "@/components/services/service-actions"
 import {cn} from "@/lib/utils"
+import ServiceLogo from "@/components/ui/service-logo";
 
 export const columns: ColumnDef<Service>[] = [
   {
@@ -14,21 +14,11 @@ export const columns: ColumnDef<Service>[] = [
       const service = row.original;
       return (
         <div className="flex items-center gap-3">
-          {service?.logoUrl ? (
-            <div className="h-8 w-8 rounded overflow-hidden">
-              <Image
-                src={service.logoUrl}
-                alt={service.name}
-                width={32}
-                height={32}
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="h-8 w-8 bg-muted rounded flex items-center justify-center">
-              <span className="text-sm font-bold">{service?.name?.charAt(0) || '?'}</span>
-            </div>
-          )}
+          <ServiceLogo
+            image={service.logoCdnUrl}
+            placeholder={service?.name?.charAt(0)}
+            className="h-8 w-8 rounded-lg"
+          />
           <div>
             <p className="font-medium">{service?.name || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}
@@ -50,10 +40,10 @@ export const columns: ColumnDef<Service>[] = [
       if (!url) return <span className="text-muted-foreground">Not available</span>;
 
       return (
-        <a 
-          href={url} 
-          target="_blank" 
-          rel="noopener noreferrer" 
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-blue-600 hover:underline dark:text-blue-400"
         >
           {url.replace(/^https?:\/\//, '').split('/')[0]}
@@ -69,7 +59,8 @@ export const columns: ColumnDef<Service>[] = [
       if (!description) return <span className="text-muted-foreground">No description</span>;
 
       // Truncate long descriptions
-      return <p className="max-w-[120px] sm:max-w-[150px] md:max-w-[210px] lg:max-w-[300px] xl:max-w-[400px] truncate">{description}</p>
+      return <p
+        className="max-w-[120px] sm:max-w-[150px] md:max-w-[210px] lg:max-w-[300px] xl:max-w-[400px] truncate">{description}</p>
     },
   },
   {
@@ -93,7 +84,7 @@ export const columns: ColumnDef<Service>[] = [
     id: "actions",
     cell: ({row}) => {
       const service = row.original;
-      return service.scope === "user" ? <ServiceActions service={service} /> : null;
+      return service.scope === "user" ? <ServiceActions service={service}/> : null;
     },
   },
 ]

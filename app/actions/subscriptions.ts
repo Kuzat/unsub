@@ -483,7 +483,7 @@ export async function getSubscriptionById(
         serviceId: subscription.serviceId,
         serviceName: service.name,
         serviceCategory: service.category,
-        serviceLogoUrl: service.logoUrl,
+        serviceLogoUrl: service.logoCdnUrl,
         serviceScope: service.scope,
         serviceOwnerId: service.ownerId,
         alias: subscription.alias,
@@ -570,7 +570,6 @@ export type TransactionWithService = {
   userId: string;
   serviceId: string | null;
   serviceName: string | null;
-  serviceLogoUrl: string | null;
   type: string;
   amount: string;
   currency: string;
@@ -599,7 +598,6 @@ export async function getTransactionsBySubscriptionId(
         userId: transaction.userId,
         serviceId: transaction.serviceId,
         serviceName: service.name,
-        serviceLogoUrl: service.logoUrl,
         type: transaction.type,
         amount: transaction.amount,
         currency: transaction.currency,

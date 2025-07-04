@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 type Renewal = {
   id: string;
   serviceName: string;
-  serviceLogoUrl: string | null;
   price: number;
   currency: string;
   renewalDate: Date;

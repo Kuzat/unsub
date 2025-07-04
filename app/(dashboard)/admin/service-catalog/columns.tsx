@@ -7,8 +7,9 @@ import {ServiceActions} from "@/components/services/service-actions"
 import {cn} from "@/lib/utils"
 import {User} from "better-auth";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
+import ServiceLogo from "@/components/ui/service-logo";
 
-export type ServiceWithUser = {service: Service, user: User | null }
+export type ServiceWithUser = { service: Service, user: User | null }
 
 export const columns: ColumnDef<ServiceWithUser>[] = [
   {
@@ -18,21 +19,13 @@ export const columns: ColumnDef<ServiceWithUser>[] = [
       const service = row.original.service;
       return (
         <div className="flex items-center gap-3">
-          {service?.logoUrl ? (
-            <div className="h-8 w-8 rounded overflow-hidden">
-              <Image
-                src={service.logoUrl}
-                alt={service.name}
-                width={32}
-                height={32}
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="h-8 w-8 bg-muted rounded flex items-center justify-center">
-              <span className="text-sm font-bold">{service?.name?.charAt(0) || '?'}</span>
-            </div>
-          )}
+          <ServiceLogo
+            image={service?.logoCdnUrl}
+            placeholder={service?.name?.charAt(0)}
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-lg"
+          />
           <div>
             <p className="font-medium">{service?.name || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}
@@ -51,7 +44,8 @@ export const columns: ColumnDef<ServiceWithUser>[] = [
           <div className="h-8 w-8 rounded overflow-hidden">
             <Avatar className="h-8 w-8 rounded-lg">
               <AvatarImage src={user?.image || ""} alt={user?.name}/>
-              <AvatarFallback className="rounded-lg"><Image src="/unsub.svg" width={32} height={32} alt="Unsub logo" /></AvatarFallback>
+              <AvatarFallback className="rounded-lg"><Image src="/unsub.svg" width={32} height={32}
+                                                            alt="Unsub logo"/></AvatarFallback>
             </Avatar>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
@@ -93,7 +87,8 @@ export const columns: ColumnDef<ServiceWithUser>[] = [
       if (!description) return <span className="text-muted-foreground">No description</span>;
 
       // Truncate long descriptions
-      return <p className="max-w-[120px] sm:max-w-[150px] md:max-w-[210px] lg:max-w-[300px] xl:max-w-[400px] truncate">{description}</p>
+      return <p
+        className="max-w-[120px] sm:max-w-[150px] md:max-w-[210px] lg:max-w-[300px] xl:max-w-[400px] truncate">{description}</p>
     },
   },
   {
