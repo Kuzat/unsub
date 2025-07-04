@@ -38,6 +38,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Prepare the certificate file location for the non-root user
+# This allows the 'nextjs' user to write the certificate at runtime.
+RUN mkdir -p /etc/ssl/certs && \
+    touch /etc/ssl/certs/database-ca.crt && \
+    chown nextjs:nodejs /etc/ssl/certs/database-ca.crt
+
+
 # Copy only the necessary files from the builder stage
 # This is the key: we copy the pre-installed node_modules, which includes drizzle-kit
 COPY --chown=nextjs:nodejs --from=builder /app/node_modules ./node_modules
@@ -61,4 +68,4 @@ ENV PORT=3000
 
 # The final command. 'npx' will find drizzle-kit in the copied node_modules.
 # `npm run start` will execute `next start` as defined in package.json.
-CMD ["sh", "-c", "npx drizzle-kit migrate && npm run start"]
+CMD ["sh", "-c", "npm run db:save-cert && npx drizzle-kit migrate && npm run start"]
