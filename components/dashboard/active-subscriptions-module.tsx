@@ -1,7 +1,7 @@
 import {InferSelectModel} from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PlusIcon } from "lucide-react";
+import {ExternalLinkIcon, PlusIcon} from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {subscription} from "@/db/schema/app";
 
@@ -15,11 +15,21 @@ export async function ActiveSubscriptionsModule({ activeSubscriptions }: ActiveS
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
         <CardTitle>Active Subscriptions</CardTitle>
         <CardDescription>
           Overview of your current active subscriptions
         </CardDescription>
+        </div>
+        <Link
+          href="/subscriptions"
+          className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+          title="View full calendar"
+        >
+          <span className="truncate">View all</span>
+          <ExternalLinkIcon className="h-3 w-3" />
+        </Link>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center justify-center py-2">
