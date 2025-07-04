@@ -3,7 +3,6 @@
 import {ColumnDef} from "@tanstack/react-table"
 import {formatDate, formatCurrency, calculateNextRenewal, cn} from "@/lib/utils"
 import {subscription} from "@/db/schema/app"
-import Image from "next/image"
 import {InferSelectModel} from "drizzle-orm";
 import {Service} from "@/app/actions/services";
 import {SubscriptionActions} from "@/components/subscriptions/subscription-actions";
