@@ -10,7 +10,7 @@ import {toast} from "sonner";
 import ServiceLogo from "@/components/ui/service-logo";
 
 
-export default function LogoUrlInput({}) {
+export default function LogoUrlInput() {
   const {control, setValue, getValues, watch} = useFormContext<CreateServiceFormValues>()
   const preview = watch("logoCdnUrl")
   const [fetching, setFetching] = useState<boolean>(false)
