@@ -52,7 +52,6 @@ export default async function CalendarPage() {
       return {
         id: sub.id,
         serviceName: sub.service?.name || sub.alias || "Unknown Service",
-        serviceLogoUrl: sub.service?.logoUrl || null,
         price: parseFloat(sub.price),
         currency: sub.currency,
         renewalDate: nextRenewal,

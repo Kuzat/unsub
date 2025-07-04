@@ -12,9 +12,9 @@ export const service = pgTable("service", {
   description: text("description"),
 
   /* logo pipeline */
-  logo_cdn_url: text("logo_cdn_url"),
-  logo_original_url: text("logo_original_url"),
-  logo_hash: text("logo_hash"),
+  logoOriginalUrl: text("logo_original_url"),
+  logoCdnUrl: text("logo_cdn_url"),
+  logoHash: text("logo_hash"),
 
   // Scopes who owns the services and who can see them
   scope: serviceScopeEnum("scope").notNull().default("user"),

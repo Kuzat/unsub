@@ -7,9 +7,10 @@ import {requireSession} from "@/lib/auth";
 const LOGO_CDN_URL = process.env.LOGO_CDN_URL!;
 
 type FetchLogoResponse = {
-  error?: string,
-  logo_cdn_url?: string,
-  logo_hash?: string,
+  error: string,
+} | {
+  logoCdnUrl: string,
+  logoHash: string,
 }
 
 export async function fetchLogo(originalUrl: string): Promise<FetchLogoResponse> {
@@ -55,7 +56,7 @@ export async function fetchLogo(originalUrl: string): Promise<FetchLogoResponse>
   }
 
   return {
-    logo_cdn_url: `${LOGO_CDN_URL}/${key}`,
-    logo_hash: hash,
+    logoCdnUrl: `${LOGO_CDN_URL}/${key}`,
+    logoHash: hash,
   }
 }

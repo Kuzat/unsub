@@ -8,20 +8,12 @@ import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/ser
 import {auth, isAdmin, requireSession} from "@/lib/auth";
 import {headers} from "next/headers";
 import {User} from "better-auth";
-import {categoryEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
 import {unauthorized} from "next/navigation";
+import {fetchLogo} from "@/app/actions/logo";
 
-export type Service = {
-  id: string;
-  name: string;
-  category: typeof categoryEnum.enumValues[number];
-  url: string | null | undefined;
-  description: string | null | undefined;
-  logoUrl: string | null | undefined;
-  scope: string;
-};
+export type Service = typeof service.$inferInsert;
 
 /**
  * Search for services by name
@@ -182,6 +174,18 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       }
     }
 
+    // If logo exists we check if we have preloaded the logo
+    if (data.logoOriginalUrl && !data.logoCdnUrl && !data.logoHash) {
+      const res = await fetchLogo(data.logoOriginalUrl)
+
+      if ("error" in res) {
+        return {error: res.error}
+      }
+
+      data.logoCdnUrl = res.logoCdnUrl
+      data.logoHash = res.logoHash
+    }
+
     // Check if a service with this name already exists
     const existingService = await db
       .select()
@@ -202,7 +206,9 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       category: data.category,
       url: data.url || null,
       description: data.description || null,
-      logoUrl: data.logoUrl || null,
+      logoOriginalUrl: data.logoOriginalUrl || null,
+      logoCdnUrl: data.logoCdnUrl || null,
+      logoHash: data.logoHash || null,
       scope: userIsAdmin ? data.scope : "user",
       ownerId: (userIsAdmin && data.scope == "global") ? null : session.user.id,
       createdAt: new Date(),
@@ -217,8 +223,10 @@ export async function createService(input: CreateServiceFormValues): Promise<Ser
       category: newService.category,
       url: newService.url,
       description: newService.description,
-      logoUrl: newService.logoUrl,
-      scope: "user",
+      logoOriginalUrl: newService.logoOriginalUrl,
+      logoCdnUrl: newService.logoCdnUrl,
+      logoHash: newService.logoHash,
+      scope: newService.scope,
     };
   } catch (error) {
     console.error("Error creating service:", error);
@@ -230,17 +238,31 @@ export async function updateService(
   serviceId: string,
   input: CreateServiceFormValues
 ): Promise<Service | { error: string }> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return {error: "You must be logged in to update a service"};
-  }
+  const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
 
   try {
     // Validate the input data
     const data = createServiceSchema.parse(input);
+
+    // Check if a non admin tried to set only admin values
+    if (!userIsAdmin) {
+      if (data.scope !== "user") {
+        return unauthorized();
+      }
+    }
+
+    const noCdnLogo = !data.logoCdnUrl && !data.logoHash;
+    if (data.logoOriginalUrl && noCdnLogo) {
+      const res = await fetchLogo(data.logoOriginalUrl)
+
+      if ("error" in res) {
+        return {error: res.error}
+      }
+
+      data.logoCdnUrl = res.logoCdnUrl
+      data.logoHash = res.logoHash
+    }
 
     // Check if the service exists and belongs to the user
     const existingService = await db
@@ -248,13 +270,30 @@ export async function updateService(
       .from(service)
       .where(and(
         eq(service.id, serviceId),
-        eq(service.ownerId, session.user.id),
-        eq(service.scope, "user") // Only allow updating user services
+        userIsAdmin ? undefined : eq(service.ownerId, session.user.id),
+        userIsAdmin ? undefined : eq(service.scope, "user") // Only allow updating user services
       ))
       .limit(1);
 
     if (existingService.length === 0) {
       return {error: "Service not found or you don't have permission to update it"};
+    }
+
+    if (data.logoOriginalUrl && data.logoOriginalUrl !== existingService[0].logoOriginalUrl && noCdnLogo) {
+      const res = await fetchLogo(data.logoOriginalUrl)
+
+      if ("error" in res) {
+        return {error: res.error}
+      }
+
+      data.logoCdnUrl = res.logoCdnUrl
+      data.logoHash = res.logoHash
+    }
+
+    // If the logo url is removed we should remove cdn and hash
+    if (!data.logoOriginalUrl && existingService[0].logoOriginalUrl) {
+      data.logoCdnUrl = undefined
+      data.logoHash = undefined
     }
 
     // Update the service
@@ -265,12 +304,16 @@ export async function updateService(
         category: data.category,
         url: data.url || null,
         description: data.description || null,
-        logoUrl: data.logoUrl || null,
+        logoOriginalUrl: data.logoOriginalUrl || null,
+        logoCdnUrl: data.logoCdnUrl || null,
+        logoHash: data.logoHash || null,
+        scope: userIsAdmin ? data.scope : existingService[0].scope,
+        ownerId: (userIsAdmin && data.scope == "global") ? null : existingService[0].ownerId,
         updatedAt: new Date(),
       })
       .where(and(
         eq(service.id, serviceId),
-        eq(service.ownerId, session.user.id)
+        userIsAdmin ? undefined : eq(service.ownerId, session.user.id)
       ))
       .returning();
 
@@ -284,7 +327,9 @@ export async function updateService(
       category: result[0].category,
       url: result[0].url,
       description: result[0].description,
-      logoUrl: result[0].logoUrl,
+      logoOriginalUrl: result[0].logoOriginalUrl,
+      logoCdnUrl: result[0].logoCdnUrl,
+      logoHash: result[0].logoHash,
       scope: result[0].scope,
     };
   } catch (error) {
@@ -294,13 +339,7 @@ export async function updateService(
 }
 
 export async function getServiceById(serviceId: string): Promise<Service | { error: string }> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return {error: "You must be logged in to view this service"};
-  }
+  const session = await requireSession()
 
   try {
     // Check if the service exists and is accessible to the user
@@ -326,7 +365,9 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
       category: result[0].category,
       url: result[0].url,
       description: result[0].description,
-      logoUrl: result[0].logoUrl,
+      logoOriginalUrl: result[0].logoOriginalUrl,
+      logoCdnUrl: result[0].logoCdnUrl,
+      logoHash: result[0].logoHash,
       scope: result[0].scope,
     };
   } catch (error) {
@@ -336,13 +377,7 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
 }
 
 export async function deleteService(serviceId: string): Promise<{ success: string } | { error: string }> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return {error: "You must be logged in to delete a service"};
-  }
+  const session = await requireSession()
 
   try {
     // Check if the service exists and belongs to the user

@@ -9,8 +9,8 @@ import { DataTable } from "@/components/ui/data-table";
 import { transactionColumns } from "./columns";
 import Link from "next/link";
 import { ArrowLeft, Edit } from "lucide-react";
-import Image from "next/image";
 import { AddTransaction } from "@/components/transactions/add-transaction";
+import ServiceLogo from "@/components/ui/service-logo";
 
 export default async function SubscriptionDetailPage({
   params,
@@ -72,23 +72,13 @@ export default async function SubscriptionDetailPage({
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4 mb-4">
-              {subscriptionData.serviceLogoUrl ? (
-                <div className="h-12 w-12 rounded overflow-hidden">
-                  <Image
-                    src={subscriptionData.serviceLogoUrl}
-                    alt={subscriptionData.serviceName}
-                    width={48}
-                    height={48}
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
-                  <span className="text-lg font-bold">
-                    {subscriptionData.serviceName?.charAt(0) || "?"}
-                  </span>
-                </div>
-              )}
+              <ServiceLogo
+                image={subscriptionData.serviceLogoUrl}
+                placeholder={subscriptionData.serviceName.charAt(0)}
+                width={48}
+                height={48}
+                className="h-12 w-12 rounded-lg"
+                />
               <div>
                 <h3 className="text-lg font-semibold">
                   {subscriptionData.serviceName || subscriptionData.alias || "Unknown Service"}

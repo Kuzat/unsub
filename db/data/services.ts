@@ -6,7 +6,6 @@ export type SeedService = {
   category: (typeof categoryEnum.enumValues)[number];
   url: string;
   description?: string;
-  logoUrl?: string;
 };
 
 // 💡 Keep an array alphabetical for merge-conflict hygiene

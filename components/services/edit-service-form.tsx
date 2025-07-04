@@ -1,26 +1,21 @@
 "use client"
 
 import * as React from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeftIcon } from "lucide-react"
-import { createServiceSchema, CreateServiceFormValues } from "@/lib/validation/service"
-import { useRouter } from "next/navigation"
-import { updateService, Service } from "@/app/actions/services"
-import { toast } from "sonner"
-import Link from "next/link"
-import { categoryEnum } from "@/db/schema/_common"
+import {zodResolver} from "@hookform/resolvers/zod"
+import {useForm} from "react-hook-form"
+import {Form} from "@/components/ui/form"
+import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service"
+import {useRouter} from "next/navigation"
+import {updateService, Service} from "@/app/actions/services"
+import {toast} from "sonner"
+import ServiceForm from "@/components/services/service-form";
 
 interface EditServiceFormProps {
   service: Service;
+  isAdmin?: boolean;
 }
 
-export default function EditServiceForm({ service }: EditServiceFormProps) {
+export default function EditServiceForm({service, isAdmin}: EditServiceFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -32,7 +27,10 @@ export default function EditServiceForm({ service }: EditServiceFormProps) {
       category: service.category,
       url: service.url || "",
       description: service.description || "",
-      logoUrl: service.logoUrl || "",
+      logoOriginalUrl: service.logoOriginalUrl ?? undefined,
+      logoCdnUrl: service.logoCdnUrl ?? undefined,
+      logoHash: service.logoHash ?? undefined,
+      scope: service.scope
     },
   })
 
@@ -59,101 +57,9 @@ export default function EditServiceForm({ service }: EditServiceFormProps) {
 
   return (
     <div className="space-y-6">
-      <Button variant="outline" size="sm" asChild className="mb-6">
-        <Link href="/services">
-          <ArrowLeftIcon className="mr-2 h-4 w-4" />
-          Back to Services
-        </Link>
-      </Button>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Service Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter service name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categoryEnum.enumValues.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Website URL (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description (optional)</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Enter a description of the service" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="logoUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Logo URL (optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://example.com/logo.png" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Service"}
-            </Button>
-          </div>
+          <ServiceForm isSubmitting={isSubmitting} isAdmin={isAdmin}/>
         </form>
       </Form>
     </div>

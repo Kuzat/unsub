@@ -38,7 +38,6 @@ async function main() {
         category: s.category,
         url: s.url,
         description: s.description,
-        logoUrl: s.logoUrl,
         scope: "global",
       })
 

@@ -7,13 +7,12 @@ import * as React from "react";
 import {startTransition, useState} from "react";
 import {fetchLogo} from "@/app/actions/logo";
 import {toast} from "sonner";
-import Image from "next/image";
-import {Skeleton} from "@/components/ui/skeleton";
+import ServiceLogo from "@/components/ui/service-logo";
 
 
 export default function LogoUrlInput({}) {
-  const {control, setValue, getValues} = useFormContext<CreateServiceFormValues>()
-  const [preview, setPreview] = useState<string | null>(null)
+  const {control, setValue, getValues, watch} = useFormContext<CreateServiceFormValues>()
+  const preview = watch("logoCdnUrl")
   const [fetching, setFetching] = useState<boolean>(false)
 
   async function handleBlur() {
@@ -21,39 +20,32 @@ export default function LogoUrlInput({}) {
 
     const url = getValues("logoOriginalUrl")
     if (!url) {
-      setPreview(null)
+      setValue("logoCdnUrl", undefined)
+      setValue("logoHash", undefined)
       setFetching(false)
       return
     }
 
     startTransition(async () => {
       const res = await fetchLogo(url)
-      if (res.error) {
+      if ("error" in res) {
         toast.error(`Could not fetch logo: ${res.error}`)
+        setValue("logoCdnUrl", undefined)
+        setValue("logoHash", undefined)
+        setFetching(false)
+        return
       }
 
-      setValue("logoCdnUrl", res.logo_cdn_url)
-      setValue("logoHash", res.logo_hash)
+      setValue("logoCdnUrl", res.logoCdnUrl)
+      setValue("logoHash", res.logoHash)
 
-      setPreview(res.logo_cdn_url ?? null)
       setFetching(false)
     });
   }
 
   return (
     <div className="flex flex-row gap-2  items-center">
-      {preview && !fetching ? (
-        <div className="h-16 w-16 rounded overflow-hidden">
-          <Image src={preview} alt="Logo preview" width={256} height={256}/>
-        </div>
-      ) : fetching ? (
-        <Skeleton className="h-16 w-16 bg-muted rounded flex items-center justify-center">
-        </Skeleton>
-      ) : (
-        <div className="h-16 w-16 bg-muted rounded flex items-center justify-center">
-          <span className="text-sm font-bold">?</span>
-        </div>
-      )}
+      <ServiceLogo image={preview} fetching={fetching}/>
       <FormField
         control={control}
         name="logoOriginalUrl"

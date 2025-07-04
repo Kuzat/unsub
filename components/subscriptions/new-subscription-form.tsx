@@ -15,19 +15,17 @@ import {Textarea} from "@/components/ui/textarea"
 import {CalendarIcon, PlusIcon, ArrowLeftIcon, ChevronsUpDown, Check} from "lucide-react"
 import {cn} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
-import {createServiceSchema, CreateServiceFormValues} from "@/lib/validation/service";
 import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
-import {searchServices, Service, createService} from "@/app/actions/services";
+import {searchServices, Service} from "@/app/actions/services";
 import {toast} from "sonner";
-// Removed Combobox import as we're using a regular search input
-import Image from "next/image";
 import {format} from "date-fns";
 import {useState} from "react";
-import {categoryEnum } from "@/db/schema/_common";
 import {Command} from "cmdk";
 import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {currencyFormMap} from "@/db/data/currencies";
+import NewServiceForm from "@/components/services/new-service-form";
+import ServiceLogo from "@/components/ui/service-logo";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 type Step = "selectService" | "subscriptionDetails";
@@ -43,7 +41,6 @@ export default function NewSubscriptionForm() {
   const [date, setDate] = useState<Date | null>(null);
   const [services, setServices] = React.useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = React.useState(false);
-  const [isCreatingService, setIsCreatingService] = React.useState(false);
   const [priceInput, setPriceInput] = React.useState<string>('0');
   const [remindDaysInput, setRemindDaysInput] = React.useState<string>('3');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
@@ -80,50 +77,20 @@ export default function NewSubscriptionForm() {
     }
   }
 
-  // Service creation form
-  const serviceForm = useForm<CreateServiceFormValues>({
-    resolver: zodResolver(createServiceSchema),
-    defaultValues: {
-      name: "",
-      category: "other",
-      url: "",
-      description: "",
-      logoUrl: "",
-    },
-  });
-
-  // Handle service creation
-  const onCreateService = async (values: CreateServiceFormValues) => {
-    setIsCreatingService(true);
-    try {
-      const result = await createService(values);
-
-      if ("error" in result) {
-        toast.error(result.error);
-        return;
-      }
-
-      setSelectedService(result);
-      setServiceMode("existing");
-      toast.success("Service created successfully");
-
-      // Move to subscription details step
-      setCurrentStep("subscriptionDetails");
-    } catch (error) {
-      console.error("Failed to create service:", error);
-      toast.error("Failed to create service");
-    } finally {
-      setIsCreatingService(false);
-    }
-  }
-
   // Handle service selection
   const handleServiceSelect = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     if (service) {
       setSelectedService(service);
+      setServiceMode("existing");
       setCurrentStep("subscriptionDetails");
     }
+  }
+
+  function handleNewService(service: Service): void {
+    setSelectedService(service);
+    setServiceMode("existing");
+    setCurrentStep("subscriptionDetails");
   }
 
   // Go back to service selection
@@ -175,6 +142,7 @@ export default function NewSubscriptionForm() {
     }
   }
 
+
   // Service selection step
   const renderServiceSelectionStep = () => {
     return (
@@ -207,21 +175,13 @@ export default function NewSubscriptionForm() {
                       className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-muted"
                       onClick={() => handleServiceSelect(service.id)}
                     >
-                      {service.logoUrl ? (
-                        <div className="h-8 w-8 rounded overflow-hidden flex-shrink-0">
-                          <Image
-                            src={service.logoUrl}
-                            alt={service.name}
-                            width={32}
-                            height={32}
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-8 w-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold">{service.name.charAt(0)}</span>
-                        </div>
-                      )}
+                      <ServiceLogo
+                        image={service.logoCdnUrl}
+                        placeholder={service.name.charAt(0)}
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full"
+                      />
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">{service.name}</p>
@@ -260,95 +220,7 @@ export default function NewSubscriptionForm() {
 
         {serviceMode === "custom" && (
           <div className="mt-6 p-4 border rounded-lg">
-            <h3 className="text-lg font-medium mb-4">Create New Service</h3>
-            <Form {...serviceForm}>
-              <form onSubmit={serviceForm.handleSubmit(onCreateService)} className="space-y-4">
-                <FormField
-                  control={serviceForm.control}
-                  name="name"
-                  render={({field}) => (
-                    <FormItem>
-                      <FormLabel>Service Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Netflix" {...field} />
-                      </FormControl>
-                      <FormMessage/>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={serviceForm.control}
-                  name="category"
-                  render={({field}) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category"/>
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categoryEnum.enumValues.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category.charAt(0).toUpperCase() + category.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage/>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={serviceForm.control}
-                  name="url"
-                  render={({field}) => (
-                    <FormItem>
-                      <FormLabel>Website URL <span className="text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://example.com" {...field} />
-                      </FormControl>
-                      <FormMessage/>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={serviceForm.control}
-                  name="description"
-                  render={({field}) => (
-                    <FormItem>
-                      <FormLabel>Description <span className="text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Brief description of the service" {...field} />
-                      </FormControl>
-                      <FormMessage/>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={serviceForm.control}
-                  name="logoUrl"
-                  render={({field}) => (
-                    <FormItem>
-                      <FormLabel>Logo URL <span className="text-muted-foreground">(optional)</span></FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://example.com/logo.png" {...field} />
-                      </FormControl>
-                      <FormMessage/>
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full" disabled={isCreatingService}>
-                  {isCreatingService ? "Creating..." : "Create Service"}
-                </Button>
-              </form>
-            </Form>
+            <NewServiceForm isAdmin={false} onNewService={handleNewService}/>
           </div>
         )}
       </div>
@@ -380,21 +252,13 @@ export default function NewSubscriptionForm() {
 
           {selectedService && (
             <div className="flex items-center gap-3">
-              {selectedService.logoUrl ? (
-                <div className="h-12 w-12 rounded overflow-hidden">
-                  <Image
-                    src={selectedService.logoUrl}
-                    alt={selectedService.name}
-                    width={48}
-                    height={48}
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
-                  <span className="text-xl font-bold">{selectedService.name.charAt(0)}</span>
-                </div>
-              )}
+              <ServiceLogo
+                image={selectedService.logoCdnUrl}
+                placeholder={selectedService.name.charAt(0)}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full"
+              />
               <div>
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{selectedService.name}</p>
@@ -530,7 +394,7 @@ export default function NewSubscriptionForm() {
           <FormField
             control={form.control}
             name="currency"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Currency</FormLabel>
                 <Popover open={currencyComboboxOpen}>
@@ -549,7 +413,7 @@ export default function NewSubscriptionForm() {
                             (currency) => currency.value === field.value
                           )?.value
                           : "Select Currency"}
-                        <ChevronsUpDown className="opacity-50" />
+                        <ChevronsUpDown className="opacity-50"/>
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -587,7 +451,7 @@ export default function NewSubscriptionForm() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}
           />
