@@ -340,6 +340,7 @@ export async function updateService(
 
 export async function getServiceById(serviceId: string): Promise<Service | { error: string }> {
   const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
 
   try {
     // Check if the service exists and is accessible to the user
@@ -348,7 +349,7 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
       .from(service)
       .where(and(
         eq(service.id, serviceId),
-        and(
+        userIsAdmin ? undefined : and(
           eq(service.scope, "user"),
           eq(service.ownerId, session.user.id)
         )
@@ -378,16 +379,17 @@ export async function getServiceById(serviceId: string): Promise<Service | { err
 
 export async function deleteService(serviceId: string): Promise<{ success: string } | { error: string }> {
   const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
 
   try {
-    // Check if the service exists and belongs to the user
+    // Check if the service exists and belongs to the user (except if the user is Admin)
     const existingService = await db
       .select()
       .from(service)
       .where(and(
         eq(service.id, serviceId),
-        eq(service.ownerId, session.user.id),
-        eq(service.scope, "user") // Only allow deleting user services
+        userIsAdmin ? undefined : eq(service.ownerId, session.user.id),
+        userIsAdmin ? undefined : eq(service.scope, "user") // Only allow deleting user services
       ))
       .limit(1);
 
@@ -400,7 +402,7 @@ export async function deleteService(serviceId: string): Promise<{ success: strin
       .delete(service)
       .where(and(
         eq(service.id, serviceId),
-        eq(service.ownerId, session.user.id)
+        userIsAdmin ? undefined : eq(service.ownerId, session.user.id)
       ))
       .returning({id: service.id});
 

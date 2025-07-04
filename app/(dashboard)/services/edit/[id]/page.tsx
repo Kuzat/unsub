@@ -31,7 +31,7 @@ export default async function EditServicePage(props: EditServicePageProps) {
   }
 
   // Only allow editing user services, not global ones
-  if (result.scope !== "user") {
+  if (result.scope !== "user" && !isAdmin(session)) {
     redirect("/services")
   }
 
