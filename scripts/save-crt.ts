@@ -27,7 +27,7 @@ async function main() {
     throw new Error("DATABASE_CA_CRT environment variable is not set");
   }
 
-  const outputPath = "/app/ssl/certs/database-ca.crt";
+  const outputPath = "./ssl/certs/database-ca.crt";
 
   // Ensure the directory exists
   try {
