@@ -1,14 +1,15 @@
-import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { subscription } from "@/db/schema/app";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { calculateNextRenewal, formatCurrency, formatDate } from "@/lib/utils";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { RenewalCalendar } from "@/components/ui/renewal-calendar";
+import {desc, eq} from "drizzle-orm";
+import {db} from "@/db";
+import {subscription} from "@/db/schema/app";
+import {auth} from "@/lib/auth";
+import {redirect} from "next/navigation";
+import {headers} from "next/headers";
+import {calculateNextRenewal, formatCurrency, formatDate} from "@/lib/utils";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {RenewalCalendar} from "@/components/ui/renewal-calendar";
 import Link from "next/link";
+import ServiceLogo from "@/components/ui/service-logo";
 
 /**
  * Renders the subscription renewal calendar and a list of upcoming renewals for the authenticated user.
@@ -52,6 +53,7 @@ export default async function CalendarPage() {
       return {
         id: sub.id,
         serviceName: sub.service?.name || sub.alias || "Unknown Service",
+        serviceLogoUrl: sub.service?.logoCdnUrl,
         price: parseFloat(sub.price),
         currency: sub.currency,
         renewalDate: nextRenewal,
@@ -119,12 +121,16 @@ export default async function CalendarPage() {
                         <Link
                           key={renewal.id}
                           href={`/subscriptions/${renewal.id}`}
-                          className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded-md hover:bg-muted transition-colors"
                         >
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 bg-primary/10 rounded flex items-center justify-center">
-                              <span className="text-sm font-bold">{renewal.serviceName.charAt(0)}</span>
-                            </div>
+                            <ServiceLogo
+                              image={renewal.serviceLogoUrl}
+                              placeholder={renewal.serviceName.charAt(0)}
+                              width={32}
+                              height={32}
+                              className="h-8 w-8 rounded-lg"
+                            />
                             <div>
                               <p className="font-medium hover:underline">{renewal.serviceName}</p>
                               <p className="text-xs text-muted-foreground">{renewal.billingCycle}</p>
