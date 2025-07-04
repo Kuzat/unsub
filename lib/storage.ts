@@ -30,3 +30,12 @@ export async function putObject(key: string, file: Buffer, format: string, sha25
     throw error;
   }
 }
+
+export async function exists(key: string) {
+  try {
+    await BunnyStorageSDK.file.get(sz, key)
+    return true
+  } catch {
+    return false;
+  }
+}

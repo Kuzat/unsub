@@ -1,7 +1,7 @@
 "use server"
 import {createHash} from "node:crypto";
 import sharp from "sharp";
-import {putObject} from "@/lib/storage";
+import {exists, putObject} from "@/lib/storage";
 import {requireSession} from "@/lib/auth";
 
 const LOGO_CDN_URL = process.env.LOGO_CDN_URL!;
@@ -82,11 +82,16 @@ export async function fetchLogo(originalUrl: string): Promise<FetchLogoResponse>
     .toBuffer();
 
   const key = `logo/${hash}.webp`
-  try {
-    await putObject(key, optimized, "image/webp")
-  } catch (e) {
-    console.error(e)
-    return {error: 'Error uploading logo'}
+  // Since the key is the hash of the file, that means if it exists, then we should have the exact same picture
+  // and do not need to upload it again.
+  const keyExists = await exists(key)
+  if (!keyExists) {
+    try {
+      await putObject(key, optimized, "image/webp")
+    } catch (e) {
+      console.error(e)
+      return {error: 'Error uploading logo'}
+    }
   }
 
   return {
