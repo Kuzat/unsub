@@ -61,4 +61,4 @@ ENV PORT=3000
 
 # The final command. 'npx' will find drizzle-kit in the copied node_modules.
 # `npm run start` will execute `next start` as defined in package.json.
-CMD ["sh", "-c", "npx drizzle-kit migrate && npm run start"]
+CMD ["sh", "-c", "npm run db:save-cert && npx drizzle-kit migrate && npm run start"]
