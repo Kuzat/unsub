@@ -9,6 +9,7 @@
     "lint": "next lint",
     "maildev": "maildev",
     "db:seed": "tsx scripts/seed-services.ts",
+    "db:save-cert": "tsx scripts/save-crt.ts",
     "job:subscriptions:processRenewals": "tsx scripts/run-renewal-job.ts",
     "job:reminders:process": "tsx scripts/run-reminder-job.ts",
     "test": "jest",
