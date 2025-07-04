@@ -1,12 +1,11 @@
-import {DataTable} from "@/components/ui/data-table"
 import {getServicesForUser, Service} from "@/app/actions/services";
-import {columns} from "./columns"
 import {Suspense} from "react";
 import {PaginationControl} from "@/components/services/pagination-control";
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
 import {PlusIcon} from "lucide-react";
-import {requireSession} from "@/lib/auth";
+import {isAdmin, requireSession} from "@/lib/auth";
+import {ServicesTable} from "@/components/services/services-table";
 
 // Define the props for the page component
 interface ServicesPageProps {
@@ -25,7 +24,7 @@ export default async function ServicesPage(props: ServicesPageProps) {
   const pageSize = searchParams.pageSize ? parseInt(searchParams.pageSize) : 10;
 
   // Fetch services with pagination
-  const { services, totalPages, currentPage } = await getServicesForUser(session, page, pageSize);
+  const {services, totalPages, currentPage} = await getServicesForUser(session, page, pageSize);
 
   return (
     <div className="container mx-auto py-6">
@@ -33,7 +32,7 @@ export default async function ServicesPage(props: ServicesPageProps) {
         <h1 className="text-2xl font-bold">Services</h1>
         <Button asChild>
           <Link href="/services/new">
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon className="mr-2 h-4 w-4"/>
             New Service
           </Link>
         </Button>
@@ -44,9 +43,7 @@ export default async function ServicesPage(props: ServicesPageProps) {
         </p>
       ) : (
         <>
-          <div className="rounded-md border">
-            <DataTable columns={columns} data={services as Service[]}/>
-          </div>
+          <ServicesTable isAdmin={isAdmin(session)} data={services as Service[]}/>
           <Suspense fallback={<div>Loading pagination...</div>}>
             <div className="flex justify-center gap-2 mt-4">
               <PaginationControl currentPage={currentPage} totalPages={totalPages}/>

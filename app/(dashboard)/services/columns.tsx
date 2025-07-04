@@ -6,7 +6,7 @@ import {ServiceActions} from "@/components/services/service-actions"
 import {cn} from "@/lib/utils"
 import ServiceLogo from "@/components/ui/service-logo";
 
-export const columns: ColumnDef<Service>[] = [
+export const columns = (isAdmin:boolean): ColumnDef<Service>[] => [
   {
     accessorKey: "name",
     header: "Service",
@@ -84,7 +84,7 @@ export const columns: ColumnDef<Service>[] = [
     id: "actions",
     cell: ({row}) => {
       const service = row.original;
-      return service.scope === "user" ? <ServiceActions service={service}/> : null;
+      return isAdmin || service.scope === "user" ? <ServiceActions service={service}/> : null;
     },
   },
-]
+];
