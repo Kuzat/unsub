@@ -27,15 +27,15 @@ async function main() {
     throw new Error("DATABASE_CA_CRT environment variable is not set");
   }
 
-  const outputPath = "./ssl/certs/database-ca.crt";
+  const outputPath = "database-ca.crt";
 
   // Ensure the directory exists
-  try {
-    await mkdir(dirname(outputPath), { recursive: true });
-  } catch (error) {
-    // Ignore error if directory already exists
-    console.error(error)
-  }
+  // try {
+  //   await mkdir(dirname(outputPath), { recursive: true });
+  // } catch (error) {
+  //   // Ignore error if directory already exists
+  //   console.error(error)
+  // }
 
   // Write the certificate to the file
   await writeFile(outputPath, caCertificate, 'utf-8');
