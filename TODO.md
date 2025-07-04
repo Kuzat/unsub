@@ -17,6 +17,7 @@ A list of potential ideas and tasks that needs to be done. Not in prioritized or
 - [ ] Monthly subscription cost should link statistic or something page where we can see the breakdown of the cost. So which ones cost how much per month. So we can see the monhtly cost of yearly subscriptions.
 - [ ] Add propper skeleton loading using suspense and loading.tsx files.
 - [ ] Make sure we use the same form components in all forms. Such as the calendar/date input is different in many places now. 
+- [ ] Make it easier to create a service by just adding a Url then we fetch information from the website to try autofill the service forms items.
 
 # Premium / Pro 
 Items related to the Pro plan 
