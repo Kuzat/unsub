@@ -23,6 +23,7 @@ export const categoryEnum = pgEnum("service_category", [
   "entertainment",
   "education",
   "finance",
+  "food",
   "health",
   "music",
   "shopping",

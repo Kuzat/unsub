@@ -57,6 +57,13 @@
       "when": 1751547659389,
       "tag": "0007_violet_angel",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1751700563444,
+      "tag": "0008_smiling_pet_avengers",
+      "breakpoints": true
     }
   ]
 }
