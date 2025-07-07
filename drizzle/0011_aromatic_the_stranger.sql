@@ -1,0 +1,1 @@
+ALTER TABLE "transaction" ALTER COLUMN "occurred_at" SET DATA TYPE date;

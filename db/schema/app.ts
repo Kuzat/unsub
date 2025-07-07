@@ -79,7 +79,7 @@ export const transaction = pgTable(
     type: transactionTypeEnum("type").notNull(),
     amount: numeric("amount", {precision: 12, scale: 2}).notNull(),
     currency: currencyEnum("currency").notNull(),
-    occurredAt: timestamp("occurred_at").notNull(),
+    occurredAt: date("occurred_at").notNull(),
     /** raw row id from Plaid/bank file for reconciliation */
     externalRowId: text("external_row_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
