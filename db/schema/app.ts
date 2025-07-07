@@ -42,7 +42,7 @@ export const subscription = pgTable(
       onDelete: "set null",
     }),
     alias: text("alias"),
-    startDate: timestamp("start_date").notNull(),
+    startDate: date("start_date").notNull(),
     price: numeric("price", {precision: 12, scale: 2}).notNull(),
     currency: currencyEnum("currency").notNull(),
     billingCycle: billingCycleEnum("billing_cycle").notNull(),
