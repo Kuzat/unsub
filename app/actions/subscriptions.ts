@@ -5,10 +5,9 @@ import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
-import {subscription, transaction, reminder} from "@/db/schema/app";
-import {and, eq, desc, between, ilike, count, or} from "drizzle-orm";
+import {subscription, transaction} from "@/db/schema/app";
+import {and, eq, desc, ilike, count, or} from "drizzle-orm";
 import {service} from "@/db/schema/app";
-import {calculateNextRenewal} from "@/lib/utils";
 
 type ActionResult =
   | { success: string }
@@ -195,19 +194,6 @@ export async function createSubscription(
         });
       }
 
-      // 3. Schedule first renewal reminder
-      const nextRenewal = calculateNextRenewal(
-        new Date(newSubscription.startDate),
-        newSubscription.billingCycle
-      );
-      const sendAt = new Date(nextRenewal);
-      sendAt.setDate(sendAt.getDate() - data.remindDaysBefore);
-      await tx.insert(reminder).values({
-        id: crypto.randomUUID(),
-        subscriptionId: newSubscription.id,
-        sendAt,
-      });
-
       return {success: "Subscription created 🎉"};
     });
   } catch (err) {
@@ -243,9 +229,6 @@ export async function cancelSubscription(
           eq(subscription.userId, session.user.id)
         )
       );
-
-    // Remove any pending reminders for the cancelled subscription
-    await db.delete(reminder).where(eq(reminder.subscriptionId, subscriptionId));
 
     if (result.rowCount === 0) {
       return {error: "Subscription not found"}
@@ -349,38 +332,6 @@ export async function activateSubscription(
         createdAt: new Date(),
         updatedAt: new Date()
       });
-
-      const nextRenewal = calculateNextRenewal(
-        new Date(newStartDate),
-        activatedSubscription.billingCycle
-      );
-      const sendAt = new Date(nextRenewal);
-      sendAt.setDate(
-        sendAt.getDate() - parseInt(activatedSubscription.remindDaysBefore)
-      );
-
-      const start = new Date(sendAt);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(sendAt);
-      end.setHours(23, 59, 59, 999);
-
-      const exists = await tx
-        .select()
-        .from(reminder)
-        .where(
-          and(
-            eq(reminder.subscriptionId, activatedSubscription.id),
-            between(reminder.sendAt, start, end)
-          )
-        )
-        .limit(1);
-      if (exists.length === 0) {
-        await tx.insert(reminder).values({
-          id: crypto.randomUUID(),
-          subscriptionId: activatedSubscription.id,
-          sendAt,
-        });
-      }
 
       return {success: "Subscription activated successfully"}
     });

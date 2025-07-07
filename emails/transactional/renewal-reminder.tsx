@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, Section, Button, Link } from "@react-email/components";
+import { Text, Section, Button } from "@react-email/components";
 import { EmailLayout, paragraph, buttonContainer, button } from "../components/email-layout";
 
 interface RenewalReminderProps {
