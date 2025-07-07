@@ -38,7 +38,6 @@ export default function NewSubscriptionForm() {
   const [serviceMode, setServiceMode] = React.useState<ServiceSelectionMode>("existing");
   const [selectedService, setSelectedService] = React.useState<Service | null>(null);
   const [dateOpen, setDateOpen] = React.useState(false);
-  const [date, setDate] = useState<Date | null>(null);
   const [services, setServices] = React.useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = React.useState(false);
   const [priceInput, setPriceInput] = React.useState<string>('0');
@@ -343,9 +342,8 @@ export default function NewSubscriptionForm() {
                   <Calendar
                     mode="single"
                     captionLayout="dropdown"
-                    selected={date || field.value}
+                    selected={field.value}
                     onSelect={(selectedDate) => {
-                      setDate(selectedDate || field.value);
                       field.onChange(selectedDate);
                     }}
                     hideNavigation={true}

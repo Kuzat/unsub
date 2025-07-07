@@ -19,7 +19,7 @@ import {updateSubscription, EditSubscription} from "@/app/actions/subscriptions"
 import {searchServices, Service} from "@/app/actions/services"
 import {toast} from "sonner"
 import Link from "next/link"
-import {cn, formatDate} from "@/lib/utils"
+import {cn, formatDate, toIsoDate} from "@/lib/utils"
 import Image from "next/image"
 import {currencyFormMap} from "@/db/data/currencies";
 import {Command} from "cmdk";
@@ -286,7 +286,7 @@ export default function EditSubscriptionForm({subscription, from = "list"}: Edit
                           !field.value && "text-muted-foreground"
                         )}
                       >
-                        {field.value ? formatDate(field.value.toISOString()) : "Pick a date"}
+                        {field.value ? formatDate(toIsoDate(field.value)) : "Pick a date"}
                         <CalendarIcon className="ml-auto size-4 opacity-50"/>
                       </Button>
                     </FormControl>

@@ -23,6 +23,7 @@ import {toast} from "sonner";
 import {InferSelectModel} from "drizzle-orm";
 import {subscription} from "@/db/schema/app";
 import {Service} from "@/app/actions/services";
+import {toIsoDate} from "@/lib/utils";
 
 type SubscriptionWithService = {
   subscription: InferSelectModel<typeof subscription>,
@@ -40,8 +41,7 @@ export function SubscriptionActions({data}: SubscriptionActionsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [newStartDate, setNewStartDate] = useState(() => {
     // Default to the current date in YYYY-MM-DD format
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return toIsoDate(new Date());
   });
   const {subscription} = data;
 

@@ -1,5 +1,5 @@
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {calculateNextRenewal, formatCurrency} from "@/lib/utils";
+import {calculateNextRenewal, formatCurrency, formatDate, toIsoDate} from "@/lib/utils";
 import {service, subscription} from "@/db/schema/app";
 import {CalendarIcon, ExternalLinkIcon} from "lucide-react";
 import Link from "next/link";
@@ -16,7 +16,7 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
     .map(sub => ({
       ...sub,
       nextRenewal: calculateNextRenewal(
-        sub.startDate,
+        new Date(sub.startDate),
         sub.billingCycle,
       )
     }))
@@ -30,15 +30,6 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
 
   // Take only the next 3 renewals
   const nextRenewals = upcomingRenewals.slice(0, 3);
-
-  // Format date as "MMM DD, YYYY" (e.g., "Jan 01, 2023")
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric'
-    });
-  };
 
   return (
     <Card>
@@ -69,7 +60,7 @@ export async function UpcomingRenewalsModule({activeSubscriptions}: UpcomingRene
                     <p className="font-medium max-w-[120px] sm:max-w-[200px] truncate">
                       {sub.alias || (sub.service?.name ?? "Unnamed Service")}
                     </p>
-                    <p className="text-sm text-muted-foreground">{formatDate(sub.nextRenewal!)}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(toIsoDate(sub.nextRenewal))}</p>
                   </div>
                 </div>
                 <span className="font-medium">{formatCurrency(parseFloat(sub.price.toString()), sub.currency)}</span>
