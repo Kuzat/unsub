@@ -75,7 +75,7 @@ export function RenewalCalendar({ renewalsByDate, firstDayOfWeek = 1, className 
         <div
           key={day}
           className={cn(
-            "h-24 border border-border p-1",
+            "h-28 border border-border p-1",
             isCurrentDay 
               ? "bg-primary/10 border-primary/50" 
               : "bg-card"
