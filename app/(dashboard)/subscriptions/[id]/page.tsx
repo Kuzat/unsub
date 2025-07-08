@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import {auth, requireSession} from "@/lib/auth";
 import { headers } from "next/headers";
 import { getSubscriptionById, getTransactionsBySubscriptionId } from "@/app/actions/subscriptions";
-import { formatDate, formatCurrency, calculateNextRenewal } from "@/lib/utils";
+import {formatDate, formatCurrency, calculateNextRenewal, toIsoDate} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -17,13 +17,7 @@ export default async function SubscriptionDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+  const session = await requireSession();
 
   const {id} = await params;
 
@@ -41,9 +35,10 @@ export default async function SubscriptionDetailPage({
 
   const transactions = "error" in transactionsData ? [] : transactionsData;
   const nextRenewalDate = calculateNextRenewal(
-    subscriptionData.startDate,
+    new Date(subscriptionData.startDate),
     subscriptionData.billingCycle
   );
+  console.log(subscriptionData)
 
   return (
     <div className="container mx-auto py-6">
@@ -138,11 +133,11 @@ export default async function SubscriptionDetailPage({
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Start Date:</span>
-                <span>{formatDate(subscriptionData.startDate.toISOString())}</span>
+                <span>{formatDate(subscriptionData.startDate)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Next Renewal:</span>
-                <span>{formatDate(nextRenewalDate.toISOString())}</span>
+                <span>{formatDate(toIsoDate(nextRenewalDate))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Status:</span>

@@ -38,7 +38,7 @@ export async function processReminders(): Promise<{
     processed++;
     try {
       const nextRenewalDate = calculateNextRenewal(
-        sub.startDate,
+        new Date(sub.startDate),
         sub.billingCycle
       );
 
@@ -57,7 +57,7 @@ export async function processReminders(): Promise<{
           .limit(1);
 
         if (logExists.length > 0) {
-          console.log(`Reminder already sent for subscription ${sub.id} on ${reminderDate.toISOString()}`)
+          console.log(`Reminder already sent for subscription ${sub.id} on ${toIsoDate(reminderDate)}`)
           continue;
         }
 

@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import {cn, toIsoDate} from "@/lib/utils";
 import {padNumber} from "pvutils";
 
 type Renewal = {
@@ -49,7 +49,7 @@ export function RenewalCalendar({ renewalsByDate, firstDayOfWeek = 1, className 
   };
 
   const getRenewalsByDate = (day: number) => {
-    const dateStr = new Date(`${currentYear}-${padNumber(currentMonth+1, 2)}-${padNumber(day, 2)}`).toISOString().split('T')[0];
+    const dateStr = toIsoDate(new Date(currentYear, currentMonth, day));
     return renewalsByDate[dateStr] || [];
   };
 

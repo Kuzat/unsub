@@ -36,7 +36,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { currencyFormMap } from "@/db/data/currencies";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {cn} from "@/lib/utils";
+import {cn, toIsoDate} from "@/lib/utils";
 import {Command} from "cmdk";
 import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import * as React from "react";
@@ -69,7 +69,7 @@ export function AddTransaction({ subscriptionId, subscriptionCurrency }: AddTran
     defaultValues: {
       amount: "",
       currency: subscriptionCurrency,
-      occurredAt: new Date().toISOString().split('T')[0],
+      occurredAt: toIsoDate(new Date()),
       type: "initial",
     },
   });
@@ -81,7 +81,7 @@ export function AddTransaction({ subscriptionId, subscriptionCurrency }: AddTran
       form.reset({
         amount: "",
         currency: subscriptionCurrency,
-        occurredAt: new Date().toISOString().split('T')[0],
+        occurredAt: toIsoDate(new Date()),
         type: "initial",
       });
     }
@@ -101,7 +101,7 @@ export function AddTransaction({ subscriptionId, subscriptionCurrency }: AddTran
         form.reset({
           amount: "",
           currency: subscriptionCurrency,
-          occurredAt: new Date().toISOString().split('T')[0],
+          occurredAt: toIsoDate(new Date()),
           type: "initial",
         });
       } else {

@@ -6,8 +6,7 @@ import ConfirmEmail from "@/emails/transactional/confirm-email";
 import DeleteAccount from "@/emails/transactional/delete-account";
 import RenewalReminder from "@/emails/transactional/renewal-reminder";
 import ResetPassword from "@/emails/transactional/reset-password";
-import {format} from "date-fns";
-import {toZonedTime} from "date-fns-tz";
+import {formatDate, toIsoDate} from "@/lib/utils";
 
 interface EmailOptions {
   to: string;
@@ -145,9 +144,7 @@ export async function sendRenewalReminderEmail(
     }
   }
 
-  // Format the date in UTC to ensure consistent display regardless of server timezone
-  const utcDate = toZonedTime(renewalDate, 'UTC');
-  const dateString = format(utcDate, 'dd MMMM yyyy');
+  const dateString = formatDate(toIsoDate(renewalDate))
 
   // Construct the dashboard URL using the environment variable or fallback to default
   const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://unsub.cash'}/subscriptions`;
