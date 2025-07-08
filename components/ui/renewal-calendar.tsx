@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import {cn, toIsoDate} from "@/lib/utils";
 
 type Renewal = {
   id: string;
@@ -48,7 +48,7 @@ export function RenewalCalendar({ renewalsByDate, firstDayOfWeek = 1, className 
   };
 
   const getRenewalsByDate = (day: number) => {
-    const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
+    const dateStr = toIsoDate(new Date(currentYear, currentMonth, day));
     return renewalsByDate[dateStr] || [];
   };
 

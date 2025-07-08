@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { formatDate, formatCurrency } from "@/lib/utils"
+import {formatDate, formatCurrency, toIsoDate} from "@/lib/utils"
 import { TransactionWithService } from "@/app/actions/subscriptions"
 import { TransactionActions } from "@/components/transactions/transaction-actions"
 
@@ -28,7 +28,7 @@ export const transactionColumns: ColumnDef<TransactionWithService>[] = [
     header: "Date",
     cell: ({ row }) => {
       const date = row.original.occurredAt;
-      return formatDate(date.toISOString());
+      return formatDate(date);
     },
   },
   {
@@ -43,7 +43,7 @@ export const transactionColumns: ColumnDef<TransactionWithService>[] = [
     header: "Created",
     cell: ({ row }) => {
       const date = row.original.createdAt;
-      return formatDate(date.toISOString());
+      return formatDate(toIsoDate(date));
     },
   },
   {

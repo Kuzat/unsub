@@ -79,7 +79,7 @@ export function TransactionActions({transaction}: TransactionActionsProps) {
     defaultValues: {
       amount: transaction.amount,
       currency: transaction.currency,
-      occurredAt: transaction.occurredAt.toISOString().split('T')[0],
+      occurredAt: transaction.occurredAt,
       type: transaction.type,
     },
   });
@@ -92,7 +92,7 @@ export function TransactionActions({transaction}: TransactionActionsProps) {
       form.reset({
         amount: transaction.amount,
         currency: transaction.currency,
-        occurredAt: transaction.occurredAt.toISOString().split('T')[0],
+        occurredAt: transaction.occurredAt,
         type: transaction.type,
       });
     }

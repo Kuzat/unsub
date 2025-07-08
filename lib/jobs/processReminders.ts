@@ -1,84 +1,98 @@
-import { db } from "@/db";
-import { reminder, subscription, service, userSettings } from "@/db/schema/app";
-import { user } from "@/db/schema/auth";
-import { and, eq, lte } from "drizzle-orm";
-import { sendRenewalReminderEmail } from "@/lib/email";
+import {db} from "@/db";
+import {subscription, service, userSettings, reminderLog} from "@/db/schema/app";
+import {user} from "@/db/schema/auth";
+import {and, eq} from "drizzle-orm";
+import {sendRenewalReminderEmail} from "@/lib/email";
+import {calculateNextRenewal, toIsoDate} from "@/lib/utils";
+import crypto from "crypto";
+import {subDays} from "date-fns";
 
 export async function processReminders(): Promise<{
   processed: number;
   sent: number;
   errors: number;
 }> {
-  // TODO: Future scaling, this now could end up running twice at the same time if the cron job is run more frequently
-  // or run on multiple servers
   const now = new Date();
-  const dueReminders = await db
+  const activeSubscriptions = await db
     .select({
-      id: reminder.id,
-      sendAt: reminder.sendAt,
+      id: subscription.id,
       remindDaysBefore: subscription.remindDaysBefore,
-      serviceName: service.name,
-      userEmail: user.email,
-      subscriptionId: reminder.subscriptionId,
       billingCycle: subscription.billingCycle,
       startDate: subscription.startDate,
+      serviceName: service.name,
+      userEmail: user.email,
       userId: subscription.userId,
       sendRenewalReminderEmails: userSettings.sendRenewalReminderEmails,
     })
-    .from(reminder)
-    .innerJoin(subscription, eq(reminder.subscriptionId, subscription.id))
+    .from(subscription)
     .innerJoin(service, eq(subscription.serviceId, service.id))
     .innerJoin(user, eq(subscription.userId, user.id))
     .leftJoin(userSettings, eq(subscription.userId, userSettings.userId))
-    .where(
-      and(
-        eq(reminder.sent, false),
-        lte(reminder.sendAt, now),
-        eq(subscription.isActive, true)
-      )
-    );
+    .where(eq(subscription.isActive, true))
 
   let processed = 0;
-  let sentCount = 0;
-  let errorCount = 0;
+  let sent = 0;
+  let errors = 0;
 
-  for (const r of dueReminders) {
+  for (const sub of activeSubscriptions) {
     processed++;
     try {
-      const renewalDate = new Date(r.sendAt);
-      renewalDate.setDate(renewalDate.getDate() + parseInt(r.remindDaysBefore));
-
-      // Pass user settings to the email function to check if emails are enabled
-      const emailSent = await sendRenewalReminderEmail(
-        r.userEmail, 
-        r.serviceName, 
-        renewalDate,
-        {
-          checkUserSettings: true,
-          userSettings: {
-            sendRenewalReminderEmails: r.sendRenewalReminderEmails || undefined
-          }
-        }
+      const nextRenewalDate = calculateNextRenewal(
+        new Date(sub.startDate),
+        sub.billingCycle
       );
 
-      if (emailSent) {
-        sentCount++;
-        console.log(`Sent reminder ${r.id} to ${r.userEmail}`);
-      } else {
-        console.log(`Skipped sending reminder ${r.id} to ${r.userEmail} (user disabled reminder emails)`);
-      }
+      const reminderDate = subDays(nextRenewalDate, parseInt(sub.remindDaysBefore))
 
-      // Mark as sent regardless of whether email was actually sent
-      // This prevents repeated processing of the same reminder
-      await db
-        .update(reminder)
-        .set({ sent: true, updatedAt: new Date() })
-        .where(eq(reminder.id, r.id));
-    } catch (err) {
-      errorCount++;
-      console.error(`Failed to send reminder ${r.id}:`, err);
+      if (reminderDate <= now) {
+        const logExists = await db
+          .select()
+          .from(reminderLog)
+          .where(
+            and(
+              eq(reminderLog.subscriptionId, sub.id),
+              eq(reminderLog.reminderDate, toIsoDate(reminderDate))
+            )
+          )
+          .limit(1);
+
+        if (logExists.length > 0) {
+          console.log(`Reminder already sent for subscription ${sub.id} on ${toIsoDate(reminderDate)}`)
+          continue;
+        }
+
+        const emailSent = await sendRenewalReminderEmail(
+          sub.userEmail,
+          sub.serviceName,
+          nextRenewalDate,
+          {
+            checkUserSettings: true,
+            userSettings: {
+              sendRenewalReminderEmails: sub.sendRenewalReminderEmails || undefined
+            }
+          }
+        );
+
+        if (emailSent) {
+          sent++;
+          await db.insert(reminderLog).values({
+            id: crypto.randomUUID(),
+            subscriptionId: sub.id,
+            userId: sub.userId,
+            reminderDate: toIsoDate(reminderDate),
+          });
+          console.log(`Sent reminder for subscription ${sub.id} on ${sub.userEmail}`);
+        } else {
+          console.log(
+            `Skipped sending reminder for ${sub.id} to ${sub.userEmail} (user disabled reminder emails)`
+          );
+        }
+      }
+    } catch (error) {
+      errors++;
+      console.error(`Error processing subscription ${sub.id}:`, error);
     }
   }
 
-  return { processed, sent: sentCount, errors: errorCount };
+  return {processed, sent, errors}
 }

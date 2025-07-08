@@ -1,0 +1,1 @@
+ALTER TABLE "subscription" ALTER COLUMN "start_date" SET DATA TYPE date;

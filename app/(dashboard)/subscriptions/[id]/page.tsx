@@ -1,29 +1,18 @@
-import { notFound, redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import { getSubscriptionById, getTransactionsBySubscriptionId } from "@/app/actions/subscriptions";
-import { formatDate, formatCurrency, calculateNextRenewal } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
-import { transactionColumns } from "./columns";
+import {notFound} from "next/navigation";
+import {requireSession} from "@/lib/auth";
+import {getSubscriptionById, getTransactionsBySubscriptionId} from "@/app/actions/subscriptions";
+import {formatDate, formatCurrency, calculateNextRenewal, toIsoDate} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import {DataTable} from "@/components/ui/data-table";
+import {transactionColumns} from "./columns";
 import Link from "next/link";
-import { ArrowLeft, Edit } from "lucide-react";
-import { AddTransaction } from "@/components/transactions/add-transaction";
+import {ArrowLeft, Edit} from "lucide-react";
+import {AddTransaction} from "@/components/transactions/add-transaction";
 import ServiceLogo from "@/components/ui/service-logo";
 
-export default async function SubscriptionDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/login");
-  }
+export default async function SubscriptionDetailPage({params}: { params: Promise<{ id: string }>; }) {
+  const session = await requireSession();
 
   const {id} = await params;
 
@@ -41,7 +30,7 @@ export default async function SubscriptionDetailPage({
 
   const transactions = "error" in transactionsData ? [] : transactionsData;
   const nextRenewalDate = calculateNextRenewal(
-    subscriptionData.startDate,
+    new Date(subscriptionData.startDate),
     subscriptionData.billingCycle
   );
 
@@ -51,13 +40,13 @@ export default async function SubscriptionDetailPage({
         <div className="flex items-center gap-2 mb-4">
           <Button variant="outline" asChild>
             <Link href="/subscriptions">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4"/>
               Back to Subscriptions
             </Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href={`/subscriptions/edit/${id}?from=view`}>
-              <Edit className="mr-2 h-4 w-4" />
+              <Edit className="mr-2 h-4 w-4"/>
               Edit Subscription
             </Link>
           </Button>
@@ -78,7 +67,7 @@ export default async function SubscriptionDetailPage({
                 width={48}
                 height={48}
                 className="h-12 w-12 rounded-lg"
-                />
+              />
               <div>
                 <h3 className="text-lg font-semibold">
                   {subscriptionData.serviceName || subscriptionData.alias || "Unknown Service"}
@@ -99,7 +88,7 @@ export default async function SubscriptionDetailPage({
                   {subscriptionData.serviceScope === "user" && subscriptionData.serviceOwnerId === session.user.id && (
                     <Button variant="ghost" size="sm" asChild className="h-6 px-2">
                       <Link href={`/services/edit/${subscriptionData.serviceId}`}>
-                        <Edit className="h-3 w-3 mr-1" />
+                        <Edit className="h-3 w-3 mr-1"/>
                         Edit
                       </Link>
                     </Button>
@@ -138,11 +127,11 @@ export default async function SubscriptionDetailPage({
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Start Date:</span>
-                <span>{formatDate(subscriptionData.startDate.toISOString())}</span>
+                <span>{formatDate(subscriptionData.startDate)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Next Renewal:</span>
-                <span>{formatDate(nextRenewalDate.toISOString())}</span>
+                <span>{formatDate(toIsoDate(nextRenewalDate))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Status:</span>
@@ -171,9 +160,9 @@ export default async function SubscriptionDetailPage({
               All transactions related to this subscription
             </CardDescription>
           </div>
-          <AddTransaction 
+          <AddTransaction
             subscriptionId={id}
-            subscriptionCurrency={subscriptionData.currency} 
+            subscriptionCurrency={subscriptionData.currency}
           />
         </CardHeader>
         <CardContent>
@@ -182,7 +171,7 @@ export default async function SubscriptionDetailPage({
               No transactions found for this subscription.
             </p>
           ) : (
-            <DataTable columns={transactionColumns} data={transactions} />
+            <DataTable columns={transactionColumns} data={transactions}/>
           )}
         </CardContent>
       </Card>

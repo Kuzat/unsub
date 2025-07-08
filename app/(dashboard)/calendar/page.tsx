@@ -1,10 +1,8 @@
 import {desc, eq} from "drizzle-orm";
 import {db} from "@/db";
 import {subscription} from "@/db/schema/app";
-import {auth} from "@/lib/auth";
-import {redirect} from "next/navigation";
-import {headers} from "next/headers";
-import {calculateNextRenewal, formatCurrency, formatDate} from "@/lib/utils";
+import {requireSession} from "@/lib/auth";
+import {calculateNextRenewal, formatCurrency, formatDate, toIsoDate} from "@/lib/utils";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {RenewalCalendar} from "@/components/ui/renewal-calendar";
@@ -19,13 +17,7 @@ import ServiceLogo from "@/components/ui/service-logo";
  * @returns The subscription calendar page as a React server component.
  */
 export default async function CalendarPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect('/login');
-  }
+  const session = await requireSession()
 
   // Fetch all active subscriptions for the current user
   const activeSubscriptions = await db.query.subscription.findMany({
@@ -35,11 +27,6 @@ export default async function CalendarPage() {
       service: true,
     }
   });
-
-  // Calculate upcoming renewals for the next 3 months
-  const today = new Date();
-  const threeMonthsLater = new Date(today);
-  threeMonthsLater.setMonth(today.getMonth() + 3);
 
   // Create an array of upcoming renewals with subscription details
   const upcomingRenewals = activeSubscriptions
@@ -60,12 +47,11 @@ export default async function CalendarPage() {
         billingCycle: sub.billingCycle,
       };
     })
-    .filter(renewal => renewal.renewalDate <= threeMonthsLater)
     .sort((a, b) => a.renewalDate.getTime() - b.renewalDate.getTime());
 
   // Group renewals by date for the calendar
   const renewalsByDate = upcomingRenewals.reduce((acc, renewal) => {
-    const dateKey = renewal.renewalDate.toISOString().split('T')[0];
+    const dateKey = toIsoDate(renewal.renewalDate)
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }

@@ -1,125 +1,28 @@
 "use server"
 
-import {auth} from "@/lib/auth";
+import {auth, requireSession} from "@/lib/auth";
 import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
-import {subscription, transaction, reminder} from "@/db/schema/app";
-import {and, eq, desc, between, ilike, count, or} from "drizzle-orm";
+import {subscription, transaction} from "@/db/schema/app";
+import {and, eq, desc, ilike, count, or} from "drizzle-orm";
 import {service} from "@/db/schema/app";
-import {calculateNextRenewal} from "@/lib/utils";
+import {calculatePastRenewals, toIsoDate} from "@/lib/utils";
 
 type ActionResult =
   | { success: string }
   | { error: string }
   | undefined;
 
-/**
- * Calculates all past renewal dates between a start date and the current date
- * @param startDate The start date of the subscription
- * @param billingCycle The billing cycle of the subscription
- * @param currentDate The current date (defaults to now)
- * @returns An array of dates representing past renewals (excluding the initial date)
- */
-function calculatePastRenewals(
-  startDate: Date,
-  billingCycle: string,
-  currentDate: Date = new Date()
-): Date[] {
-  // Create copies of dates to avoid modifying the originals
-  const start = new Date(startDate);
-  const current = new Date(currentDate);
-
-  // Set the time to midnight to avoid time comparison issues
-  start.setHours(0, 0, 0, 0);
-  current.setHours(0, 0, 0, 0);
-
-  // If start date is in the future or today, there are no past renewals
-  if (start >= current) {
-    return [];
-  }
-
-  const renewalDates: Date[] = [];
-  const nextRenewal = new Date(start);
-
-  // Calculate all renewal dates until we reach or exceed the current date
-  switch (billingCycle) {
-    case "daily":
-      while (nextRenewal < current) {
-        nextRenewal.setDate(nextRenewal.getDate() + 1);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-      break;
-
-    case "weekly":
-      while (nextRenewal < current) {
-        nextRenewal.setDate(nextRenewal.getDate() + 7);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-      break;
-
-    case "monthly":
-      while (nextRenewal < current) {
-        nextRenewal.setMonth(nextRenewal.getMonth() + 1);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-      break;
-
-    case "quarterly":
-      while (nextRenewal < current) {
-        nextRenewal.setMonth(nextRenewal.getMonth() + 3);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-      break;
-
-    case "yearly":
-      while (nextRenewal < current) {
-        nextRenewal.setFullYear(nextRenewal.getFullYear() + 1);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-      break;
-
-    case "one_time":
-      // No renewals for one-time subscriptions
-      break;
-
-    default:
-      // Default to monthly if the billing cycle is not recognized
-      while (nextRenewal < current) {
-        nextRenewal.setMonth(nextRenewal.getMonth() + 1);
-        if (nextRenewal < current) {
-          renewalDates.push(new Date(nextRenewal));
-        }
-      }
-  }
-
-  return renewalDates;
-}
-
 export async function createSubscription(
   raw: unknown
 ): Promise<ActionResult> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect('/login')
-  }
+  const session = await requireSession()
 
   try {
     const data = createSubscriptionSchema.parse(raw);
+    const startDate = toIsoDate(data.startDate);
 
     // Use a database transaction to ensure atomicity
     return await db.transaction(async (tx) => {
@@ -131,7 +34,7 @@ export async function createSubscription(
         userId: session.user.id,
         serviceId: data.serviceId,
         alias: data.alias || null,
-        startDate: data.startDate,
+        startDate: startDate,
         billingCycle: data.billingCycle,
         price: data.price.toString(),
         currency: data.currency,
@@ -169,12 +72,11 @@ export async function createSubscription(
       });
 
       // 2. Handle past start dates (backfill renewals)
-      const startDate = new Date(newSubscription.startDate);
       const currentDate = new Date();
 
       // Calculate past renewal dates
       const pastRenewalDates = calculatePastRenewals(
-        startDate,
+        new Date(startDate),
         newSubscription.billingCycle,
         currentDate
       );
@@ -189,24 +91,11 @@ export async function createSubscription(
           type: 'hypothetical_renewal',
           amount: newSubscription.price,
           currency: newSubscription.currency,
-          occurredAt: renewalDate,
+          occurredAt: toIsoDate(renewalDate),
           createdAt: new Date(),
           updatedAt: new Date()
         });
       }
-
-      // 3. Schedule first renewal reminder
-      const nextRenewal = calculateNextRenewal(
-        new Date(newSubscription.startDate),
-        newSubscription.billingCycle
-      );
-      const sendAt = new Date(nextRenewal);
-      sendAt.setDate(sendAt.getDate() - data.remindDaysBefore);
-      await tx.insert(reminder).values({
-        id: crypto.randomUUID(),
-        subscriptionId: newSubscription.id,
-        sendAt,
-      });
 
       return {success: "Subscription created 🎉"};
     });
@@ -243,9 +132,6 @@ export async function cancelSubscription(
           eq(subscription.userId, session.user.id)
         )
       );
-
-    // Remove any pending reminders for the cancelled subscription
-    await db.delete(reminder).where(eq(reminder.subscriptionId, subscriptionId));
 
     if (result.rowCount === 0) {
       return {error: "Subscription not found"}
@@ -312,7 +198,7 @@ export async function activateSubscription(
       const result = await tx.update(subscription)
         .set({
           isActive: true,
-          startDate: new Date(newStartDate),
+          startDate: newStartDate,
           updatedAt: new Date()
         })
         .where(and(
@@ -345,42 +231,10 @@ export async function activateSubscription(
         type: 'hypothetical_initial',
         amount: activatedSubscription.price,
         currency: activatedSubscription.currency,
-        occurredAt: new Date(newStartDate),
+        occurredAt:newStartDate,
         createdAt: new Date(),
         updatedAt: new Date()
       });
-
-      const nextRenewal = calculateNextRenewal(
-        new Date(newStartDate),
-        activatedSubscription.billingCycle
-      );
-      const sendAt = new Date(nextRenewal);
-      sendAt.setDate(
-        sendAt.getDate() - parseInt(activatedSubscription.remindDaysBefore)
-      );
-
-      const start = new Date(sendAt);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(sendAt);
-      end.setHours(23, 59, 59, 999);
-
-      const exists = await tx
-        .select()
-        .from(reminder)
-        .where(
-          and(
-            eq(reminder.subscriptionId, activatedSubscription.id),
-            between(reminder.sendAt, start, end)
-          )
-        )
-        .limit(1);
-      if (exists.length === 0) {
-        await tx.insert(reminder).values({
-          id: crypto.randomUUID(),
-          subscriptionId: activatedSubscription.id,
-          sendAt,
-        });
-      }
 
       return {success: "Subscription activated successfully"}
     });
@@ -402,7 +256,7 @@ export type EditSubscription = {
   serviceScope: string;
   serviceOwnerId: string | null;
   alias: string | null;
-  startDate: Date;
+  startDate: string;
   billingCycle: typeof subscription.billingCycle.enumValues[number];
   price: string;
   currency: typeof subscription.currency.enumValues[number];
@@ -531,12 +385,13 @@ export async function updateSubscription(
 
   try {
     const validatedData = createSubscriptionSchema.parse(data);
+    const startDate = toIsoDate(validatedData.startDate);
 
     const result = await db.update(subscription)
       .set({
         serviceId: validatedData.serviceId,
         alias: validatedData.alias || null,
-        startDate: validatedData.startDate,
+        startDate: startDate,
         billingCycle: validatedData.billingCycle,
         price: validatedData.price.toString(),
         currency: validatedData.currency,
@@ -573,7 +428,7 @@ export type TransactionWithService = {
   type: string;
   amount: string;
   currency: string;
-  occurredAt: Date;
+  occurredAt: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -666,13 +521,7 @@ export async function updateTransaction(
   transactionId: string,
   data: TransactionData
 ): Promise<ActionResult> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect('/login')
-  }
+  const session = await requireSession()
 
   try {
     // Update the transaction
@@ -680,7 +529,7 @@ export async function updateTransaction(
       .set({
         amount: data.amount,
         currency: data.currency,
-        occurredAt: new Date(data.occurredAt),
+        occurredAt: data.occurredAt,
         type: data.type,
         updatedAt: new Date()
       })
@@ -707,13 +556,7 @@ export async function createTransaction(
   subscriptionId: string,
   data: TransactionData
 ): Promise<ActionResult> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect('/login')
-  }
+  const session = await requireSession()
 
   try {
     // Get the subscription to ensure it exists and belongs to the user
@@ -745,7 +588,7 @@ export async function createTransaction(
       type: data.type,
       amount: data.amount,
       currency: data.currency,
-      occurredAt: new Date(data.occurredAt),
+      occurredAt: data.occurredAt,
       createdAt: new Date(),
       updatedAt: new Date()
     });

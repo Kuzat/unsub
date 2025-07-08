@@ -1,4 +1,4 @@
-import {boolean, index, integer, numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
+import {boolean, date, index, integer, numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
 import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
 import {relations} from "drizzle-orm";
@@ -42,7 +42,7 @@ export const subscription = pgTable(
       onDelete: "set null",
     }),
     alias: text("alias"),
-    startDate: timestamp("start_date").notNull(),
+    startDate: date("start_date").notNull(),
     price: numeric("price", {precision: 12, scale: 2}).notNull(),
     currency: currencyEnum("currency").notNull(),
     billingCycle: billingCycleEnum("billing_cycle").notNull(),
@@ -79,7 +79,7 @@ export const transaction = pgTable(
     type: transactionTypeEnum("type").notNull(),
     amount: numeric("amount", {precision: 12, scale: 2}).notNull(),
     currency: currencyEnum("currency").notNull(),
-    occurredAt: timestamp("occurred_at").notNull(),
+    occurredAt: date("occurred_at").notNull(),
     /** raw row id from Plaid/bank file for reconciliation */
     externalRowId: text("external_row_id"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -113,17 +113,28 @@ export const transactionRelations = relations(transaction, ({one}) => ({
   user: one(user, {fields: [transaction.userId], references: [user.id]}),
 }));
 
-/* ---------- reminder ---------- */
-export const reminder = pgTable("reminder", {
+/* ---------- reminder-log ---------- */
+export const reminderLog = pgTable("reminder_log", {
   id: text("id").primaryKey(),
   subscriptionId: text("subscription_id")
     .notNull()
     .references(() => subscription.id, {onDelete: "cascade"}),
-  sendAt: timestamp("send_at").notNull(),
-  sent: boolean("sent").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {onDelete: "cascade"}),
+  reminderDate: date("reminder_date").notNull(),
+  sentAt: timestamp("sent_at").notNull().defaultNow(),
+}, (t) => ({
+  subscriptionRenewalIdx: index().on(t.subscriptionId, t.reminderDate)
+}));
+
+export const reminderLogRelations = relations(reminderLog, ({one}) => ({
+  subscription: one(subscription, {
+    fields: [reminderLog.subscriptionId],
+    references: [subscription.id],
+  }),
+}));
+
 
 /* ---------- cancellation guide (markdown) ---------- */
 export const cancellationGuide = pgTable("cancellation_guide", {

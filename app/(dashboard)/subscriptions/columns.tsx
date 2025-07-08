@@ -1,7 +1,7 @@
 "use client"
 
 import {ColumnDef} from "@tanstack/react-table"
-import {formatDate, formatCurrency, calculateNextRenewal, cn} from "@/lib/utils"
+import {formatDate, formatCurrency, calculateNextRenewal, cn, toIsoDate} from "@/lib/utils"
 import {subscription} from "@/db/schema/app"
 import {InferSelectModel} from "drizzle-orm";
 import {Service} from "@/app/actions/services";
@@ -54,7 +54,7 @@ export const columns: ColumnDef<SubscriptionWithService>[] = [
   {
     accessorKey: "nextRenewal",
     header: "Next renewal date",
-    cell: ({row}) => formatDate(calculateNextRenewal(row.original.subscription.startDate, row.original.subscription.billingCycle).toISOString()),
+    cell: ({row}) => formatDate(toIsoDate(calculateNextRenewal(new Date(row.original.subscription.startDate), row.original.subscription.billingCycle))),
   },
   {
     accessorKey: "isActive",
