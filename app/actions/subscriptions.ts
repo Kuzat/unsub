@@ -5,9 +5,8 @@ import {headers} from "next/headers";
 import {redirect} from "next/navigation";
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {db} from "@/db";
-import {subscription, transaction} from "@/db/schema/app";
-import {and, eq, desc, ilike, count, or} from "drizzle-orm";
-import {service} from "@/db/schema/app";
+import {service, subscription, transaction} from "@/db/schema/app";
+import {and, count, desc, eq, ilike, or} from "drizzle-orm";
 import {calculatePastRenewals, toIsoDate} from "@/lib/utils";
 
 type ActionResult =
@@ -22,7 +21,7 @@ export async function createSubscription(
 
   try {
     const data = createSubscriptionSchema.parse(raw);
-    const startDate = toIsoDate(data.startDate);
+    const startDate = data.startDate;
 
     // Use a database transaction to ensure atomicity
     return await db.transaction(async (tx) => {
@@ -375,17 +374,11 @@ export async function updateSubscription(
   subscriptionId: string,
   data: unknown
 ): Promise<ActionResult> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect('/login')
-  }
+  const session = await requireSession()
 
   try {
     const validatedData = createSubscriptionSchema.parse(data);
-    const startDate = toIsoDate(validatedData.startDate);
+    const startDate = validatedData.startDate;
 
     const result = await db.update(subscription)
       .set({
@@ -446,7 +439,7 @@ export async function getTransactionsBySubscriptionId(
 
   try {
     // Join transaction with service to get service details
-    const result = await db
+    return await db
       .select({
         id: transaction.id,
         subscriptionId: transaction.subscriptionId,
@@ -469,8 +462,6 @@ export async function getTransactionsBySubscriptionId(
         )
       )
       .orderBy(desc(transaction.occurredAt));
-
-    return result;
   } catch (err) {
     console.error("Error fetching transactions:", err);
     return {error: "Failed to fetch transactions"};

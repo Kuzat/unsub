@@ -8,7 +8,7 @@ export const createSubscriptionSchema = z.object({
     .string({required_error: "Select a service", invalid_type_error: "Select a service"})
     .uuid("Select a service"),
   alias: z.string().optional(),
-  startDate: z.date({required_error: "Start date is required"}),
+  startDate: z.string({required_error: "Start date is required"}),
   billingCycle: z.enum(
     ["daily", "weekly", "monthly", "quarterly", "yearly", "one_time"],
     {required_error: "Choose billing cycle"}

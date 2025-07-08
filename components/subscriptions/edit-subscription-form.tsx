@@ -9,22 +9,22 @@ import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Textarea} from "@/components/ui/textarea"
 import {Switch} from "@/components/ui/switch"
-import {Calendar} from "@/components/ui/calendar"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog"
-import {ArrowLeftIcon, CalendarIcon, Check, ChevronsUpDown} from "lucide-react"
+import {ArrowLeftIcon, Check, ChevronsUpDown} from "lucide-react"
 import {CreateSubscriptionSchema, createSubscriptionSchema} from "@/lib/validation/subscription"
 import {useRouter} from "next/navigation"
 import {updateSubscription, EditSubscription} from "@/app/actions/subscriptions"
 import {searchServices, Service} from "@/app/actions/services"
 import {toast} from "sonner"
 import Link from "next/link"
-import {cn, formatDate, toIsoDate} from "@/lib/utils"
+import {cn} from "@/lib/utils"
 import Image from "next/image"
 import {currencyFormMap} from "@/db/data/currencies";
 import {Command} from "cmdk";
 import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import ServiceLogo from "@/components/ui/service-logo";
+import StartDatePicker from "@/components/ui/forms/start-date-picker";
 
 interface EditSubscriptionFormProps {
   subscription: EditSubscription;
@@ -34,7 +34,6 @@ interface EditSubscriptionFormProps {
 export default function EditSubscriptionForm({subscription, from = "list"}: EditSubscriptionFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [dateOpen, setDateOpen] = React.useState(false)
   const [priceInput, setPriceInput] = React.useState(subscription.price)
   const [remindDaysInput, setRemindDaysInput] = React.useState(subscription.remindDaysBefore)
   const [serviceDialogOpen, setServiceDialogOpen] = React.useState(false)
@@ -87,7 +86,7 @@ export default function EditSubscriptionForm({subscription, from = "list"}: Edit
     defaultValues: {
       serviceId: subscription.serviceId ? subscription.serviceId : undefined,
       alias: subscription.alias || "",
-      startDate: new Date(subscription.startDate),
+      startDate: subscription.startDate,
       billingCycle: subscription.billingCycle,
       price: parseFloat(subscription.price),
       currency: subscription.currency,
@@ -270,43 +269,7 @@ export default function EditSubscriptionForm({subscription, from = "list"}: Edit
           />
 
           {/* Start date picker */}
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? formatDate(toIsoDate(field.value)) : "Pick a date"}
-                        <CalendarIcon className="ml-auto size-4 opacity-50"/>
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={(date) => {
-                        field.onChange(date || field.value);
-                        setDateOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
+          <StartDatePicker label="Start Date"/>
 
           {/* Billing cycle */}
           <FormField

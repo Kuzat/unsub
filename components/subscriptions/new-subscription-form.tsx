@@ -5,27 +5,26 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form"
 import * as z from "zod"
 import {Button} from "@/components/ui/button"
-import {Calendar} from "@/components/ui/calendar"
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
+import {Form, FormControl,FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form"
 import {Input} from "@/components/ui/input"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Switch} from "@/components/ui/switch"
 import {Textarea} from "@/components/ui/textarea"
-import {CalendarIcon, PlusIcon, ArrowLeftIcon, ChevronsUpDown, Check} from "lucide-react"
-import {cn} from "@/lib/utils"
+import { PlusIcon, ArrowLeftIcon, ChevronsUpDown, Check} from "lucide-react"
+import {cn, toIsoDate} from "@/lib/utils"
 import {createSubscriptionSchema} from "@/lib/validation/subscription";
 import {useRouter} from "next/navigation";
 import {createSubscription} from "@/app/actions/subscriptions";
 import {searchServices, Service} from "@/app/actions/services";
 import {toast} from "sonner";
-import {format} from "date-fns";
 import {useState} from "react";
 import {Command} from "cmdk";
 import {CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 import {currencyFormMap} from "@/db/data/currencies";
 import NewServiceForm from "@/components/services/new-service-form";
 import ServiceLogo from "@/components/ui/service-logo";
+import StartDatePicker from "@/components/ui/forms/start-date-picker";
 
 type FormValues = z.infer<typeof createSubscriptionSchema>;
 type Step = "selectService" | "subscriptionDetails";
@@ -37,7 +36,6 @@ export default function NewSubscriptionForm() {
   const [currentStep, setCurrentStep] = React.useState<Step>("selectService");
   const [serviceMode, setServiceMode] = React.useState<ServiceSelectionMode>("existing");
   const [selectedService, setSelectedService] = React.useState<Service | null>(null);
-  const [dateOpen, setDateOpen] = React.useState(false);
   const [services, setServices] = React.useState<Service[]>([]);
   const [isLoadingServices, setIsLoadingServices] = React.useState(false);
   const [priceInput, setPriceInput] = React.useState<string>('0');
@@ -105,7 +103,7 @@ export default function NewSubscriptionForm() {
     defaultValues: {
       serviceId: "",
       alias: "",
-      startDate: new Date(),
+      startDate: toIsoDate(new Date()),
       billingCycle: "monthly",
       price: 0,
       currency: "EUR",
@@ -312,52 +310,7 @@ export default function NewSubscriptionForm() {
         />
 
         {/* Start date picker */}
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({field}) => (
-            <FormItem className="flex flex-col w-full">
-              <FormLabel>Date</FormLabel>
-              <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        `${format(field.value, "PPP")}`
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50"/>
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    captionLayout="dropdown"
-                    selected={field.value}
-                    onSelect={(selectedDate) => {
-                      field.onChange(selectedDate);
-                    }}
-                    hideNavigation={true}
-                    onDayClick={() => setDateOpen(false)}
-                    fromYear={2000}
-                    toYear={new Date().getFullYear()}
-                    defaultMonth={field.value}
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>Set your start date.</FormDescription>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+        <StartDatePicker label="Start Date"/>
 
         {/* Billing cycle */}
         <FormField
