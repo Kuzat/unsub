@@ -18,7 +18,7 @@ A list of potential ideas and tasks that need to be done. Not in prioritized ord
 - [ ] Add propper skeleton loading using suspense and loading.tsx files.
 - [ ] Make sure we use the same form components in all forms. So as the calendar/date input is different in many places now. 
 - [ ] Make it easier to create a service by just adding an Url, then we fetch information from the website to try to autofill the service forms items.
-- [ ] make sure the reminder function is working correctly. Should maybe have a nightly job that doublecheck it is correct in case of something happening? Or move away from having remind table as a way to orchestrate and just use it for logging when we sent messages and use the source data for finding and sending the notifications.
+- [ ] Have cleanup job that runs daily to remove logos from storage that are not linked to any services
 
 # Premium / Pro 
 Items related to the Pro plan 
