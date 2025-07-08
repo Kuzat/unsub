@@ -57,7 +57,7 @@ export default function StartDatePicker({label, description}: DatePickerProps) {
                   onSelect={(selectedDate) => {
                     field.onChange(toIsoDate(selectedDate || fieldDate));
                   }}
-                  hideNavigation={true}
+                  hideNavigation={false}
                   onDayClick={() => setDateOpen(false)}
                   defaultMonth={fieldDate}
                 />
