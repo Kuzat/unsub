@@ -116,7 +116,7 @@ export function AddTransaction({ subscriptionId, subscriptionCurrency }: AddTran
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog modal={false} open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="mr-2 h-4 w-4" />

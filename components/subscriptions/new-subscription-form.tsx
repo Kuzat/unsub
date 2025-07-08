@@ -128,7 +128,6 @@ export default function NewSubscriptionForm() {
   } = form;
 
   async function onSubmit(values: FormValues) {
-    console.log(values)
     const res = await createSubscription(values);
 
     if (res === undefined) {

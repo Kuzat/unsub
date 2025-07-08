@@ -38,7 +38,6 @@ export default async function SubscriptionDetailPage({
     new Date(subscriptionData.startDate),
     subscriptionData.billingCycle
   );
-  console.log(subscriptionData)
 
   return (
     <div className="container mx-auto py-6">
