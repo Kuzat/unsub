@@ -159,6 +159,7 @@ export const guide = pgTable("guide", {
   id: text("id").primaryKey(),
   serviceId: text("service_id")
     .notNull()
+    .unique()
     .references(() => service.id, {onDelete: "cascade"}),
   currentVersionId: text("current_version_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -190,7 +191,7 @@ export const guideVersion = pgTable("guide_version", {
     .references(() => user.id, {onDelete: "set null"}),
 }, (t) => ({
   guideVersionUnique: unique().on(t.guideId, t.version),
-  guideIdVersionIdx: index("guide_id_version_idx").on(t.guideId, desc(t.version))
+  guideIdVersionIdx: index("guide_id_status_version_idx").on(t.guideId, t.status, desc(t.version))
 }));
 
 /* ---------- guide vote ---------- */
