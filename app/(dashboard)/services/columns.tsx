@@ -5,15 +5,18 @@ import {Service} from "@/app/actions/services"
 import {ServiceActions} from "@/components/services/service-actions"
 import {cn} from "@/lib/utils"
 import ServiceLogo from "@/components/ui/service-logo";
+import Link from "next/link";
 
-export const columns = (isAdmin:boolean): ColumnDef<Service>[] => [
+export const columns = (isAdmin: boolean): ColumnDef<Service>[] => [
   {
     accessorKey: "name",
     header: "Service",
     cell: ({row}) => {
       const service = row.original;
       return (
-        <div className="flex items-center gap-3">
+        <Link
+          href={`/services/${service.id}`}
+          className="flex items-center gap-3">
           <ServiceLogo
             image={service.logoCdnUrl}
             placeholder={service?.name?.charAt(0)}
@@ -23,7 +26,7 @@ export const columns = (isAdmin:boolean): ColumnDef<Service>[] => [
             <p className="font-medium">{service?.name || 'Unknown Service'}</p>
             {service?.category && <p className="text-xs text-muted-foreground capitalize">{service.category}</p>}
           </div>
-        </div>
+        </Link>
       );
     },
   },

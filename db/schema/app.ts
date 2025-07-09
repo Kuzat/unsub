@@ -111,26 +111,6 @@ export const transaction = pgTable(
   ]
 );
 
-/* ---------- relations ---------- */
-export const serviceRelations = relations(service, ({one, many}) => ({
-  owner: one(user, {fields: [service.ownerId], references: [user.id]}),
-  subscriptions: many(subscription),
-}));
-
-export const subscriptionRelations = relations(subscription, ({many, one}) => ({
-  user: one(user, {fields: [subscription.userId], references: [user.id]}),
-  service: one(service, {fields: [subscription.serviceId], references: [service.id]}),
-  transactions: many(transaction),
-}));
-
-export const transactionRelations = relations(transaction, ({one}) => ({
-  subscription: one(subscription, {
-    fields: [transaction.subscriptionId],
-    references: [subscription.id]
-  }),
-  user: one(user, {fields: [transaction.userId], references: [user.id]}),
-}));
-
 /* ---------- reminder-log ---------- */
 export const reminderLog = pgTable("reminder_log", {
   id: text("id").primaryKey(),
@@ -145,14 +125,6 @@ export const reminderLog = pgTable("reminder_log", {
 }, (t) => ({
   subscriptionRenewalIdx: index().on(t.subscriptionId, t.reminderDate)
 }));
-
-export const reminderLogRelations = relations(reminderLog, ({one}) => ({
-  subscription: one(subscription, {
-    fields: [reminderLog.subscriptionId],
-    references: [subscription.id],
-  }),
-}));
-
 
 /* ---------- cancellation guide ---------- */
 export const guide = pgTable("guide", {
@@ -221,10 +193,6 @@ export const userSettings = pgTable("user_settings", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
-
-export const userSettingsRelations = relations(userSettings, ({one}) => ({
-  user: one(user, {fields: [userSettings.userId], references: [user.id]}),
-}));
 
 /* ---------- fx rates ---------- */
 export const fxRates = pgTable("fx_rates", {

@@ -319,13 +319,7 @@ export async function fetchSubscriptions({
 export async function getSubscriptionById(
   subscriptionId: string
 ): Promise<EditSubscription | { error: string }> {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
-
-  if (!session) {
-    return redirect('/login')
-  }
+  const session = await requireSession()
 
   try {
     // Join subscription with service to get service details
