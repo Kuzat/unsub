@@ -85,6 +85,13 @@
       "when": 1751896919965,
       "tag": "0011_aromatic_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1752060245297,
+      "tag": "0012_complete_shard",
+      "breakpoints": true
     }
   ]
 }

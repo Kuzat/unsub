@@ -1,7 +1,25 @@
-import {boolean, date, index, integer, numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
-import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
+import {
+  boolean,
+  date, foreignKey,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique
+} from "drizzle-orm/pg-core";
+import {
+  billingCycleEnum,
+  categoryEnum,
+  currencyEnum,
+  guideVersionStatusEnum,
+  serviceScopeEnum,
+  transactionTypeEnum
+} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
-import {relations} from "drizzle-orm";
+import {desc, relations} from "drizzle-orm";
 
 /* ---------- service ---------- */
 export const service = pgTable("service", {
@@ -136,27 +154,51 @@ export const reminderLogRelations = relations(reminderLog, ({one}) => ({
 }));
 
 
-/* ---------- cancellation guide (markdown) ---------- */
-export const cancellationGuide = pgTable("cancellation_guide", {
+/* ---------- cancellation guide ---------- */
+export const guide = pgTable("guide", {
   id: text("id").primaryKey(),
   serviceId: text("service_id")
     .notNull()
     .references(() => service.id, {onDelete: "cascade"}),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => user.id, {onDelete: "cascade"}),
-  markdown: text("markdown").notNull(),
-  version: integer("version").notNull().default(1),
+  currentVersionId: text("current_version_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => [
+  foreignKey({
+    columns: [table.serviceId],
+    foreignColumns: [service.id],
+    name: "guide_service_id_service_id_fk"
+  }).onDelete("cascade"),
+]);
+
+/* ---------- cancellation guide versions ---------- */
+export const guideVersion = pgTable("guide_version", {
+  id: text("id").primaryKey(),
+  guideId: text("guide_id")
+    .notNull()
+    .references(() => guide.id, {onDelete: "cascade"}),
+  version: integer("version").notNull(),
+  bodyMd: text("body_md").notNull(),
+  changeNote: text("change_note"),
+  status: guideVersionStatusEnum("status").notNull().default("pending"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: text("created_by")
+    .references(() => user.id, {onDelete: "set null"}),
+  reviewedAt: timestamp("reviewed_at").notNull().defaultNow(),
+  reviewedBy: text("reviewed_by")
+    .references(() => user.id, {onDelete: "set null"}),
+}, (t) => ({
+  guideVersionUnique: unique().on(t.guideId, t.version),
+  guideIdVersionIdx: index("guide_id_version_idx").on(t.guideId, desc(t.version))
+}));
 
 /* ---------- guide vote ---------- */
 export const guideVote = pgTable("guide_vote", {
   id: text("id").primaryKey(),
   guideId: text("guide_id")
     .notNull()
-    .references(() => cancellationGuide.id, {onDelete: "cascade"}),
+    .references(() => guide.id, {onDelete: "cascade"}),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, {onDelete: "cascade"}),
