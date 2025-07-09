@@ -95,7 +95,7 @@ const data = {
     },
     {
       title: "Feedback",
-      url: "https://github.com/Kuzat/unsub/issues/new",
+      url: "https://unsub.featurebase.app",
       target: "_blank",
       icon: Send,
     },

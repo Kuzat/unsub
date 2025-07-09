@@ -60,3 +60,6 @@ A list of potential ideas and tasks that need to be implemented. These items are
   - [ ] Check for recurring transactions related to known services
   - [ ] Automatically suggest subscriptions based on bank transactions
   - [ ] Implement user approval for suggested subscriptions to prevent errors
+  
+## Unsorted
+- [ ] Add back a job that creates new transactions for renewals for subscriptions not tracked from bank transactions
