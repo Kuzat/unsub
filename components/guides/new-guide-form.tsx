@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button"
 
 export type NewGuideFormProps = {
   serviceId: string
+  isAdmin?: boolean
 }
 
-export default function NewGuideForm({ serviceId }: NewGuideFormProps) {
+export default function NewGuideForm({ serviceId, isAdmin = false }: NewGuideFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -54,7 +55,7 @@ export default function NewGuideForm({ serviceId }: NewGuideFormProps) {
     <div className="space-y-6">
       <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <GuideForm serviceId={serviceId} />
+          <GuideForm serviceId={serviceId} isAdmin={isAdmin} />
           <div className="flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Creating..." : "Create Guide"}

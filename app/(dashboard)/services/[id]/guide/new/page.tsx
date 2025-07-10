@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/auth";
+import { requireSession, isAdmin } from "@/lib/auth";
 import { fetchServiceById } from "@/app/actions/services";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -15,7 +15,8 @@ type NewGuidePageProps = {
 }
 
 export default async function NewGuidePage({ params }: NewGuidePageProps) {
-  await requireSession();
+  const session = await requireSession();
+  const userIsAdmin = isAdmin(session);
   const { id } = await params;
 
   // Fetch the service to ensure it exists and the user has access to it
@@ -83,7 +84,7 @@ export default async function NewGuidePage({ params }: NewGuidePageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <NewGuideForm serviceId={id} />
+            <NewGuideForm serviceId={id} isAdmin={userIsAdmin} />
           </CardContent>
         </Card>
       </div>

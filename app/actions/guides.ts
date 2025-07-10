@@ -62,14 +62,16 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
         reviewedBy: userIsAdmin && data.status === "approved" ? session.user.id : null,
       });
 
-      // Update the guide's current version
-      await tx
-        .update(guide)
-        .set({
-          currentVersionId: versionId,
-          updatedAt: new Date(),
-        })
-        .where(eq(guide.id, guideId));
+      // Update the guide's current version only if the guideVersion has status "approved"
+      if (data.status === "approved") {
+        await tx
+          .update(guide)
+          .set({
+            currentVersionId: versionId,
+            updatedAt: new Date(),
+          })
+          .where(eq(guide.id, guideId));
+      }
 
       return {success: "Guide created successfully"};
     });
