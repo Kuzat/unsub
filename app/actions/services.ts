@@ -1,7 +1,7 @@
 "use server"
 
 import {db} from "@/db";
-import {guide, guideVersion, service} from "@/db/schema/app";
+import {service} from "@/db/schema/app";
 import {and, count, eq, ilike, or} from "drizzle-orm";
 import crypto from "crypto";
 import {CreateServiceFormValues, createServiceSchema} from "@/lib/validation/service";
@@ -12,6 +12,7 @@ import {user} from "@/db/schema/auth";
 import {ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
 import {unauthorized} from "next/navigation";
 import {fetchLogo} from "@/app/actions/logo";
+import {Guide, GuideVersion} from "@/app/actions/guides";
 
 export type Service = typeof service.$inferInsert;
 
@@ -338,9 +339,6 @@ export async function updateService(
   }
 }
 
-type Guide = typeof guide.$inferSelect;
-type GuideVersion = typeof guideVersion.$inferSelect;
-
 // This type represents the service with the guide relation included.
 type ServiceWithGuide = Service & {
   guide: (Guide & {
@@ -350,15 +348,22 @@ type ServiceWithGuide = Service & {
 
 export type FetchServiceByIdOptions = {
   id: string;
-  withGuide?: boolean | {withVersions?: boolean, limit?: number};
+  withGuide?: boolean | { withVersions?: boolean, limit?: number };
 }
 
 // Overload for when `withGuide` is true
-export async function fetchServiceById(options: FetchServiceByIdOptions & { withGuide: true | object }): Promise<ServiceWithGuide | undefined>;
+export async function fetchServiceById(options: FetchServiceByIdOptions & {
+  withGuide: true | object
+}): Promise<ServiceWithGuide | undefined>;
 // Overload for when `withGuide` is false or undefined
-export async function fetchServiceById(options: FetchServiceByIdOptions & { withGuide?: false | undefined }): Promise<Service | undefined>;
+export async function fetchServiceById(options: FetchServiceByIdOptions & {
+  withGuide?: false | undefined
+}): Promise<Service | undefined>;
 // Implementation
-export async function fetchServiceById({id, withGuide}: FetchServiceByIdOptions): Promise<Service | ServiceWithGuide | undefined> {
+export async function fetchServiceById({
+                                         id,
+                                         withGuide
+                                       }: FetchServiceByIdOptions): Promise<Service | ServiceWithGuide | undefined> {
   const session = await requireSession()
   const userIsAdmin = isAdmin(session)
 

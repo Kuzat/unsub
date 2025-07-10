@@ -158,7 +158,7 @@ export const guideVersion = pgTable("guide_version", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdBy: text("created_by")
     .references(() => user.id, {onDelete: "set null"}),
-  reviewedAt: timestamp("reviewed_at").notNull().defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
   reviewedBy: text("reviewed_by")
     .references(() => user.id, {onDelete: "set null"}),
 }, (t) => ({
