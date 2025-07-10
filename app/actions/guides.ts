@@ -5,7 +5,7 @@ import {guide, guideVersion} from "@/db/schema/app";
 import {eq} from "drizzle-orm";
 import crypto from "crypto";
 import {CreateGuideFormValues, createGuideSchema} from "@/lib/validation/guide";
-import {isAdmin, requireSession} from "@/lib/auth";
+import {isAdmin, requireAdmin, requireSession} from "@/lib/auth";
 import {fetchServiceById} from "@/app/actions/services";
 
 export type Guide = typeof guide.$inferInsert;
@@ -78,5 +78,88 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
   } catch (error) {
     console.error("Error creating guide:", error);
     return {error: "Failed to create guide"};
+  }
+}
+
+/**
+ * Fetches all guide versions with status "pending" for admin review
+ * @returns An array of pending guide versions with related service and creator information
+ */
+export async function fetchPendingGuideVersions() {
+  await requireAdmin()
+
+  try {
+    // Fetch all guide versions with status "pending" and include related guide, service, and creator information
+    return await db.query.guideVersion.findMany({
+      where: eq(guideVersion.status, "pending"),
+      with: {
+        guide: {
+          with: {
+            service: true
+          }
+        },
+        createdBy: true,
+      },
+      orderBy: (gv) => [gv.createdAt]
+    });
+  } catch (error) {
+    console.error("Error fetching pending guide versions:", error);
+    throw new Error("Failed to fetch pending guide versions");
+  }
+}
+
+/**
+ * Updates the status of a guide version (approve or reject)
+ * @param id The ID of the guide version to update
+ * @param status The new status ("approved" or "rejected")
+ * @returns Success or error message
+ */
+export async function updateGuideVersionStatus(
+  id: string,
+  status: "approved" | "rejected"
+): Promise<{ success: string } | { error: string }> {
+  const session = await requireAdmin()
+
+  try {
+    return await db.transaction(async (tx) => {
+      // Find the guide version
+      const versionToUpdate = await tx.query.guideVersion.findFirst({
+        where: eq(guideVersion.id, id),
+        with: {
+          guide: true
+        }
+      });
+
+      if (!versionToUpdate) {
+        return {error: "Guide version not found"};
+      }
+
+      // Update the guide version status
+      await tx
+        .update(guideVersion)
+        .set({
+          status,
+          reviewedAt: new Date(),
+          reviewedBy: session.user.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(guideVersion.id, id));
+
+      // If approved, update the guide's current version
+      if (status === "approved") {
+        await tx
+          .update(guide)
+          .set({
+            currentVersionId: id,
+            updatedAt: new Date(),
+          })
+          .where(eq(guide.id, versionToUpdate.guideId));
+      }
+
+      return {success: `Guide version ${status === "approved" ? "approved" : "rejected"} successfully`};
+    });
+  } catch (error) {
+    console.error(`Error ${status === "approved" ? "approving" : "rejecting"} guide version:`, error);
+    return {error: `Failed to ${status === "approved" ? "approve" : "reject"} guide version`};
   }
 }
