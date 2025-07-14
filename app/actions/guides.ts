@@ -109,6 +109,34 @@ export async function fetchPendingGuideVersions() {
 }
 
 /**
+ * Fetches all guide versions with status "rejected" for admin review
+ * @returns An array of rejected guide versions with related service and creator information
+ */
+export async function fetchRejectedGuideVersions() {
+  await requireAdmin()
+
+  try {
+    // Fetch all guide versions with status "rejected" and include related guide, service, and creator information
+    return await db.query.guideVersion.findMany({
+      where: eq(guideVersion.status, "rejected"),
+      with: {
+        guide: {
+          with: {
+            service: true
+          }
+        },
+        createdBy: true,
+        reviewedBy: true,
+      },
+      orderBy: (gv) => [gv.reviewedAt, gv.createdAt]
+    });
+  } catch (error) {
+    console.error("Error fetching rejected guide versions:", error);
+    throw new Error("Failed to fetch rejected guide versions");
+  }
+}
+
+/**
  * Updates the status of a guide version (approve or reject)
  * @param id The ID of the guide version to update
  * @param status The new status ("approved" or "rejected")

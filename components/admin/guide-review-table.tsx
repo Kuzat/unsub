@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
+import {useState} from "react";
+import {ColumnDef} from "@tanstack/react-table";
+import {DataTable} from "@/components/ui/data-table";
 import {
   Dialog,
   DialogContent,
@@ -11,22 +11,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { updateGuideVersionStatus } from "@/app/actions/guides";
+import {Button} from "@/components/ui/button";
+import {toast} from "sonner";
+import {updateGuideVersionStatus} from "@/app/actions/guides";
 import {PendingGuideVersion} from "@/app/(dashboard)/admin/guides/columns";
 
-interface GuideReviewTableProps<TData> {
-  columns: ColumnDef<TData, any>[];
+interface GuideReviewTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onItemRemoved?: (id: string) => void;
 }
 
-export function GuideReviewTable<TData extends PendingGuideVersion>({
-  columns,
-  data,
-  onItemRemoved,
-}: GuideReviewTableProps<TData>) {
+export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unknown>({
+                                                                      columns,
+                                                                      data,
+                                                                      onItemRemoved,
+                                                                    }: GuideReviewTableProps<TData, TValue>) {
   const [selectedGuide, setSelectedGuide] = useState<TData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -85,25 +85,31 @@ export function GuideReviewTable<TData extends PendingGuideVersion>({
   };
 
   // Add row click handler to the DataTable
-  const onRowClick = (row: any) => {
+  const onRowClick = (row: {original: TData}) => {
     handleRowClick(row.original);
   };
 
+  // Check if the selected guide is rejected
+  const isRejected = selectedGuide?.status === "rejected";
+
   return (
     <>
-      <DataTable 
+      <DataTable
         columns={columns}
         data={data}
         onRowClick={onRowClick}
       />
 
-      {/* Preview Dialog with Approve/Reject buttons */}
+      {/* Preview Dialog with Approve/Reject buttons for pending guides, or just view for rejected guides */}
       <Dialog open={!!selectedGuide} onOpenChange={(open) => !open && setSelectedGuide(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Preview Guide</DialogTitle>
             <DialogDescription>
-              Preview the guide content before approving or rejecting.
+              {isRejected
+                ? "This guide version has been rejected."
+                : "Preview the guide content before approving or rejecting."
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto mt-4 prose prose-sm dark:prose-invert">
@@ -118,13 +124,15 @@ export function GuideReviewTable<TData extends PendingGuideVersion>({
               Close
             </Button>
             <div className="flex gap-2">
-              <Button
-                variant="destructive"
-                onClick={handleReject}
-                disabled={isLoading}
-              >
-                {isLoading ? "Rejecting..." : "Reject"}
-              </Button>
+              {!isRejected && (
+                <Button
+                  variant="destructive"
+                  onClick={handleReject}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Rejecting..." : "Reject"}
+                </Button>
+              )}
               <Button
                 variant="default"
                 onClick={handleApprove}
