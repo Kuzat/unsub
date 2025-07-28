@@ -66,6 +66,26 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             {children}
           </pre>
         ),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        img: (props: any) => {
+          const { src, alt } = props;
+          return (
+          <div className="my-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt={alt || "Guide image"}
+              className="max-w-full h-auto rounded-lg border border-border shadow-sm mx-auto"
+              loading="lazy"
+            />
+            {alt && (
+              <p className="text-sm text-muted-foreground text-center mt-2 italic">
+                {alt}
+              </p>
+            )}
+          </div>
+          );
+        },
         a: ({ href, children }) => (
           <a 
             href={href} 

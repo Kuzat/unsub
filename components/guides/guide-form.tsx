@@ -8,6 +8,7 @@ import {CreateGuideFormValues} from "@/lib/validation/guide"
 import {Input} from "@/components/ui/input"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {guideVersionStatusEnum} from "@/db/schema/_common"
+import ImageUpload from "@/components/guides/image-upload"
 
 export type GuideFormProps = {
   serviceId: string
@@ -16,6 +17,12 @@ export type GuideFormProps = {
 
 export default function GuideForm({serviceId, isAdmin = false}: GuideFormProps) {
   const form = useFormContext<CreateGuideFormValues>()
+  
+  const handleImageInsert = (markdown: string) => {
+    const currentContent = form.getValues("bodyMd")
+    const newContent = currentContent + "\n\n" + markdown
+    form.setValue("bodyMd", newContent)
+  }
 
   // Set the serviceId in the form
   React.useEffect(() => {
@@ -29,7 +36,13 @@ export default function GuideForm({serviceId, isAdmin = false}: GuideFormProps) 
         name="bodyMd"
         render={({field}) => (
           <FormItem>
-            <FormLabel>Guide Content (Markdown)</FormLabel>
+            <div className="flex items-center justify-between">
+              <FormLabel>Guide Content (Markdown)</FormLabel>
+              <ImageUpload 
+                onImageInsert={handleImageInsert}
+                serviceId={serviceId}
+              />
+            </div>
             <FormControl>
               <Textarea
                 placeholder="Write your guide content in Markdown format..."

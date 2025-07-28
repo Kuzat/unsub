@@ -1,5 +1,5 @@
 import {relations} from "drizzle-orm";
-import {guide, guideVersion, reminderLog, service, subscription, transaction, userSettings} from "./app";
+import {guide, guideImage, guideVersion, reminderLog, service, subscription, transaction, userSettings} from "./app";
 import {user} from "./auth";
 
 export const serviceRelations = relations(service, ({one, many}) => ({
@@ -46,6 +46,7 @@ export const guideRelations = relations(guide, ({one, many}) => ({
     fields: [guide.currentVersionId],
     references: [guideVersion.id],
   }),
+  images: many(guideImage),
 }));
 
 export const guideVersionRelations = relations(guideVersion, ({one}) => ({
@@ -60,6 +61,13 @@ export const guideVersionRelations = relations(guideVersion, ({one}) => ({
   reviewedBy: one(user, {
     fields: [guideVersion.reviewedBy],
     references: [user.id],
+  }),
+}))
+
+export const guideImageRelations = relations(guideImage, ({one}) => ({
+  guide: one(guide, {
+    fields: [guideImage.guideId],
+    references: [guide.id],
   }),
 }))
 
