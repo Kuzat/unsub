@@ -51,3 +51,8 @@ export const guideVersionStatusEnum = pgEnum("guide_version_status", [
   "approved",
   "rejected"
 ]);
+
+export const rateLimitActionEnum = pgEnum("rate_limit_action", [
+  "guide_edit",
+  "image_upload"
+]);

@@ -8,6 +8,7 @@ import {db} from "@/db";
 import {guideImage, guide} from "@/db/schema/app";
 import {eq} from "drizzle-orm";
 import crypto from "crypto";
+import {checkRateLimit, recordRateLimitAction} from "@/lib/rate-limiting";
 
 const GUIDE_IMAGE_CDN_URL = process.env.LOGO_CDN_URL!; // Reuse same CDN
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB limit for guide images
@@ -53,7 +54,13 @@ type UploadGuideImageResponse = {
 
 export async function uploadGuideImage(formData: FormData): Promise<UploadGuideImageResponse> {
   // Auth
-  await requireSession()
+  const session = await requireSession()
+
+  // Check rate limit for image uploads
+  const rateLimitResult = await checkRateLimit(session.user.id, "image_upload", undefined, session);
+  if (!rateLimitResult.allowed) {
+    return { error: rateLimitResult.message || "Rate limit exceeded for image uploads" };
+  }
 
   try {
     const file = formData.get('image') as File
@@ -157,6 +164,10 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
         fileSize: buffer.length,
         createdAt: new Date(),
       })
+
+      // Record the rate limit action
+      await recordRateLimitAction(session.user.id, "image_upload", finalGuideId);
+      
     } catch (error) {
       console.error("Error saving image record:", error)
       return {error: 'Failed to save image record'}
@@ -183,7 +194,13 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
 
 export async function uploadGuideImageFromUrl(originalUrl: string, guideIdOrServiceId: string, altText?: string, isServiceId: boolean = false): Promise<UploadGuideImageResponse> {
   // Auth
-  await requireSession()
+  const session = await requireSession()
+
+  // Check rate limit for image uploads
+  const rateLimitResult = await checkRateLimit(session.user.id, "image_upload", undefined, session);
+  if (!rateLimitResult.allowed) {
+    return { error: rateLimitResult.message || "Rate limit exceeded for image uploads" };
+  }
 
   try {
     new URL(originalUrl)

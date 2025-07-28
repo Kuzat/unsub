@@ -15,6 +15,7 @@ import {
   categoryEnum,
   currencyEnum,
   guideVersionStatusEnum,
+  rateLimitActionEnum,
   serviceScopeEnum,
   transactionTypeEnum
 } from "@/db/schema/_common";
@@ -212,6 +213,20 @@ export const userSettings = pgTable("user_settings", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/* ---------- rate limiting ---------- */
+export const rateLimitLog = pgTable("rate_limit_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {onDelete: "cascade"}),
+  actionType: rateLimitActionEnum("action_type").notNull(),
+  resourceId: text("resource_id"), // Optional, for per-resource limits
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  userActionIdx: index("rate_limit_user_action_idx").on(t.userId, t.actionType, t.createdAt),
+  userResourceIdx: index("rate_limit_user_resource_idx").on(t.userId, t.actionType, t.resourceId, t.createdAt)
+}));
 
 /* ---------- fx rates ---------- */
 export const fxRates = pgTable("fx_rates", {

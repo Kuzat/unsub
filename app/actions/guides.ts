@@ -7,6 +7,7 @@ import crypto from "crypto";
 import {CreateGuideFormValues, createGuideSchema} from "@/lib/validation/guide";
 import {isAdmin, requireAdmin, requireSession} from "@/lib/auth";
 import {fetchServiceById} from "@/app/actions/services";
+import {checkRateLimit, recordRateLimitAction} from "@/lib/rate-limiting";
 
 export type Guide = typeof guide.$inferInsert;
 export type GuideVersion = typeof guideVersion.$inferInsert;
@@ -19,6 +20,14 @@ export type GuideVersion = typeof guideVersion.$inferInsert;
 export async function createGuide(input: CreateGuideFormValues): Promise<{ success: string } | { error: string }> {
   const session = await requireSession();
   const userIsAdmin = isAdmin(session);
+
+  // Check rate limit for guide creation (non-admin users only)
+  if (!userIsAdmin) {
+    const rateLimitResult = await checkRateLimit(session.user.id, "guide_edit", input.serviceId, session);
+    if (!rateLimitResult.allowed) {
+      return { error: rateLimitResult.message || "Rate limit exceeded" };
+    }
+  }
 
   try {
     // Validate the input data
@@ -71,6 +80,11 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
             updatedAt: new Date(),
           })
           .where(eq(guide.id, guideId));
+      }
+
+      // Record the rate limit action for non-admin users
+      if (!userIsAdmin) {
+        await recordRateLimitAction(session.user.id, "guide_edit", data.serviceId);
       }
 
       return {success: "Guide created successfully"};
@@ -144,6 +158,12 @@ export async function fetchRejectedGuideVersions() {
 export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'status'>): Promise<{ success: string } | { error: string }> {
   const session = await requireSession();
 
+  // Check rate limit for guide edits
+  const rateLimitResult = await checkRateLimit(session.user.id, "guide_edit", input.serviceId, session);
+  if (!rateLimitResult.allowed) {
+    return { error: rateLimitResult.message || "Rate limit exceeded" };
+  }
+
   try {
     // Validate the input data (force status to pending for suggestions)
     const data = createGuideSchema.parse({...input, status: "pending"});
@@ -178,6 +198,9 @@ export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'statu
         updatedAt: new Date(),
         createdBy: session.user.id,
       });
+
+      // Record the rate limit action
+      await recordRateLimitAction(session.user.id, "guide_edit", data.serviceId);
 
       return {success: "Guide edit suggestion submitted successfully and is awaiting review"};
     });
