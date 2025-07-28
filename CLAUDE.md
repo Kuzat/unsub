@@ -87,6 +87,12 @@ Cancellation guides use a versioned approval system where:
 
 ### Important Patterns
 
+#### Server vs Client Components
+- **ALWAYS keep pages as Server Components** - Pages (`page.tsx`) should be server components by default
+- **Use "use client" only for components that need client-side state or interactivity** - Create separate client components for forms, interactive elements, etc.
+- **Pattern**: Server page fetches data and passes it to client components as props
+- **Example**: Instead of making `page.tsx` a client component, create a separate `MyForm.tsx` client component and import it into the server page
+
 #### Form Validation
 Uses React Hook Form with Zod schemas defined in `lib/validation/`
 
