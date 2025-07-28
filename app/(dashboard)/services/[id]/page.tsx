@@ -2,7 +2,7 @@ import {isAdmin, requireSession} from "@/lib/auth";
 import {fetchServiceById} from "@/app/actions/services";
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
-import {ArrowLeft, Edit, PlusCircle} from "lucide-react";
+import {ArrowLeft, Edit, PlusCircle, FileEdit} from "lucide-react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import ServiceLogo from "@/components/ui/service-logo";
 import {MarkdownContent} from "@/components/ui/markdown-content";
@@ -110,10 +110,22 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
 
         <Card>
           <CardHeader>
-            <CardTitle>Service Guide</CardTitle>
-            <CardDescription>
-              Information about cancelling or managing this service
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Service Guide</CardTitle>
+                <CardDescription>
+                  Information about cancelling or managing this service
+                </CardDescription>
+              </div>
+              {hasGuide && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/services/${id}/guide/edit`}>
+                    <FileEdit className="mr-2 h-4 w-4"/>
+                    Suggest Edit
+                  </Link>
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {hasGuide && guideContent ? (

@@ -13,11 +13,11 @@ export type CommonGuideVersion = typeof guideVersion.$inferSelect & {
   guide: typeof guide.$inferSelect & {
     service: typeof service.$inferSelect,
   },
-  createdBy: typeof user.$inferSelect,
+  createdBy: typeof user.$inferSelect | null,
 }
 export type PendingGuideVersion =  CommonGuideVersion
 export type RejectedGuideVersion = CommonGuideVersion & {
-  reviewedBy: typeof user.$inferSelect,
+  reviewedBy: typeof user.$inferSelect | null,
 }
 export type GuideVersion = PendingGuideVersion | RejectedGuideVersion;
 

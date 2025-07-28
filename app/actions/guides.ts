@@ -2,7 +2,7 @@
 
 import {db} from "@/db";
 import {guide, guideVersion} from "@/db/schema/app";
-import {eq} from "drizzle-orm";
+import {eq, desc} from "drizzle-orm";
 import crypto from "crypto";
 import {CreateGuideFormValues, createGuideSchema} from "@/lib/validation/guide";
 import {isAdmin, requireAdmin, requireSession} from "@/lib/auth";
@@ -133,6 +133,57 @@ export async function fetchRejectedGuideVersions() {
   } catch (error) {
     console.error("Error fetching rejected guide versions:", error);
     throw new Error("Failed to fetch rejected guide versions");
+  }
+}
+
+/**
+ * Creates a suggested edit to an existing guide by creating a new pending version
+ * @param input The guide edit data
+ * @returns Success or error message
+ */
+export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'status'>): Promise<{ success: string } | { error: string }> {
+  const session = await requireSession();
+
+  try {
+    // Validate the input data (force status to pending for suggestions)
+    const data = createGuideSchema.parse({...input, status: "pending"});
+
+    const service = await fetchServiceById({id: data.serviceId, withGuide: true});
+    if (!service) {
+      return {error: "Service not found or you don't have permission to suggest edits for it"};
+    }
+    if (!service.guide) {
+      return {error: "No guide exists for this service yet. Create a new guide instead."};
+    }
+
+    return await db.transaction(async (tx) => {
+      // Get the next version number
+      const latestVersion = await tx.query.guideVersion.findFirst({
+        where: eq(guideVersion.guideId, service.guide!.id),
+        orderBy: desc(guideVersion.version)
+      });
+
+      const nextVersion = (latestVersion?.version || 0) + 1;
+
+      // Create a new pending guide version
+      const versionId = crypto.randomUUID();
+      await tx.insert(guideVersion).values({
+        id: versionId,
+        guideId: service.guide!.id,
+        version: nextVersion,
+        bodyMd: data.bodyMd,
+        changeNote: data.changeNote || null,
+        status: "pending",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: session.user.id,
+      });
+
+      return {success: "Guide edit suggestion submitted successfully and is awaiting review"};
+    });
+  } catch (error) {
+    console.error("Error suggesting guide edit:", error);
+    return {error: "Failed to submit guide edit suggestion"};
   }
 }
 

@@ -31,7 +31,7 @@ export function ClientGuideReviewTable<TData extends PendingGuideVersion, TValue
 
   // Get the current data and columns based on the active tab
   const currentData = activeTab === 'pending' ? pendingItems : rejectedItems;
-  const currentColumns = activeTab === 'pending' ? pendingColumns : rejectedColumns;
+  const currentColumns = (activeTab === 'pending' ? pendingColumns : rejectedColumns) as ColumnDef<TData>[];
 
   return (
     <>

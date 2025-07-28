@@ -23,7 +23,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-      components={{
+        components={{
         // Custom components for better styling integration
         h1: ({ children }) => (
           <h1 className="text-2xl font-bold text-foreground mb-4">{children}</h1>
@@ -51,7 +51,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             {children}
           </blockquote>
         ),
-        code: ({ inline, children }) => 
+        code: ({ inline, children }: { inline?: boolean; children?: React.ReactNode }) => 
           inline ? (
             <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-foreground">
               {children}
@@ -76,9 +76,9 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
             {children}
           </a>
         ),
-      }}
-        >
-          {content}
+        }}
+      >
+        {content}
       </ReactMarkdown>
     </div>
   )
