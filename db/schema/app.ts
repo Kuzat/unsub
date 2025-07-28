@@ -180,6 +180,25 @@ export const guideVote = pgTable("guide_vote", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+/* ---------- guide images ---------- */
+export const guideImage = pgTable("guide_image", {
+  id: text("id").primaryKey(),
+  guideId: text("guide_id")
+    .notNull()
+    .references(() => guide.id, {onDelete: "cascade"}),
+  originalUrl: text("original_url"),
+  cdnUrl: text("cdn_url").notNull(),
+  imageHash: text("image_hash").notNull(),
+  altText: text("alt_text"),
+  width: integer("width"),
+  height: integer("height"),
+  fileSize: integer("file_size"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  guideIdx: index("guide_image_guide_idx").on(t.guideId),
+  hashIdx: index("guide_image_hash_idx").on(t.imageHash)
+}));
+
 /* ---------- user settings ---------- */
 export const userSettings = pgTable("user_settings", {
   id: text("id").primaryKey(),
