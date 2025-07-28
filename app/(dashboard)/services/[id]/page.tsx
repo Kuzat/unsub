@@ -6,6 +6,7 @@ import {ArrowLeft, Edit, PlusCircle, FileEdit} from "lucide-react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import ServiceLogo from "@/components/ui/service-logo";
 import {MarkdownContent} from "@/components/ui/markdown-content";
+import GuideVoting from "@/components/guides/guide-voting";
 import {cn, formatDate, toIsoDate} from "@/lib/utils";
 
 type ServiceDetailPageProps = {
@@ -132,6 +133,11 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
             {hasGuide && guideContent ? (
               <div>
                 <MarkdownContent content={guideContent} />
+                
+                <div className="mt-6">
+                  <GuideVoting guideId={service.guide!.id} />
+                </div>
+                
                 {guideCreatedAt && (
                   <div className="mt-6 pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">

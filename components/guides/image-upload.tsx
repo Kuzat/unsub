@@ -157,7 +157,8 @@ export default function ImageUpload({ onImageInsert, serviceId }: ImageUploadPro
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" type="button">
-          <Image className="mr-2 h-4 w-4" alt="" />
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <Image className="mr-2 h-4 w-4" />
           Add Image
         </Button>
       </DialogTrigger>
