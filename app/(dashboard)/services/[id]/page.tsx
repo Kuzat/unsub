@@ -6,7 +6,7 @@ import {ArrowLeft, Edit, PlusCircle, FileEdit} from "lucide-react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import ServiceLogo from "@/components/ui/service-logo";
 import {MarkdownContent} from "@/components/ui/markdown-content";
-import {cn} from "@/lib/utils";
+import {cn, formatDate, toIsoDate} from "@/lib/utils";
 
 type ServiceDetailPageProps = {
   params: Promise<{
@@ -28,6 +28,7 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
 
   const hasGuide = !!service.guide;
   const guideContent = hasGuide && service.guide?.currentVersion?.bodyMd;
+  const guideCreatedAt = hasGuide && service.guide?.currentVersion?.createdAt;
 
   return (
     <div className="container mx-auto py-6">
@@ -129,7 +130,16 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
           </CardHeader>
           <CardContent>
             {hasGuide && guideContent ? (
-              <MarkdownContent content={guideContent} />
+              <div>
+                <MarkdownContent content={guideContent} />
+                {guideCreatedAt && (
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground">
+                      Created on {formatDate(toIsoDate(guideCreatedAt))}
+                    </p>
+                  </div>
+                )}
+              </div>
             ) : (
               <div
                 className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
