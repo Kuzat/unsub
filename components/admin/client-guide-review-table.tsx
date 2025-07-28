@@ -14,7 +14,7 @@ interface ClientGuideReviewTableProps<TPendingData, TRejectedData, TValue> {
 export function ClientGuideReviewTable<TData extends PendingGuideVersion, TValue = unknown>({
   pendingData,
   rejectedData,
-}: ClientGuideReviewTableProps<TData, TValue>) {
+}: ClientGuideReviewTableProps<TData, TData, TValue>) {
   // Maintain client-side state of the data
   const [pendingItems, setPendingItems] = useState<TData[]>(pendingData);
   const [rejectedItems, setRejectedItems] = useState<TData[]>(rejectedData);

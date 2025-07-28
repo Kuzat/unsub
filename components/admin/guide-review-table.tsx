@@ -15,6 +15,7 @@ import {Button} from "@/components/ui/button";
 import {toast} from "sonner";
 import {updateGuideVersionStatus} from "@/app/actions/guides";
 import {PendingGuideVersion} from "@/app/(dashboard)/admin/guides/columns";
+import {MarkdownContent} from "@/components/ui/markdown-content";
 
 interface GuideReviewTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -112,8 +113,10 @@ export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unk
               }
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto mt-4 prose prose-sm dark:prose-invert">
-            <div className="whitespace-pre-wrap">{selectedGuide?.bodyMd}</div>
+          <div className="max-h-[60vh] overflow-y-auto mt-4">
+            {selectedGuide?.bodyMd && (
+              <MarkdownContent content={selectedGuide.bodyMd} />
+            )}
           </div>
           <DialogFooter className="flex justify-between items-center mt-4">
             <Button

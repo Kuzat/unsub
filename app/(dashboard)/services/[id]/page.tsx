@@ -5,6 +5,7 @@ import Link from "next/link";
 import {ArrowLeft, Edit, PlusCircle} from "lucide-react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import ServiceLogo from "@/components/ui/service-logo";
+import {MarkdownContent} from "@/components/ui/markdown-content";
 import {cn} from "@/lib/utils";
 
 type ServiceDetailPageProps = {
@@ -116,9 +117,7 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
           </CardHeader>
           <CardContent>
             {hasGuide && guideContent ? (
-              <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
-                {guideContent}
-              </div>
+              <MarkdownContent content={guideContent} />
             ) : (
               <div
                 className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center">
