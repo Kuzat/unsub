@@ -3,7 +3,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import Link from "next/link"
 import {ArrowLeft} from "lucide-react"
 import {fetchServiceById} from "@/app/actions/services"
-import {requireSession} from "@/lib/auth"
+import {requireSession, isAdmin} from "@/lib/auth"
 import SuggestEditForm from "@/components/guides/suggest-edit-form"
 
 type SuggestGuideEditPageProps = {
@@ -13,7 +13,8 @@ type SuggestGuideEditPageProps = {
 }
 
 export default async function SuggestGuideEditPage({params}: SuggestGuideEditPageProps) {
-  await requireSession()
+  const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
   const {id: serviceId} = await params
 
   const service = await fetchServiceById({id: serviceId, withGuide: true})
@@ -66,6 +67,7 @@ export default async function SuggestGuideEditPage({params}: SuggestGuideEditPag
       <SuggestEditForm 
         serviceId={serviceId}
         initialContent={initialContent}
+        isAdmin={userIsAdmin}
       />
     </div>
   )

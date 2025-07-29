@@ -25,7 +25,7 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
   if (!userIsAdmin) {
     const rateLimitResult = await checkRateLimit(session.user.id, "guide_edit", input.serviceId, session);
     if (!rateLimitResult.allowed) {
-      return { error: rateLimitResult.message || "Rate limit exceeded" };
+      return {error: rateLimitResult.message || "Rate limit exceeded"};
     }
   }
 
@@ -49,13 +49,13 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
       if (service.guide) {
         // Guide already exists, create a new version
         guideId = service.guide.id;
-        
+
         // Get the next version number
         const latestVersion = await tx.query.guideVersion.findFirst({
           where: eq(guideVersion.guideId, guideId),
           orderBy: desc(guideVersion.version)
         });
-        
+
         nextVersion = (latestVersion?.version || 0) + 1;
       } else {
         // Create a new guide
@@ -66,7 +66,7 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
           createdAt: new Date(),
           updatedAt: new Date(),
         });
-        
+
         nextVersion = 1;
       }
 
@@ -102,10 +102,10 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
         await recordRateLimitAction(session.user.id, "guide_edit", data.serviceId);
       }
 
-      const message = service.guide ? 
-        "New guide version created successfully" : 
+      const message = service.guide ?
+        "New guide version created successfully" :
         "Guide created successfully";
-      
+
       return {success: message};
     });
   } catch (error) {
@@ -170,22 +170,27 @@ export async function fetchRejectedGuideVersions() {
 }
 
 /**
- * Creates a suggested edit to an existing guide by creating a new pending version
+ * Creates a suggested edit to an existing guide by creating a new version
  * @param input The guide edit data
  * @returns Success or error message
  */
-export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'status'>): Promise<{ success: string } | { error: string }> {
+export async function suggestGuideEdit(input: CreateGuideFormValues): Promise<{ success: string } | { error: string }> {
   const session = await requireSession();
+  const userIsAdmin = isAdmin(session);
 
-  // Check rate limit for guide edits
   const rateLimitResult = await checkRateLimit(session.user.id, "guide_edit", input.serviceId, session);
   if (!rateLimitResult.allowed) {
-    return { error: rateLimitResult.message || "Rate limit exceeded" };
+    return {error: rateLimitResult.message || "Rate limit exceeded"};
   }
 
   try {
-    // Validate the input data (force status to pending for suggestions)
-    const data = createGuideSchema.parse({...input, status: "pending"});
+    // Validate the input data
+    const data = createGuideSchema.parse(input);
+
+    // Non-admin users can only create pending versions
+    if (!userIsAdmin && data.status !== "pending") {
+      return {error: "Guide edits need to be created as pending, and will be reviewed by an admin before being published"};
+    }
 
     const service = await fetchServiceById({id: data.serviceId, withGuide: true});
     if (!service) {
@@ -204,7 +209,7 @@ export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'statu
 
       const nextVersion = (latestVersion?.version || 0) + 1;
 
-      // Create a new pending guide version
+      // Create a new guide version
       const versionId = crypto.randomUUID();
       await tx.insert(guideVersion).values({
         id: versionId,
@@ -212,16 +217,32 @@ export async function suggestGuideEdit(input: Omit<CreateGuideFormValues, 'statu
         version: nextVersion,
         bodyMd: data.bodyMd,
         changeNote: data.changeNote || null,
-        status: "pending",
+        status: data.status,
         createdAt: new Date(),
         updatedAt: new Date(),
         createdBy: session.user.id,
+        reviewedAt: userIsAdmin && data.status === "approved" ? new Date() : null,
+        reviewedBy: userIsAdmin && data.status === "approved" ? session.user.id : null,
       });
 
-      // Record the rate limit action
+      // Update the guide's current version only if the guideVersion has status "approved"
+      if (data.status === "approved") {
+        await tx
+          .update(guide)
+          .set({
+            currentVersionId: versionId,
+            updatedAt: new Date(),
+          })
+          .where(eq(guide.id, service.guide!.id));
+      }
+
       await recordRateLimitAction(session.user.id, "guide_edit", data.serviceId);
 
-      return {success: "Guide edit suggestion submitted successfully and is awaiting review"};
+      const message = data.status === "pending" ?
+        "Guide edit suggestion submitted successfully and is awaiting review" :
+        "Guide edit created successfully";
+
+      return {success: message};
     });
   } catch (error) {
     console.error("Error suggesting guide edit:", error);

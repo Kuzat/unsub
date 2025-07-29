@@ -15,9 +15,10 @@ import Link from "next/link"
 interface SuggestEditFormProps {
   serviceId: string
   initialContent?: string
+  isAdmin?: boolean
 }
 
-export default function SuggestEditForm({ serviceId, initialContent }: SuggestEditFormProps) {
+export default function SuggestEditForm({ serviceId, initialContent, isAdmin = false }: SuggestEditFormProps) {
   const router = useRouter()
 
   const form = useForm<CreateGuideFormValues>({
@@ -32,11 +33,7 @@ export default function SuggestEditForm({ serviceId, initialContent }: SuggestEd
 
   async function onSubmit(data: CreateGuideFormValues) {
     try {
-      const result = await suggestGuideEdit({
-        serviceId: data.serviceId,
-        bodyMd: data.bodyMd,
-        changeNote: data.changeNote,
-      })
+      const result = await suggestGuideEdit(data)
 
       if ("success" in result) {
         toast.success(result.success)
@@ -61,7 +58,7 @@ export default function SuggestEditForm({ serviceId, initialContent }: SuggestEd
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <GuideForm serviceId={serviceId} isAdmin={false}/>
+            <GuideForm serviceId={serviceId} isAdmin={isAdmin}/>
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" asChild>
