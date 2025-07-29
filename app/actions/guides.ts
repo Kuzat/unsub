@@ -41,26 +41,41 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
     if (!service) {
       return {error: "Service not found or you don't have permission to create a guide for it"};
     }
-    if (service.guide) {
-      return {error: "A guide for this service already exists"};
-    }
 
     return await db.transaction(async (tx) => {
-      // Create a new guide
-      const guideId = crypto.randomUUID();
-      await tx.insert(guide).values({
-        id: guideId,
-        serviceId: data.serviceId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      let guideId: string;
+      let nextVersion: number;
+
+      if (service.guide) {
+        // Guide already exists, create a new version
+        guideId = service.guide.id;
+        
+        // Get the next version number
+        const latestVersion = await tx.query.guideVersion.findFirst({
+          where: eq(guideVersion.guideId, guideId),
+          orderBy: desc(guideVersion.version)
+        });
+        
+        nextVersion = (latestVersion?.version || 0) + 1;
+      } else {
+        // Create a new guide
+        guideId = crypto.randomUUID();
+        await tx.insert(guide).values({
+          id: guideId,
+          serviceId: data.serviceId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        
+        nextVersion = 1;
+      }
 
       // Create a new guide version
       const versionId = crypto.randomUUID();
       await tx.insert(guideVersion).values({
         id: versionId,
         guideId,
-        version: 1,
+        version: nextVersion,
         bodyMd: data.bodyMd,
         changeNote: data.changeNote || null,
         status: data.status,
@@ -87,7 +102,11 @@ export async function createGuide(input: CreateGuideFormValues): Promise<{ succe
         await recordRateLimitAction(session.user.id, "guide_edit", data.serviceId);
       }
 
-      return {success: "Guide created successfully"};
+      const message = service.guide ? 
+        "New guide version created successfully" : 
+        "Guide created successfully";
+      
+      return {success: message};
     });
   } catch (error) {
     console.error("Error creating guide:", error);
