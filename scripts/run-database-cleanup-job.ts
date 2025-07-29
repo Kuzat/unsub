@@ -1,3 +1,10 @@
+// Load environment variables first
+import { config } from 'dotenv';
+config();
+
+// Disable OpenTelemetry for this script to avoid configuration issues
+process.env.OTEL_SDK_DISABLED = 'true';
+
 import { runDatabaseCleanup, getAvailableCleanupTasks } from '@/lib/jobs/databaseCleanup';
 
 async function main() {

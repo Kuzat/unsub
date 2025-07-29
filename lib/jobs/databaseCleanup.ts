@@ -1,6 +1,7 @@
-import { db } from '@/db';
-import { rateLimitLog } from '@/db/schema/app';
-import { lt } from 'drizzle-orm';
+import {db} from '@/db';
+import {rateLimitLog, service} from '@/db/schema/app';
+import {lt, isNotNull} from 'drizzle-orm';
+import {listObjects, deleteObject} from '@/lib/storage';
 
 export interface CleanupTask {
   name: string;
@@ -56,6 +57,86 @@ async function cleanupRateLimitLogs(retentionDays: number = 7): Promise<CleanupT
 }
 
 /**
+ * Clean up orphaned logo images from storage that are not connected to any service
+ * This function enumerates logo files in storage and removes those not referenced by any service
+ */
+async function cleanupOrphanedLogoImages(): Promise<CleanupTaskResult> {
+  try {
+    // List all logo files in storage
+    const logoFiles = await listObjects("logo/");
+
+    if (logoFiles.length === 0) {
+      return {
+        success: true,
+        message: 'No logo files found in storage',
+        recordsDeleted: 0,
+      };
+    }
+
+    // Get all logoCdnUrl values from services
+    const servicesWithLogos = await db
+      .select({logoCdnUrl: service.logoCdnUrl})
+      .from(service)
+      .where(isNotNull(service.logoCdnUrl));
+
+    // Extract the storage keys from CDN URLs
+    // CDN URLs are in format: https://cdn.example.com/logo/hash.webp
+    // We need to extract the "logo/hash.webp" part
+    const referencedKeys = new Set<string>();
+    for (const svc of servicesWithLogos) {
+      if (svc.logoCdnUrl) {
+        try {
+          const url = new URL(svc.logoCdnUrl);
+          // Remove leading slash and extract the key
+          const key = url.pathname.substring(1);
+          if (key.startsWith('logo/')) {
+            referencedKeys.add(key.substring("logo/".length));
+          }
+        } catch {
+          console.warn(`Invalid CDN URL: ${svc.logoCdnUrl}`);
+        }
+      }
+    }
+
+    // Find orphaned files (files in storage that are not referenced by any service)
+    const orphanedFiles = logoFiles.filter(file => !referencedKeys.has(file));
+
+    let deletedCount = 0;
+    const deletionErrors: string[] = [];
+
+    // Delete orphaned files from storage
+    for (const orphanedFile of orphanedFiles) {
+      console.log(`Deleting orphaned logo file: ${orphanedFile}`);
+      const deleted = await deleteObject("logo/" + orphanedFile);
+      if (deleted) {
+        deletedCount++;
+      } else {
+        deletionErrors.push(orphanedFile);
+      }
+    }
+
+    let message = `Logo cleanup completed. Found ${logoFiles.length} files in storage, ${referencedKeys.size} referenced by services, deleted ${deletedCount} orphaned files.`;
+
+    if (deletionErrors.length > 0) {
+      message += ` Failed to delete ${deletionErrors.length} files.`;
+    }
+
+    return {
+      success: deletionErrors.length === 0,
+      message,
+      recordsDeleted: deletedCount,
+    };
+  } catch (error) {
+    console.error('Error cleaning up orphaned logo images:', error);
+    return {
+      success: false,
+      message: 'Failed to clean up orphaned logo images',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
  * Clean up orphaned guide images (example of extensible cleanup)
  * This is a placeholder for future cleanup tasks
  */
@@ -64,7 +145,7 @@ async function cleanupOrphanedGuideImages(): Promise<CleanupTaskResult> {
     // TODO: Implement cleanup of guide images that are no longer referenced
     // This could involve checking for images in the CDN that aren't in the database
     // or database records that point to non-existent CDN files
-    
+
     return {
       success: true,
       message: 'Orphaned guide images cleanup completed (placeholder)',
@@ -79,27 +160,6 @@ async function cleanupOrphanedGuideImages(): Promise<CleanupTaskResult> {
   }
 }
 
-/**
- * Clean up old user sessions (example of extensible cleanup)
- */
-async function cleanupExpiredSessions(): Promise<CleanupTaskResult> {
-  try {
-    // TODO: Implement cleanup of expired user sessions
-    // This would involve deleting sessions that are older than the session expiry time
-    
-    return {
-      success: true,
-      message: 'Expired sessions cleanup completed (placeholder)',
-      recordsDeleted: 0,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Failed to clean up expired sessions',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-}
 
 /**
  * Registry of all available cleanup tasks
@@ -110,6 +170,11 @@ export const CLEANUP_TASKS: CleanupTask[] = [
     name: 'rate-limit-logs',
     description: 'Clean up old rate limiting logs',
     execute: () => cleanupRateLimitLogs(7), // Keep 7 days of logs
+  },
+  {
+    name: 'orphaned-logo-images',
+    description: 'Clean up orphaned logo images from storage',
+    execute: cleanupOrphanedLogoImages,
   },
   {
     name: 'orphaned-guide-images',
@@ -123,7 +188,7 @@ export const CLEANUP_TASKS: CleanupTask[] = [
  * @param taskNames - Optional array of specific task names to run. If not provided, runs all tasks.
  */
 export async function runDatabaseCleanup(taskNames?: string[]): Promise<DatabaseCleanupResult> {
-  const tasksToRun = taskNames 
+  const tasksToRun = taskNames
     ? CLEANUP_TASKS.filter(task => taskNames.includes(task.name))
     : CLEANUP_TASKS;
 
@@ -138,10 +203,10 @@ export async function runDatabaseCleanup(taskNames?: string[]): Promise<Database
 
   for (const task of tasksToRun) {
     console.log(`Running cleanup task: ${task.name} (${task.description})`);
-    
+
     try {
       const result = await task.execute();
-      
+
       results.tasks.push({
         name: task.name,
         result,
@@ -160,7 +225,7 @@ export async function runDatabaseCleanup(taskNames?: string[]): Promise<Database
     } catch (error) {
       results.failedTasks++;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       results.tasks.push({
         name: task.name,
         result: {
@@ -176,7 +241,7 @@ export async function runDatabaseCleanup(taskNames?: string[]): Promise<Database
   }
 
   console.log(`Database cleanup completed. ${results.successfulTasks}/${results.totalTasks} tasks successful.`);
-  
+
   return results;
 }
 
