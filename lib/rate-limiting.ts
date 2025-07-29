@@ -136,29 +136,6 @@ export async function recordRateLimitAction(
   }
 }
 
-/**
- * Clean up old rate limit logs to prevent database bloat
- * This should be run periodically (e.g., via a cron job)
- * @param retentionDays - Number of days to keep logs (default: 7)
- */
-export async function cleanupRateLimitLogs(retentionDays: number = 7): Promise<void> {
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-
-  try {
-    const result = await db
-      .delete(rateLimitLog)
-      .where(
-        and(
-          gte(rateLimitLog.createdAt, cutoffDate)
-        )
-      );
-    
-    console.log(`Cleaned up old rate limit logs`);
-  } catch (error) {
-    console.error("Error cleaning up rate limit logs:", error);
-  }
-}
 
 /**
  * Get rate limit status for a user across all actions

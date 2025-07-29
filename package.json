@@ -12,6 +12,7 @@
     "db:save-cert": "tsx scripts/save-crt.ts",
     "job:subscriptions:processRenewals": "tsx scripts/run-renewal-job.ts",
     "job:reminders:process": "tsx scripts/run-reminder-job.ts",
+    "job:database:cleanup": "tsx scripts/run-database-cleanup-job.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
