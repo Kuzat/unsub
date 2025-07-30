@@ -1,13 +1,14 @@
 import {notFound} from "next/navigation";
 import {requireSession} from "@/lib/auth";
 import {getSubscriptionById, getTransactionsBySubscriptionId} from "@/app/actions/subscriptions";
+import {fetchServiceById} from "@/app/actions/services";
 import {formatDate, formatCurrency, calculateNextRenewal, toIsoDate} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {DataTable} from "@/components/ui/data-table";
 import {transactionColumns} from "./columns";
 import Link from "next/link";
-import {ArrowLeft, Edit} from "lucide-react";
+import {ArrowLeft, Edit, FileText} from "lucide-react";
 import {AddTransaction} from "@/components/transactions/add-transaction";
 import ServiceLogo from "@/components/ui/service-logo";
 
@@ -29,6 +30,12 @@ export default async function SubscriptionDetailPage({params}: { params: Promise
   }
 
   const transactions = "error" in transactionsData ? [] : transactionsData;
+
+  // Fetch service with guide information
+  const serviceWithGuide = await fetchServiceById({
+    id: subscriptionData.serviceId!,
+    withGuide: true
+  });
   const nextRenewalDate = calculateNextRenewal(
     new Date(subscriptionData.startDate),
     subscriptionData.billingCycle
@@ -103,9 +110,19 @@ export default async function SubscriptionDetailPage({params}: { params: Promise
               </div>
             )}
             {subscriptionData.notes && (
-              <div>
+              <div className="mb-4">
                 <span className="font-medium">Notes: </span>
                 <span>{subscriptionData.notes}</span>
+              </div>
+            )}
+            {serviceWithGuide?.guide?.currentVersion && (
+              <div className="pt-4 border-t border-border">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/services/${subscriptionData.serviceId}`}>
+                    <FileText className="mr-2 h-4 w-4"/>
+                    View Cancellation Guide
+                  </Link>
+                </Button>
               </div>
             )}
           </CardContent>
