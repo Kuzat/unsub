@@ -17,10 +17,12 @@ export type GuideFormProps = {
 
 export default function GuideForm({serviceId, isAdmin = false}: GuideFormProps) {
   const form = useFormContext<CreateGuideFormValues>()
-  
+
   const handleImageInsert = (markdown: string) => {
     const currentContent = form.getValues("bodyMd")
-    const newContent = currentContent + "\n\n" + markdown
+    const newContent = currentContent.trim()
+      ? currentContent + "\n\n" + markdown
+      : markdown
     form.setValue("bodyMd", newContent)
   }
 
@@ -38,7 +40,7 @@ export default function GuideForm({serviceId, isAdmin = false}: GuideFormProps) 
           <FormItem>
             <div className="flex items-center justify-between">
               <FormLabel>Guide Content (Markdown)</FormLabel>
-              <ImageUpload 
+              <ImageUpload
                 onImageInsert={handleImageInsert}
                 serviceId={serviceId}
               />

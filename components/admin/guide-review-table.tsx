@@ -24,10 +24,10 @@ interface GuideReviewTableProps<TData, TValue> {
 }
 
 export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unknown>({
-                                                                      columns,
-                                                                      data,
-                                                                      onItemRemoved,
-                                                                    }: GuideReviewTableProps<TData, TValue>) {
+                                                                                        columns,
+                                                                                        data,
+                                                                                        onItemRemoved,
+                                                                                      }: GuideReviewTableProps<TData, TValue>) {
   const [selectedGuide, setSelectedGuide] = useState<TData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,37 +35,16 @@ export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unk
     setSelectedGuide(guide);
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => handleStatusUpdate("approved");
+
+  const handleReject = () => handleStatusUpdate("rejected");
+
+  const handleStatusUpdate = async (status: "approved" | "rejected") => {
     if (!selectedGuide) return;
-
     setIsLoading(true);
+
     try {
-      const result = await updateGuideVersionStatus(selectedGuide.id, "approved");
-
-      if ("success" in result) {
-        toast.success(result.success);
-        // Call onItemRemoved to update the list
-        if (onItemRemoved) {
-          onItemRemoved(selectedGuide.id);
-        }
-      } else {
-        toast.error(result.error);
-      }
-    } catch (error) {
-      toast.error("Failed to approve guide version");
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-      setSelectedGuide(null);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!selectedGuide) return;
-
-    setIsLoading(true);
-    try {
-      const result = await updateGuideVersionStatus(selectedGuide.id, "rejected");
+      const result = await updateGuideVersionStatus(selectedGuide.id, status);
 
       if ("success" in result) {
         toast.success(result.success);
@@ -83,10 +62,10 @@ export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unk
       setIsLoading(false);
       setSelectedGuide(null);
     }
-  };
+  }
 
   // Add row click handler to the DataTable
-  const onRowClick = (row: {original: TData}) => {
+  const onRowClick = (row: { original: TData }) => {
     handleRowClick(row.original);
   };
 
@@ -115,7 +94,7 @@ export function GuideReviewTable<TData extends PendingGuideVersion, TValue = unk
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto mt-4">
             {selectedGuide?.bodyMd && (
-              <MarkdownContent content={selectedGuide.bodyMd} />
+              <MarkdownContent content={selectedGuide.bodyMd}/>
             )}
           </div>
           <DialogFooter className="flex justify-between items-center mt-4">

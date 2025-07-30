@@ -28,7 +28,7 @@ export default async function NewGuidePage({ params }: NewGuidePageProps) {
 
   if (service.guide) {
     // Should just redirect to the edit page if someone tries to create new for an already existing guide
-    return redirect(`/services/${id}/guide/${service.guide.id}/edit`)
+    return redirect(`/services/${id}/guide/edit`)
   }
 
   return (
