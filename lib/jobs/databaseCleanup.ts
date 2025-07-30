@@ -89,8 +89,11 @@ async function cleanupOrphanedLogoImages(): Promise<CleanupTaskResult> {
           const url = new URL(svc.logoCdnUrl);
           // Remove leading slash and extract the key
           const key = url.pathname.substring(1);
-          if (key.startsWith('logo/')) {
-            referencedKeys.add(key.substring("logo/".length));
+          const match = key.match(/^logo\/(.+)$/);
+          if (match) {
+            referencedKeys.add(match[1]);
+          } else {
+            console.warn(`Invalid CDN URL: ${svc.logoCdnUrl}`)
           }
         } catch {
           console.warn(`Invalid CDN URL: ${svc.logoCdnUrl}`);

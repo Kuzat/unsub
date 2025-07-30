@@ -13,9 +13,9 @@ const RenewalReminder: React.FC<RenewalReminderProps> = ({
   serviceName, 
   renewalDate, 
   dashboardUrl = "https://unsub.cash/subscriptions",
-  serviceId 
+  serviceId
 }) => {
-  const baseUrl = dashboardUrl.replace('/subscriptions', '');
+  const baseUrl = new URL(dashboardUrl).origin;
   const guideUrl = serviceId ? `${baseUrl}/services/${serviceId}` : null;
   return (
     <EmailLayout
