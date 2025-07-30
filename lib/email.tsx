@@ -132,6 +132,7 @@ export async function sendRenewalReminderEmail(
     userSettings?: {
       sendRenewalReminderEmails?: boolean;
     };
+    serviceId?: string;
   }
 ) {
   // If checkUserSettings is true and userSettings are provided,
@@ -154,6 +155,7 @@ export async function sendRenewalReminderEmail(
       serviceName={serviceName} 
       renewalDate={dateString}
       dashboardUrl={dashboardUrl}
+      serviceId={options?.serviceId}
     />
   );
   const text = await render(
@@ -161,6 +163,7 @@ export async function sendRenewalReminderEmail(
       serviceName={serviceName} 
       renewalDate={dateString}
       dashboardUrl={dashboardUrl}
+      serviceId={options?.serviceId}
     />,
     {plainText: true}
   );

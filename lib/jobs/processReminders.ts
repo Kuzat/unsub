@@ -20,6 +20,7 @@ export async function processReminders(): Promise<{
       billingCycle: subscription.billingCycle,
       startDate: subscription.startDate,
       serviceName: service.name,
+      serviceId: service.id,
       userEmail: user.email,
       userId: subscription.userId,
       sendRenewalReminderEmails: userSettings.sendRenewalReminderEmails,
@@ -69,7 +70,8 @@ export async function processReminders(): Promise<{
             checkUserSettings: true,
             userSettings: {
               sendRenewalReminderEmails: sub.sendRenewalReminderEmails || undefined
-            }
+            },
+            serviceId: sub.serviceId
           }
         );
 
