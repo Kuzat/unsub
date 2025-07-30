@@ -5,10 +5,11 @@ import sharp from "sharp";
 import {exists, putObject} from "@/lib/storage";
 import {requireSession} from "@/lib/auth";
 import {db} from "@/db";
-import {guideImage, guide} from "@/db/schema/app";
+import {guideImage, guide, service} from "@/db/schema/app";
 import {eq} from "drizzle-orm";
 import crypto from "crypto";
 import {checkRateLimit, recordRateLimitAction} from "@/lib/rate-limiting";
+import {validateExternalUrl} from "@/lib/utils";
 
 const GUIDE_IMAGE_CDN_URL = process.env.LOGO_CDN_URL!; // Reuse same CDN
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB limit for guide images
@@ -21,14 +22,23 @@ const MAX_IMAGE_HEIGHT = 800; // Max height for optimization
  * @returns The guide ID
  */
 async function getOrCreateGuide(serviceId: string): Promise<string> {
+  // Verify service exists
+  const serviceExists = await db.query.service.findFirst({
+    where: eq(service.id, serviceId)
+  })
+
+  if (!serviceExists) {
+    throw new Error('Service not found')
+  }
+
   const existingGuide = await db.query.guide.findFirst({
     where: eq(guide.serviceId, serviceId)
   })
-  
+
   if (existingGuide) {
     return existingGuide.id
   }
-  
+
   // Create new guide if none exists
   const newGuideId = crypto.randomUUID()
   await db.insert(guide).values({
@@ -38,7 +48,7 @@ async function getOrCreateGuide(serviceId: string): Promise<string> {
     createdAt: new Date(),
     updatedAt: new Date(),
   })
-  
+
   return newGuideId
 }
 
@@ -59,7 +69,7 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
   // Check rate limit for image uploads
   const rateLimitResult = await checkRateLimit(session.user.id, "image_upload", undefined, session);
   if (!rateLimitResult.allowed) {
-    return { error: rateLimitResult.message || "Rate limit exceeded for image uploads" };
+    return {error: rateLimitResult.message || "Rate limit exceeded for image uploads"};
   }
 
   try {
@@ -102,7 +112,7 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
     try {
       const sharpImage = sharp(buffer)
       const metadata = await sharpImage.metadata()
-      
+
       // Resize if too large while maintaining aspect ratio
       const resizeOptions: { width?: number; height?: number } = {}
       if (metadata.width && metadata.width > MAX_IMAGE_WIDTH) {
@@ -118,7 +128,7 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
 
       // Convert to WebP for better compression
       processedBuffer = await processedImage
-        .webp({ quality: 85 })
+        .webp({quality: 85})
         .toBuffer()
 
       // Get final dimensions
@@ -150,7 +160,7 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
 
     // Save image record to database
     const imageId = crypto.randomUUID()
-    
+
     try {
       await db.insert(guideImage).values({
         id: imageId,
@@ -167,14 +177,14 @@ export async function uploadGuideImage(formData: FormData): Promise<UploadGuideI
 
       // Record the rate limit action
       await recordRateLimitAction(session.user.id, "image_upload", finalGuideId);
-      
+
     } catch (error) {
       console.error("Error saving image record:", error)
       return {error: 'Failed to save image record'}
     }
 
     // Generate markdown
-    const markdown = altText 
+    const markdown = altText
       ? `![${altText}](${cdnUrl})`
       : `![Image](${cdnUrl})`
 
@@ -199,12 +209,10 @@ export async function uploadGuideImageFromUrl(originalUrl: string, guideIdOrServ
   // Check rate limit for image uploads
   const rateLimitResult = await checkRateLimit(session.user.id, "image_upload", undefined, session);
   if (!rateLimitResult.allowed) {
-    return { error: rateLimitResult.message || "Rate limit exceeded for image uploads" };
+    return {error: rateLimitResult.message || "Rate limit exceeded for image uploads"};
   }
 
-  try {
-    new URL(originalUrl)
-  } catch {
+  if (!validateExternalUrl(originalUrl)) {
     return {error: 'Invalid URL'}
   }
 
@@ -239,7 +247,7 @@ export async function uploadGuideImageFromUrl(originalUrl: string, guideIdOrServ
 
   // Create a FormData object to reuse the upload logic
   const formData = new FormData()
-  const file = new File([buffer], 'image', { type: r.headers.get('Content-Type') || 'image/jpeg' })
+  const file = new File([buffer], 'image', {type: r.headers.get('Content-Type') || 'image/jpeg'})
   formData.set('image', file)
   if (isServiceId) {
     formData.set('serviceId', guideIdOrServiceId)
@@ -249,12 +257,12 @@ export async function uploadGuideImageFromUrl(originalUrl: string, guideIdOrServ
   formData.set('altText', altText || '')
 
   const result = await uploadGuideImage(formData)
-  
+
   // If successful, update the database record to include the original URL
   if ('success' in result) {
     try {
       await db.update(guideImage)
-        .set({ originalUrl })
+        .set({originalUrl})
         .where(eq(guideImage.id, result.success.imageId))
     } catch (error) {
       console.error("Error updating image record with original URL:", error)

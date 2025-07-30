@@ -138,7 +138,7 @@ export const rejectedColumns: ColumnDef<RejectedGuideVersion>[] = [
       return (
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarFallback>{reviewer.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{reviewer.name.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
             <AvatarImage src={reviewer.image || ""} alt={reviewer.name} className="h-6 w-6 rounded-lg"/>
           </Avatar>
           <span className="text-sm">{reviewer.name}</span>
