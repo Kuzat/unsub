@@ -62,7 +62,7 @@ export const auth = betterAuth({
 });
 
 
-type UserSession = typeof auth.$Infer.Session
+export type UserSession = typeof auth.$Infer.Session
 
 export async function requireSession(): Promise<UserSession> {
   const session = await auth.api.getSession({

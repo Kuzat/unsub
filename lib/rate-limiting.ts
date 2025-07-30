@@ -1,10 +1,8 @@
-"use server"
-
 import {db} from "@/db";
 import {rateLimitLog} from "@/db/schema/app";
 import {and, count, eq, gte} from "drizzle-orm";
 import crypto from "crypto";
-import {isAdmin} from "@/lib/auth";
+import {isAdmin, UserSession} from "@/lib/auth";
 
 export type RateLimitAction = "guide_edit" | "image_upload";
 
@@ -50,7 +48,7 @@ export async function checkRateLimit(
   userId: string,
   action: RateLimitAction,
   resourceId?: string,
-  userSession?: any
+  userSession?: UserSession
 ): Promise<RateLimitResult> {
   const rule = RATE_LIMIT_RULES[action];
   if (!rule) {
@@ -143,9 +141,9 @@ export async function recordRateLimitAction(
  */
 export async function getRateLimitStatus(
   userId: string,
-  userSession?: any
+  userSession?: UserSession
 ): Promise<Record<RateLimitAction, RateLimitResult>> {
-  const results: Record<RateLimitAction, RateLimitResult> = {} as any;
+  const results: Record<RateLimitAction, RateLimitResult> = {} as Record<RateLimitAction, RateLimitResult>;
 
   for (const action of Object.keys(RATE_LIMIT_RULES) as RateLimitAction[]) {
     results[action] = await checkRateLimit(userId, action, undefined, userSession);
