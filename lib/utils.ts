@@ -198,7 +198,7 @@ export function validateExternalUrl(externalUrl: string): boolean {
   try {
     const url = new URL(externalUrl)
     if (!['http:', 'https:'].includes(url.protocol)) {
-      console.error("Only HTTP and HTTPS URLs are supported")
+      console.error("validateExternalUrl: Only HTTP and HTTPS URLs are supported")
       return false
     }
 
@@ -206,14 +206,15 @@ export function validateExternalUrl(externalUrl: string): boolean {
     if (['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(url.hostname) ||
       url.hostname.startsWith("192.168.") ||
       url.hostname.startsWith("10.") ||
-      url.hostname.startsWith("172.")) {
-      console.error("Only external URLs are supported");
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(url.hostname) ||
+      url.hostname.startsWith("169.254.")) {
+      console.error("validateExternalUrl: Private network addresses are not allowed");
       return false
     }
 
     return true
   } catch {
-    console.error("Invalid URL");
+    console.error("validateExternalUrl: Invalid URL format");
     return false
   }
 }
