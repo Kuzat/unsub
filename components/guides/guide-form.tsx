@@ -28,7 +28,9 @@ export default function GuideForm({serviceId, isAdmin = false}: GuideFormProps) 
 
   // Set the serviceId in the form
   React.useEffect(() => {
-    form.setValue("serviceId", serviceId)
+    if (form.getValues("serviceId") !== serviceId) {
+      form.setValue("serviceId", serviceId)
+    }
   }, [form, serviceId])
 
   return (
