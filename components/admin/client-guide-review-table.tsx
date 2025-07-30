@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { GuideReviewTable } from "@/components/admin/guide-review-table";
-import { PendingGuideVersion, pendingColumns, rejectedColumns } from "@/app/(dashboard)/admin/guides/columns";
+import {useState} from "react";
+import {ColumnDef} from "@tanstack/react-table";
+import {GuideReviewTable} from "@/components/admin/guide-review-table";
+import {PendingGuideVersion, pendingColumns, rejectedColumns} from "@/app/(dashboard)/admin/guides/columns";
+import {Button} from "@/components/ui/button";
 
 interface ClientGuideReviewTableProps<TPendingData, TRejectedData, TValue> {
   columns?: ColumnDef<TPendingData, TValue>[]; // Optional for backward compatibility
@@ -12,9 +13,9 @@ interface ClientGuideReviewTableProps<TPendingData, TRejectedData, TValue> {
 }
 
 export function ClientGuideReviewTable<TData extends PendingGuideVersion, TValue = unknown>({
-  pendingData,
-  rejectedData,
-}: ClientGuideReviewTableProps<TData, TData, TValue>) {
+                                                                                              pendingData,
+                                                                                              rejectedData,
+                                                                                            }: ClientGuideReviewTableProps<TData, TData, TValue>) {
   // Maintain client-side state of the data
   const [pendingItems, setPendingItems] = useState<TData[]>(pendingData);
   const [rejectedItems, setRejectedItems] = useState<TData[]>(rejectedData);
@@ -36,26 +37,20 @@ export function ClientGuideReviewTable<TData extends PendingGuideVersion, TValue
   return (
     <>
       <div className="flex space-x-2 mb-4">
-        <button
+        <Button
+          variant={activeTab === 'pending' ? 'default' : 'secondary'}
+          size="default"
           onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            activeTab === 'pending'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-          }`}
         >
           Pending
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={activeTab === 'rejected' ? "default" : "secondary"}
+          size="default"
           onClick={() => setActiveTab('rejected')}
-          className={`px-4 py-2 rounded-md text-sm font-medium ${
-            activeTab === 'rejected'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-          }`}
         >
           Rejected
-        </button>
+        </Button>
       </div>
 
       {currentData.length === 0 ? (
@@ -63,9 +58,9 @@ export function ClientGuideReviewTable<TData extends PendingGuideVersion, TValue
           There are no {activeTab} guide versions to review.
         </p>
       ) : (
-        <GuideReviewTable 
-          columns={currentColumns} 
-          data={currentData} 
+        <GuideReviewTable
+          columns={currentColumns}
+          data={currentData}
           onItemRemoved={handleItemRemoved}
         />
       )}
