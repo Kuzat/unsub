@@ -95,7 +95,7 @@ export default async function ServiceDetailPage({params}: ServiceDetailPageProps
                   href={service.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-primary hover:underline hover:text-primary/80 underline"
                 >
                   {service.url.replace(/^https?:\/\//, '').split('/')[0]}
                 </a>
