@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [new URL("https://logos.cdn.unsub.cash/**")],
     unoptimized: true,
+  },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb"
+    }
   }
 };
 

@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import {clsx, type ClassValue} from "clsx"
+import {twMerge} from "tailwind-merge"
 import crypto from "crypto"
 import {format} from "date-fns";
 
@@ -192,4 +192,29 @@ export function calculatePastRenewals(
 
 export function toIsoDate(date: Date): string {
   return format(date, "yyyy-MM-dd");
+}
+
+export function validateExternalUrl(externalUrl: string): boolean {
+  try {
+    const url = new URL(externalUrl)
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      console.error("validateExternalUrl: Only HTTP and HTTPS URLs are supported")
+      return false
+    }
+
+    // prevent localhost and private IP Access
+    if (['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(url.hostname) ||
+      url.hostname.startsWith("192.168.") ||
+      url.hostname.startsWith("10.") ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(url.hostname) ||
+      url.hostname.startsWith("169.254.")) {
+      console.error("validateExternalUrl: Private network addresses are not allowed");
+      return false
+    }
+
+    return true
+  } catch {
+    console.error("validateExternalUrl: Invalid URL format");
+    return false
+  }
 }

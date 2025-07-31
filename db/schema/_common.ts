@@ -45,3 +45,14 @@ export const serviceScopeEnum = pgEnum("service_scope", [
   "global", // Curated services, available to all users
   "user",   // Custom personal services, created and available only to the user that owns them
 ]);
+
+export const guideVersionStatusEnum = pgEnum("guide_version_status", [
+  "pending",
+  "approved",
+  "rejected"
+]);
+
+export const rateLimitActionEnum = pgEnum("rate_limit_action", [
+  "guide_edit",
+  "image_upload"
+]);

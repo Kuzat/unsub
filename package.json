@@ -12,6 +12,7 @@
     "db:save-cert": "tsx scripts/save-crt.ts",
     "job:subscriptions:processRenewals": "tsx scripts/run-renewal-job.ts",
     "job:reminders:process": "tsx scripts/run-reminder-job.ts",
+    "job:database:cleanup": "tsx scripts/run-database-cleanup-job.ts",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -63,6 +64,8 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "zod": "^3.24.3"

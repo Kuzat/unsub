@@ -3,6 +3,7 @@ import {createHash} from "node:crypto";
 import sharp from "sharp";
 import {exists, putObject} from "@/lib/storage";
 import {requireSession} from "@/lib/auth";
+import {validateExternalUrl} from "@/lib/utils";
 
 const LOGO_CDN_URL = process.env.LOGO_CDN_URL!;
 const MAX_LOGO_SIZE = 1 * 1024 * 1024; // 1 MB limit
@@ -18,9 +19,7 @@ export async function fetchLogo(originalUrl: string): Promise<FetchLogoResponse>
   // Auth
   await requireSession()
 
-  try {
-    new URL(originalUrl)
-  } catch {
+  if (!validateExternalUrl(originalUrl)) {
     return {error: 'Invalid URL'}
   }
 

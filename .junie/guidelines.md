@@ -109,6 +109,7 @@ The project uses Jest and React Testing Library for testing. To set up testing:
 - **Component Structure**: UI components are built using a combination of Radix UI primitives and custom styling with Tailwind CSS.
 - **Styling**: The project uses Tailwind CSS for styling. Use the `cn` utility function from `lib/utils.ts` to merge Tailwind classes.
 - **Path Aliases**: Use the `@/` path alias to import from the project root (e.g., `import { Button } from '@/components/ui/button'`).
+- **No explicit any**: Do not use the `any` type explicitly. 
 
 ### Authentication
 

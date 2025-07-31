@@ -1,7 +1,26 @@
-import {boolean, date, index, integer, numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
-import {billingCycleEnum, categoryEnum, currencyEnum, serviceScopeEnum, transactionTypeEnum} from "@/db/schema/_common";
+import {
+  boolean,
+  date, foreignKey,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique
+} from "drizzle-orm/pg-core";
+import {
+  billingCycleEnum,
+  categoryEnum,
+  currencyEnum,
+  guideVersionStatusEnum,
+  rateLimitActionEnum,
+  serviceScopeEnum,
+  transactionTypeEnum
+} from "@/db/schema/_common";
 import {user} from "@/db/schema/auth";
-import {relations} from "drizzle-orm";
+import {desc, relations} from "drizzle-orm";
 
 /* ---------- service ---------- */
 export const service = pgTable("service", {
@@ -93,26 +112,6 @@ export const transaction = pgTable(
   ]
 );
 
-/* ---------- relations ---------- */
-export const serviceRelations = relations(service, ({one, many}) => ({
-  owner: one(user, {fields: [service.ownerId], references: [user.id]}),
-  subscriptions: many(subscription),
-}));
-
-export const subscriptionRelations = relations(subscription, ({many, one}) => ({
-  user: one(user, {fields: [subscription.userId], references: [user.id]}),
-  service: one(service, {fields: [subscription.serviceId], references: [service.id]}),
-  transactions: many(transaction),
-}));
-
-export const transactionRelations = relations(transaction, ({one}) => ({
-  subscription: one(subscription, {
-    fields: [transaction.subscriptionId],
-    references: [subscription.id]
-  }),
-  user: one(user, {fields: [transaction.userId], references: [user.id]}),
-}));
-
 /* ---------- reminder-log ---------- */
 export const reminderLog = pgTable("reminder_log", {
   id: text("id").primaryKey(),
@@ -128,35 +127,52 @@ export const reminderLog = pgTable("reminder_log", {
   subscriptionRenewalIdx: index().on(t.subscriptionId, t.reminderDate)
 }));
 
-export const reminderLogRelations = relations(reminderLog, ({one}) => ({
-  subscription: one(subscription, {
-    fields: [reminderLog.subscriptionId],
-    references: [subscription.id],
-  }),
-}));
-
-
-/* ---------- cancellation guide (markdown) ---------- */
-export const cancellationGuide = pgTable("cancellation_guide", {
+/* ---------- cancellation guide ---------- */
+export const guide = pgTable("guide", {
   id: text("id").primaryKey(),
   serviceId: text("service_id")
     .notNull()
+    .unique()
     .references(() => service.id, {onDelete: "cascade"}),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => user.id, {onDelete: "cascade"}),
-  markdown: text("markdown").notNull(),
-  version: integer("version").notNull().default(1),
+  currentVersionId: text("current_version_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => [
+  foreignKey({
+    columns: [table.serviceId],
+    foreignColumns: [service.id],
+    name: "guide_service_id_service_id_fk"
+  }).onDelete("cascade"),
+]);
+
+/* ---------- cancellation guide versions ---------- */
+export const guideVersion = pgTable("guide_version", {
+  id: text("id").primaryKey(),
+  guideId: text("guide_id")
+    .notNull()
+    .references(() => guide.id, {onDelete: "cascade"}),
+  version: integer("version").notNull(),
+  bodyMd: text("body_md").notNull(),
+  changeNote: text("change_note"),
+  status: guideVersionStatusEnum("status").notNull().default("pending"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdBy: text("created_by")
+    .references(() => user.id, {onDelete: "set null"}),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by")
+    .references(() => user.id, {onDelete: "set null"}),
+}, (t) => ({
+  guideVersionUnique: unique().on(t.guideId, t.version),
+  guideIdVersionIdx: index("guide_id_status_version_idx").on(t.guideId, t.status, desc(t.version))
+}));
 
 /* ---------- guide vote ---------- */
 export const guideVote = pgTable("guide_vote", {
   id: text("id").primaryKey(),
   guideId: text("guide_id")
     .notNull()
-    .references(() => cancellationGuide.id, {onDelete: "cascade"}),
+    .references(() => guide.id, {onDelete: "cascade"}),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, {onDelete: "cascade"}),
@@ -164,6 +180,25 @@ export const guideVote = pgTable("guide_vote", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/* ---------- guide images ---------- */
+export const guideImage = pgTable("guide_image", {
+  id: text("id").primaryKey(),
+  guideId: text("guide_id")
+    .notNull()
+    .references(() => guide.id, {onDelete: "cascade"}),
+  originalUrl: text("original_url"),
+  cdnUrl: text("cdn_url").notNull(),
+  imageHash: text("image_hash").notNull(),
+  altText: text("alt_text"),
+  width: integer("width"),
+  height: integer("height"),
+  fileSize: integer("file_size"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  guideIdx: index("guide_image_guide_idx").on(t.guideId),
+  hashIdx: index("guide_image_hash_idx").on(t.imageHash)
+}));
 
 /* ---------- user settings ---------- */
 export const userSettings = pgTable("user_settings", {
@@ -179,8 +214,18 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const userSettingsRelations = relations(userSettings, ({one}) => ({
-  user: one(user, {fields: [userSettings.userId], references: [user.id]}),
+/* ---------- rate limiting ---------- */
+export const rateLimitLog = pgTable("rate_limit_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {onDelete: "cascade"}),
+  actionType: rateLimitActionEnum("action_type").notNull(),
+  resourceId: text("resource_id"), // Optional, for per-resource limits
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  userActionIdx: index("rate_limit_user_action_idx").on(t.userId, t.actionType, t.createdAt),
+  userResourceIdx: index("rate_limit_user_resource_idx").on(t.userId, t.actionType, t.resourceId, t.createdAt)
 }));
 
 /* ---------- fx rates ---------- */

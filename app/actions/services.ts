@@ -12,6 +12,7 @@ import {user} from "@/db/schema/auth";
 import {ServiceWithUser} from "@/app/(dashboard)/admin/service-catalog/columns";
 import {unauthorized} from "next/navigation";
 import {fetchLogo} from "@/app/actions/logo";
+import {Guide, GuideVersion} from "@/app/actions/guides";
 
 export type Service = typeof service.$inferInsert;
 
@@ -337,6 +338,58 @@ export async function updateService(
     return {error: "Failed to update service"};
   }
 }
+
+// This type represents the service with the guide relation included.
+type ServiceWithGuide = Service & {
+  guide: (Guide & {
+    currentVersion: GuideVersion | null;
+  }) | null;
+};
+
+export type FetchServiceByIdOptions = {
+  id: string;
+  withGuide?: boolean | { withVersions?: boolean, limit?: number };
+}
+
+// Overload for when `withGuide` is true
+export async function fetchServiceById(options: FetchServiceByIdOptions & {
+  withGuide: true | object
+}): Promise<ServiceWithGuide | undefined>;
+// Overload for when `withGuide` is false or undefined
+export async function fetchServiceById(options: FetchServiceByIdOptions & {
+  withGuide?: false | undefined
+}): Promise<Service | undefined>;
+// Implementation
+export async function fetchServiceById({
+                                         id,
+                                         withGuide
+                                       }: FetchServiceByIdOptions): Promise<Service | ServiceWithGuide | undefined> {
+  const session = await requireSession()
+  const userIsAdmin = isAdmin(session)
+
+  const serviceResult = await db.query.service.findFirst({
+    where: and(
+      eq(service.id, id),
+      userIsAdmin ? undefined : or(
+        and(
+          eq(service.scope, "user"),
+          eq(service.ownerId, session.user.id)
+        ),
+        eq(service.scope, "global")
+      )
+    ),
+    with: withGuide ? {
+      guide: {
+        with: {
+          currentVersion: true,
+        }
+      }
+    } : undefined,
+  })
+
+  return serviceResult;
+}
+
 
 export async function getServiceById(serviceId: string): Promise<Service | { error: string }> {
   const session = await requireSession()

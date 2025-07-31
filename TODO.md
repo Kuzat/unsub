@@ -31,8 +31,6 @@ A list of potential ideas and tasks that need to be implemented. These items are
 - [ ] Simplify service creation
   - [ ] Allow users to add services by URL
   - [ ] Auto-fill service form fields by extracting information from websites
-- [ ] Implement a daily cleanup job
-  - [ ] Remove unused logos from storage that aren't linked to any services
 
 ## Cancellation Guides
 
@@ -63,3 +61,5 @@ A list of potential ideas and tasks that need to be implemented. These items are
   
 ## Unsorted
 - [ ] Add back a job that creates new transactions for renewals for subscriptions not tracked from bank transactions
+- [ ] refactor all drizzle query to use the drizzle relational queries.
+- [ ] Add information about the cost in the renewal reminder message

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {Calendar, CloudCog, Cog, LifeBuoy, Send, SquareTerminal, UserRound, UserRoundCog,} from "lucide-react"
+import {Calendar, CloudCog, Cog, LifeBuoy, Send, SquareTerminal, UserRound, UserRoundCog, BookOpen} from "lucide-react"
 
 import {NavMain} from "@/components/nav-main"
 import {NavSecondary} from "@/components/nav-secondary"
@@ -84,6 +84,12 @@ const data = {
       title: "Service Catalog",
       url: "/admin/service-catalog",
       icon: CloudCog,
+      collapsible: false,
+    },
+    {
+      title: "Guides",
+      url: "/admin/guides",
+      icon: BookOpen,
       collapsible: false,
     }
   ],
